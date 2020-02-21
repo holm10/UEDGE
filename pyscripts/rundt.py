@@ -3,15 +3,15 @@
 #           Writes and reads dictionary with multi-dimensional arrays
 #           containing all restore-parameters.
 
-def rundt(  dtreal,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2max=5,ftol_dt=1e-5,itermx=7,rlx=0.9,n_stor=0,
+def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2max=5,ftol_dt=1e-5,itermx=7,rlx=0.9,n_stor=0,
             tstor=(1e-3,4e-2),incpset=7,dtmfnk3=1e-4):
     ''' Function advancing case time-dependently: increasing time-stepping is the default to attain SS solution
     rdrundt(dtreal,**keys)
 
     Variables
-    dtreal                  The inital time step time
 
     Keyword parameters:
+    dtreal[1e-9]            The inital time step time
     nfe_tot[0]              Number of function evaluations
     savedir[savedt]         Directory where hdf5 savefile is written
     dt_tot[0]               Total time accummulated: default option resets time between runs    
@@ -89,6 +89,9 @@ def rundt(  dtreal,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2max=5
         print("*---------------------------------------------------------*")
         bbb.icntnunk = 0
         bbb.exmain()
+        if bbb.exmain_aborted: # If exmain is aborted, exit script
+            bbb.exmain_aborted=False # Restore False for consecutive runs
+            return
         bbb.dtreal = bbb.dtreal*bbb.mult_dt #compensates dtreal divided by mult_dt below
 
     if (bbb.iterm != 1):
@@ -226,6 +229,9 @@ def rundt(  dtreal,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2max=5
             bbb.isdtsfscal = isdtsf_sav
             bbb.ftol = max(min(bbb.ftol_dt, 0.01*fnrm_old),bbb.ftol_min)
             bbb.exmain() # take a single step at the present bbb.dtreal
+            if bbb.exmain_aborted: # If exmain is aborted, exit script
+                bbb.exmain_aborted=False # Restore False for consecutive runs
+                return
             if (bbb.iterm == 1):
                 bbb.dt_tot += bbb.dtreal
                 nfe_tot += bbb.nfe[0,0]
@@ -246,6 +252,9 @@ def rundt(  dtreal,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2max=5
                 bbb.itermx = bbb.itermxrdc
                 bbb.ftol = max(min(bbb.ftol_dt, 0.01*fnrm_old),bbb.ftol_min)
                 bbb.exmain()
+                if bbb.exmain_aborted: # If exmain is aborted, exit script
+                    bbb.exmain_aborted=False # Restore False for consecutive runs
+                    return
                 if (bbb.iterm == 1):
                     bbb.ylodt = bbb.yl
                     bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
