@@ -240,6 +240,7 @@ isnupdot1sd               integer /0/  #=0, use 2-pt ndot for (n*up)_dot;
 isphicore0		  integer /0/  #=1 sets phi=0 in core if isphion=1
 is_z0_imp_const           integer /0/  #=0 use hydr Keilhacker;=1 z0_imp_const
 z0_imp_const              real    /1./ #z0 in therm force if is_z0_imp_const=1
+ismolcrm                  integer  /1/ # =1 uses CRUMPET rates, =0 uses old model
 					
 ***** Model_choice restart:
 #Flags for choosing one or another calculation of a part of the model

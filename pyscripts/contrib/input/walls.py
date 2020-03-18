@@ -4,7 +4,7 @@
 # 200213 - file created
 from uedge import bbb,com,grd,flx,api
 
-def uniform_recycle_pump(recycH0=1e-10, recycH2=1, recycZ=1e-10, pumpH0=0.01, pumpH2=0.01, pumpZ=0,recycm=-0.9):
+def uniform_recycle_pump(recycH0=1e-10, recycH2=1, recycZ=1e-10, pumpH0=0.01, pumpH2=0.01, pumpZ=0,recycm=-0.9,nwsor=None):
     ''' Deck to set up recycling of gas species and spatially constant pumping of gaseous species
     H0H2_recycling_pump(recycH0,recycH2,pumpH0,pumpH2,pumpZ,recycm)
 
@@ -89,11 +89,14 @@ def uniform_recycle_pump(recycH0=1e-10, recycH2=1, recycZ=1e-10, pumpH0=0.01, pu
 
     # Set the number of wall source regions 
     # Arrays below are only considered up to this BASIS index! [e.g. for nwsor=3 the 3 first indexes are considered)
-    bbb.nwsor=1+bbb.ishymol     
-    for ind in com.nzsp:
-        if ind>0:
-            bbb.nwsor+=1
-    
+    if nwsor is None:
+        bbb.nwsor=1+bbb.ishymol     
+        for ind in com.nzsp:
+            if ind>0:
+                bbb.nwsor+=1
+    else:
+        bbb.nwsor=nwsor
+        
     pZ=1-pumpZ  # Impurity pumping rate helper
 
 
@@ -118,7 +121,7 @@ def uniform_recycle_pump(recycH0=1e-10, recycH2=1, recycZ=1e-10, pumpH0=0.01, pu
 
 
 def target_wall_recycle_pump(   recycH0_wall=1e-10, recycH0_target=1e-10, recycH2_wall=1,recycH2_target=1, recycZ_target=1e-10, recycZ_wall=1e-10,
-                                pumpH0_wall=0.01, pumpH0_target=0.01, pumpH2_wall=0.01, pumpH2_target=0.01, pumpZ_wall=0, pumpZ_target=0, recycm=-0.9):
+                                pumpH0_wall=0.01, pumpH0_target=0.01, pumpH2_wall=0.01, pumpH2_target=0.01, pumpZ_wall=0, pumpZ_target=0, recycm=-0.9, nwsor=None):
     ''' Deck to set up recycling of gas species: different rates at walls and targets
     H0H2_recycling_pump(recycH0,recycH2,pumpH0,pumpH2,pumpZ,recycm)
 
@@ -203,10 +206,13 @@ def target_wall_recycle_pump(   recycH0_wall=1e-10, recycH0_target=1e-10, recycH
 
     # Set the number of wall source regions 
     # Arrays below are only considered up to this BASIS index! [e.g. for nwsor=3 the 3 first indexes are considered)
-    bbb.nwsor=1+bbb.ishymol     
-    for ind in com.nzsp:
-        if ind>0:
-            bbb.nwsor+=1
+    if nwsor is None:
+        bbb.nwsor=1+bbb.ishymol     
+        for ind in com.nzsp:
+            if ind>0:
+                bbb.nwsor+=1
+    else:
+        bbb.nwsor=nwsor
     
     pZ=1-pumpZ_wall  # Impurity pumping rate helper
 

@@ -1032,6 +1032,8 @@ c ... Initialize Multicharge rate table dimensions
       rtnsd=0
 c ... Set up tables for hydrogenic atomic-physics processes.
       if (newaph == 1) call aphread
+c ... Set up CRM data for molecules
+      if (ismolcrm .eq. 1) call crumpetread
 c ... Set up tables for impurity atomic-physics processes.
       if (isimpon .eq. 1) then		# obsolete option
          call xerrab ('ueinit -- option isimpon=1 is obsolete; use 2')

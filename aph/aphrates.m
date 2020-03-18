@@ -1326,3 +1326,115 @@ c     local variables --
       end
 
 c----------------------------------------------------------------------c
+      real function sv_crumpet (te, ne, rate)
+      implicit none
+      real te, ne
+      integer rate
+
+Use(Dim)
+Use(Share)                # istabon
+Use(Physical_constants)   # ev
+Use(Data_input)
+Use(Rtdata)
+Use(Rtcrumpet)
+
+c     local variables --
+      integer je,jd
+      real zloge,zlogd,rle,rld,fje,fjd,mins,epsilon,
+     .     svd_crm11,svd_crm12,svd_crm21,svd_crm22,svd_crm1,svd_crm2
+
+
+c     Compute molecular dissociation rate - A. Holm's CRUMPET
+c     te [J]          = electron temperature
+c     ne [/m**3]      = electron density
+c     rate            = rate to access
+c                       10: mol. diss
+c                       11: atom source from mol dis
+c                       20: el. energy change from mol interactions
+c                       21: i/a energy change from mol interactions
+c                       22: Epot (binding E) change from mol interactions
+c                       23: Radiation source from mol interactions
+c     svma_crumpet [m**3/s]    = radiation rate
+
+c----------------------------------------------------------------------c
+c     Logarithmic interpolation as in Stotler-95
+
+
+c     compute abscissae --
+         zloge=log(te/ev)
+         rle=max(crlemin, min(zloge,crlemax))
+         zlogd=log10(ne)
+         rld=max(crldmin, min(zlogd,crldmax))
+c     table indicies for interpolation --
+         je=int((rle-crlemin)/cdelekpt) + 1
+         je=min(je,cmpe-1)
+         jd=int((rld-crldmin)/cdeldkpt) + 1
+         jd=min(jd,cmpd-1)
+c     fractional parts of intervals (je,je+1) and (jd,jd+1) --
+         fje=(rle-cekpt(je))/(cekpt(je+1)-cekpt(je))
+         fjd=(rld-cdkpt(jd))/(cdkpt(jd+1)-cdkpt(jd))
+
+c     pick the appropriate matrix to interpolate from
+         if (rate .eq. 10) then
+              svd_crm11=crmdiss(je,jd) 
+              svd_crm12=crmdiss(je,jd+1)
+              svd_crm21=crmdiss(je+1,jd) 
+              svd_crm22=crmdiss(je+1,jd+1)
+         elseif (rate .eq. 11) then
+              svd_crm11=crmarate(je,jd) 
+              svd_crm12=crmarate(je,jd+1)
+              svd_crm21=crmarate(je+1,jd) 
+              svd_crm22=crmarate(je+1,jd+1)
+         elseif (rate .eq. 20) then
+              svd_crm11=crmselm(je,jd) 
+              svd_crm12=crmselm(je,jd+1)
+              svd_crm21=crmselm(je+1,jd) 
+              svd_crm22=crmselm(je+1,jd+1)
+         elseif (rate .eq. 21) then
+              svd_crm11=crmsiam(je,jd) 
+              svd_crm12=crmsiam(je,jd+1)
+              svd_crm21=crmsiam(je+1,jd) 
+              svd_crm22=crmsiam(je+1,jd+1)
+         elseif (rate .eq. 22) then
+              svd_crm11=crmspotm(je,jd) 
+              svd_crm12=crmspotm(je,jd+1)
+              svd_crm21=crmspotm(je+1,jd) 
+              svd_crm22=crmspotm(je+1,jd+1)
+         elseif (rate .eq. 23) then
+              svd_crm11=crmsradm(je,jd) 
+              svd_crm12=crmsradm(je,jd+1)
+              svd_crm21=crmsradm(je+1,jd) 
+              svd_crm22=crmsradm(je+1,jd+1)
+         else    
+              call remark("Rate option not recognized!")
+         endif
+              
+         
+
+
+c     Here, offset to positive values to handle depletion processes
+         epsilon=1e-14
+         mins=min(svd_crm11,svd_crm12,svd_crm21,svd_crm22)
+         svd_crm11=log(svd_crm11-mins+epsilon)
+         svd_crm12=log(svd_crm12-mins+epsilon)
+         svd_crm21=log(svd_crm21-mins+epsilon)
+         svd_crm22=log(svd_crm22-mins+epsilon)
+         svd_crm1=svd_crm11+fjd*(svd_crm12-svd_crm11)
+         svd_crm2=svd_crm21+fjd*(svd_crm22-svd_crm21)
+c     Here, shift back to negative values
+         sv_crumpet = exp( svd_crm1 + fje*(svd_crm2-svd_crm1) )+mins-epsilon
+c----------------------------------------------------------------------c
+      return
+      end
+
+
+
+
+
+
+
+
+
+
+
+
