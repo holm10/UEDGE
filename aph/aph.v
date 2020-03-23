@@ -12,8 +12,8 @@ sgvcxc   real [m^2/s] /2.e-14/# const. value of sigv_cx for issgvcxc=1;
 			      # with units now [m^2]
 isaphdir integer       /1/    #=1 uses aphdir; =0 uses explicit rate file names
 aphfname character*120 /"ehr2.dat"/ # Name of ehr-file to load
-crmnfname character*120 /"crumpet_n.dat"/ # Name of CRM rate data file
-crmefname character*120 /"crumpet_e.dat"/ # Name of CRM E-sink data file
+crmnfname character*120 /"crumpet_nrates.dat"/ # Name of CRM rate data file
+crmefname character*120 /"crumpet_Erates.dat"/ # Name of CRM E-sink data file
 aphdir	character*120 # name of directory containing data files
 data_directory	character*120 # another dirname containing data files. This is to be be passed in
 

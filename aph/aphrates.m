@@ -1340,7 +1340,7 @@ Use(Rtcrumpet)
 
 c     local variables --
       integer je,jd
-      real zloge,zlogd,rle,rld,fje,fjd,mins,epsilon,
+      real zloge,zlogd,rle,rld,fje,fjd,mins,maxs,epsilon,
      .     svd_crm11,svd_crm12,svd_crm21,svd_crm22,svd_crm1,svd_crm2
 
 
@@ -1348,13 +1348,13 @@ c     Compute molecular dissociation rate - A. Holm's CRUMPET
 c     te [J]          = electron temperature
 c     ne [/m**3]      = electron density
 c     rate            = rate to access
-c                       10: mol. diss
-c                       11: atom source from mol dis
-c                       20: el. energy change from mol interactions
-c                       21: i/a energy change from mol interactions
-c                       22: Epot (binding E) change from mol interactions
-c                       23: Radiation source from mol interactions
-c     svma_crumpet [m**3/s]    = radiation rate
+c                       10: mol. diss, X=[]
+c                       11: atom source from mol dis, X=[]
+c                       20: el. energy change from mol interactions, X=[J]
+c                       21: i/a energy change from mol interactions, X=[J]
+c                       22: Epot (binding E) change from mol interactions, X=[J]
+c                       23: Radiation source from mol interactionsm X=[J]
+c     svma_crumpet [X/s]    = radiation rate
 
 c----------------------------------------------------------------------c
 c     Logarithmic interpolation as in Stotler-95
@@ -1410,19 +1410,44 @@ c     pick the appropriate matrix to interpolate from
          endif
               
          
+c ... Check whether we have all positive, all negative, or zero crossing
+            mins=min(svd_crm11,svd_crm12,svd_crm21,svd_crm22)
+            maxs=max(svd_crm11,svd_crm12,svd_crm21,svd_crm22)
+            if (mins .gt. 0) then
+c ... Minimum is positive, normal interpolation
+                svd_crm11=log(svd_crm11)
+                svd_crm12=log(svd_crm12)
+                svd_crm21=log(svd_crm21)
+                svd_crm22=log(svd_crm22)
+                svd_crm1=svd_crm11+fjd*(svd_crm12-svd_crm11)
+                svd_crm2=svd_crm21+fjd*(svd_crm22-svd_crm21)
+                sv_crumpet = exp( svd_crm1 + fje*(svd_crm2-svd_crm1) )
 
+            elseif (maxs .lt. 0) then
+c ... Maximum is negative, interpolate of negative values
+                svd_crm11=log(-svd_crm11)
+                svd_crm12=log(-svd_crm12)
+                svd_crm21=log(-svd_crm21)
+                svd_crm22=log(-svd_crm22)
+                svd_crm1=svd_crm11+fjd*(svd_crm12-svd_crm11)
+                svd_crm2=svd_crm21+fjd*(svd_crm22-svd_crm21)
+                sv_crumpet = -exp( svd_crm1 + fje*(svd_crm2-svd_crm1) )
 
-c     Here, offset to positive values to handle depletion processes
-         epsilon=1e-14
-         mins=min(svd_crm11,svd_crm12,svd_crm21,svd_crm22)
-         svd_crm11=log(svd_crm11-mins+epsilon)
-         svd_crm12=log(svd_crm12-mins+epsilon)
-         svd_crm21=log(svd_crm21-mins+epsilon)
-         svd_crm22=log(svd_crm22-mins+epsilon)
-         svd_crm1=svd_crm11+fjd*(svd_crm12-svd_crm11)
-         svd_crm2=svd_crm21+fjd*(svd_crm22-svd_crm21)
-c     Here, shift back to negative values
-         sv_crumpet = exp( svd_crm1 + fje*(svd_crm2-svd_crm1) )+mins-epsilon
+            else
+c ... Zero-crossing – linear interpolation   
+                jd=jd-1
+                je=je-1
+                fjd=((ne/1e6)-(10**(10+0.5*jd)))/ (10**(10+0.5*jd)*(10**0.5 - 1) )
+                fje=(te/ev - (10**(-1.2+0.1*je)))/( (10**(-1.2+0.1*je))*(10**0.1-1))
+
+                svd_crm1=svd_crm11+fjd*(svd_crm12-svd_crm11)
+                svd_crm2=svd_crm21+fjd*(svd_crm22-svd_crm21)
+                sv_crumpet = svd_crm1 + fje*(svd_crm2-svd_crm1)
+                
+
+            endif
+        
+
 c----------------------------------------------------------------------c
       return
       end

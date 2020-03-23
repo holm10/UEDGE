@@ -158,7 +158,6 @@ c     FACETS replaces aphdirx with aphdir in calls to findFile below
       call basfilex(aphdir,aphdirx)
 
 c...  Set-up tables for particle and energy sinks due to molecules
-      if (ismolcrm .eq. 1) then
          cmpe=60
          cmpd=15
          call gallot("Rtcrumpet",0)
@@ -167,7 +166,6 @@ c...  Set-up tables for particle and energy sinks due to molecules
          call findFile(crmefname, aphdirx, dataDir, adname, isaphdir)
          call readcrumpete(TRIM(adname))
          call setcrmvar
-      endif
 
       return
       end
@@ -953,6 +951,7 @@ c----------------------------------------------------------------------c
       open (nget, file=fname, form='formatted', iostat=ios,
      .     status='old')
       if (ios .ne. 0) then
+      write(*,*) fname
          call xerrab('**** CRM rate file not found; set aphdir
      . path')
       endif
@@ -1002,8 +1001,8 @@ c     No re-association considered, discard zeros
 c     convert to SI units:
       do jt=1,cmpe
          do jd=1,cmpd
-            crmdiss(jt,jd)=crmdiss(jt,jd)*1.0e-06
-            crmarate(jt,jd)=crmarate(jt,jd)*1.0e-06
+            crmdiss(jt,jd)=crmdiss(jt,jd)
+            crmarate(jt,jd)=crmarate(jt,jd)
          enddo
       enddo
 
@@ -1127,10 +1126,10 @@ c     Considered by UEDGE, discard zeros
 c     convert to SI units:
       do jt=1,cmpe
          do jd=1,cmpd
-            crmselm(jt,jd)= crmselm(jt,jd)*ev*1e-6
-            crmsiam(jt,jd)= crmsiam(jt,jd)*ev*1e-6
-            crmspotm(jt,jd)= crmspotm(jt,jd)*ev*1e-6
-            crmsradm(jt,jd)= crmsradm(jt,jd)*ev*1e-6
+            crmselm(jt,jd)= crmselm(jt,jd)*ev*1e-0
+            crmsiam(jt,jd)= crmsiam(jt,jd)*ev*1e-0
+            crmspotm(jt,jd)= crmspotm(jt,jd)*ev*1e-0
+            crmsradm(jt,jd)= crmsradm(jt,jd)*ev*1e-0
          enddo
       enddo
 

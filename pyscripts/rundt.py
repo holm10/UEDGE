@@ -315,9 +315,6 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
             bbb.iterm = 1
 
 
-    if bbb.iterm!=1:
-        print('Unconverged case dropped out of loop: try again! Terminating...')
-        return
 
     # Save the data to HDF5
     if n_stor>0:
@@ -392,7 +389,7 @@ def itroub():
     print(bbb.igyl[itrouble-1,])
     print(" ")
     print("** Timestep for troublemaker equation:")
-    print(bbb.dtuse[itrouble-1])
+    print(bbb.dtreal)
     print(" ")
     print("** yl for troublemaker equation:")
     print(bbb.yl[itrouble-1])
