@@ -141,6 +141,116 @@ def snull(  gridpath='.', plate=None, nx_ileg=12, nx_oleg=10, nxcore_inside=14, 
         plate()  # Import plate geo
 
 
+def slab_neumann(   radx=5e-2, rad0=0, radm=-1e-2, za0=0, zaxpt=2, zax=3, alfyt=-2, alfxt=4.0,
+                    isadjalfxt=0, btfix=2, bpolfix=0.2, gengrid=1, nxxpt=0,nxmod=2,alfxptu=1, alfcy=1e-4,
+                    nx_oleg=32, nxcore_outside=12, nycore=6, nysol=12, dmix0=0):
+    '''
+    Function for defining the grid setup in UEGDE
+    '''
+    """=====================================================================================================
+    GRID
+    ====================================================================================================="""
+    # Geometry definition
+    #- - - - - - - - - - -
+    bbb.ngrid=1             # Number of grids to allocate space for: odesetup.m L6488
+
+    bbb.mhdgeo=-1           # Grid geometry:
+                                #=-2 mag mirror (FRC-annulus)   
+                                #=-1 cartesian geometry
+                                #=0: cylindrical geometry
+                                #=1: toroidal MHD equilibrium
+                                #=2: toroidal circular limiter
+
+
+    bbb.isfixlb[0]=2    # =1 fixes values on left boundary (nib, upb, teb, tib, yylb0)
+                        # =2 for symmetry point
+    grd.radx=radx       # Maximum radius of cylinder or outer wall location for slab [m]
+    grd.rad0=rad0       # Radial separatrix location for cylinder and slab [m]
+    grd.radm=radm      # Minimum radius of cylinder or inner wall location for slab [m]
+    grd.za0=za0           # Axial position of LHB
+    grd.zaxpt=zaxpt         # Axial position of XPT
+    grd.zax=zax           # Axial position of RHB
+    grd.alfyt=alfyt        # Radial nonuniformity factor
+    grd.alfxt=alfxt   # Axial nonuniformity factor
+    grd.isadjalfxt=isadjalfxt    # Alter alfxt for smooth dx at XPT
+    grd.btfix=btfix         # Total B-field for slab
+    grd.bpolfix=bpolfix     # Poloidal B-field for slab
+
+    com.geometry="snull"    # Magnetic configuration
+                                #'snull': lower single null
+                                #'uppersn': upper single null
+                                #'dnbot': bottom half of double null
+                                #'dnull': full double null
+                                #'snowflake15': Ryutov's theta~15 deg
+                                #'snowflake45': Ryutov's theta~45 deg
+                                #'snowflake75': Ryutov's theta~75 deg
+                                #'dnXtarget': dnbot with Xtarget
+
+    com.isnonog=0           # switch determining if 9-point differencing is on for non-orthogonal meshes
+
+
+    # Generate grid
+    bbb.gengrid=gengrid           #1= generates grid, 0=restores grid from gridue 
+
+
+    # Cells
+    #- - - - 
+    com.nxleg[0,]=[0,nx_oleg]                 # Number of poloidal cells in 1st divertor leg [inside, outside]
+    com.nxcore[0,]=[0,nxcore_outside]   # Number of poloidal cells along 1st core boundary [inside, outside]
+    com.nycore[0]=nycore                            # Number of radial zones in 1st core of plasma
+    com.nysol[0]=nysol                              # Number of radial zones in 1st SOL
+
+    com.nxxpt=nxxpt             # Number of extra poloidal cells at X-point (per quadrant)
+    grd.nxmod=nxmod             # Number of "upstream" poloidal cells (per quadrant) in the
+                            #   original mesh that are modified by subroutine refinex
+
+    bbb.isybdryog=0         #=1 sets fx0, fmx stencil to orthogonal values at iy=0 & iy=ny
+
+    # Shaping
+    #- - - - -
+    grd.alfxptu=alfxptu        # Variable for extra X-point grid spacign above X-point:
+                            #  frac=(i/(nxxpt+nxmod))**alfxptu 
+
+    flx.alfcy=alfcy           # SOL flux contour distribution:
+                            #  <1: uniform
+                            #  >1: concentrated near sep
+
+    grd.slpxt=1           # Slope enchantment factor for x(t) near core crown
+
+    grd.kxmesh=1            # X-mesh definition model:
+                                #=0: old model (manual def. of seed points)
+                                #=1: linear*rational form for x(t)
+                                #=2: linear*exponential form for x(t)
+                                #=3: spline form for x(t)
+                                #=4: exponential+spline form for x(t)
+
+    flx.istchkon=0
+
+    flx.altsearch=0         # Search path for PF surfaces:
+                                #=0: search vertically up toward x-point
+                                #=1: search vertically down from x-point
+                                #=2: search diagonally down and in from x-point
+
+    com.ismmon=0            # Mesh modification:
+                                #=0: strictly orthogonal mesh and divertor plates
+                                #=1: non-orthogonal mesh, compressed distrib'n on each surface
+                                #=2: non-orthogonal mesh, standard distrib'n on all surfaces
+                                #=3: combination of options 1 and 2 using weight factor wtmesh1
+
+
+    grd.istream=0           # Parameter dir fixed upstream reference surface
+                                #=0: midplane+cut(ismmon=1) or top-of-mesh(ismmon=2)
+                                #=1: user-defined upstream surface arrays
+
+    grd.nsmooth=2           # Number of times to apply the smoothing algorithm to each
+                            #   angle-like surface after non-orthogonal plate construction
+
+    grd.dmix0=dmix0           # Normalized poloidal mixing length for combining mesh0 with mesh 12
+                                #=0: abrupt  change from orthogonal mesh to mesh12 at upstream position
+                                #=1: gradual change from orthogonal mesh to mesh12 between upstream an downstram pos    
+
+    grd.iplate=0
+    
 
 
 def mesh_seed_points():
