@@ -5,7 +5,8 @@
 from uedge import bbb,com,grd,flx,aph
 
 
-def powerdens_core(pcoree,pcorei,ncore,aphpath='.',lyni=[0.05,0.05],nwomin=1e15,lyte=[0.05,0.05],lyti=[0.05,0.05],nwimin=1e16,isplflxl=1,ngbackg=1e13,cngflox=1,cngfloy=1
+def powerdens_core(pcoree,pcorei,ncore,aphpath='.',lyni=[0.05,0.05],nwomin=1e15,lyte=[0.05,0.05],lyti=[0.05,0.05],nwimin=1e16,isplflxl=1,ngbackg=1e13,cngflox=1,cngfloy=1,
+                    isngcore=1,albedoc=0.5,isupcore=1,xstscal=0.02,ngscal=1,xgscal=0.01,cfloxiplt=1
 
 ):
     """ Plasma setup with power and density BC at core
@@ -40,13 +41,14 @@ def powerdens_core(pcoree,pcorei,ncore,aphpath='.',lyni=[0.05,0.05],nwomin=1e15,
     bbb.cngtgy=0.   # Y-flux coefficient for gaseous component i in ion energy equation
 
     corepower(pcoree,pcorei)    # Set power BC for ions at core bound
-    coremomentum_neumann()     # Set neumann momentum BC for plasma at core bound
+    coremomentum(isupcore)     # Set neumann momentum BC for plasma at core bound
     coredens(ncore)             # Set dirichlet BC for plasma at core bound
     
     wall_BC_scalelength(lyni=lyni,nwomin=nwomin,lyte=lyte,lyti=lyti,nwimin=nwimin,isplflxl=isplflxl)       # Set gradient scal-length wall BCs
 
     ''' Atom model setup '''
-    inertial_atoms(ngbackg=ngbackg,cngflox=cngflox,cngfloy=cngfloy)    # Activate intertial atoms 
+    inertial_atoms( ngbackg=ngbackg,cngflox=cngflox,cngfloy=cngfloy,isngcore=isngcore,albedoc=albedoc, 
+                    isupcore=isupcore,xstscal=xstscal,ngscal=ngscal,xgscal=xgscal,cfloxiplt=cfloxiplt)    # Activate intertial atoms 
 
     ''' Rate model setup '''
     Stotler_loglog()    # Use Stotler log-log rate file
@@ -129,9 +131,9 @@ def Stotler_loglog(icnucx=0,cnucx=0,icnuiz=0,cnuiz=5e4,isrecmon=1,cfrecom=1,eion
 
 
 
-def inertial_atoms( istgcon=0,tgas=0,tgcore=100,istgcore=1,cfloxiplt=1,
-                    cngfx=1,cngfy=1,cngflox=1,cngfloy=1,cngmom=0,cmwall=0,cfbgt=0,kxn=0,kyn=0,ngbackg=1e13
-                   ):
+def inertial_atoms( istgcon=0,tgas=0,tgcore=100,istgcore=1,cfloxiplt=1, isngcore=1,albedoc=1,
+                    cngfx=1,cngfy=1,cngflox=1,cngfloy=1,cngmom=0,cmwall=0,cfbgt=0,kxn=0,kyn=0,ngbackg=1e13,
+                   isupcore=1,xstscal=0.02,ngscal=1,xgscal=0.01):
     """-----------------------------------------------------------------------------------------------------
     ATOMIC SPECIES SETUP
     -----------------------------------------------------------------------------------------------------"""
@@ -155,7 +157,7 @@ def inertial_atoms( istgcon=0,tgas=0,tgcore=100,istgcore=1,cfloxiplt=1,
     #- - - - - - - - - 
     # Density
     bbb.isnicore[1]=0    # Switch off neutral ion BC:s 
-    bbb.isngcore[0]=1    # Neutral gas core boundary conditions
+    bbb.isngcore[0]=isngcore    # Neutral gas core boundary conditions
                                 #=0, set loc flux= -(1-albedoc)*ng*vtg/4
                                 #=1, set uniform, fixed density, ngcore
                                 #=2, set rad. grad. to sqrt(lam_i*lam_cx)
@@ -163,10 +165,12 @@ def inertial_atoms( istgcon=0,tgas=0,tgcore=100,istgcore=1,cfloxiplt=1,
                                 #=anything else, set zero deriv which was
                                 # prev default inert hy
                                 # anything else same as =0
+    if bbb.isngcore[0]==0: 
+        bbb.albedoc[0]=albedoc
     bbb.ngcore[0]=2.e13  # Core H0 density
 
     # Momentum
-    bbb.isupcore[1]=1    # Velocity BC:
+    bbb.isupcore[1]=isupcore    # Velocity BC:
                                 #=0; Dirichlet BC: up=upcore
                                 #=1; Neumann BC: d(up)/dy=0
                                 #=2 sets d^2(up)/dy^2 = 0
@@ -267,11 +271,12 @@ def coredens(ncore):
     bbb.ncore[0]=ncore   # H+ core density [m^-3]
 
 
-def coremomentum_neumann():
+
+def coremomentum(isupcore):
     ''' Set Neumann momentum BC for plasma at core bound '''
     # Core momentum BC
     #- - - - - - - - - - - - - -
-    bbb.isupcore[0]=1 # Velocity BC:
+    bbb.isupcore[0]=isupcore # Velocity BC:
                             #=0; Dirichlet BC: up=upcore
                             #=1; Neumann BC: d(up)/dy=0
                             #=2 sets d^2(up)/dy^2 = 0

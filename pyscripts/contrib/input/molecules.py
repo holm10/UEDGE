@@ -15,7 +15,7 @@ def activate_mol():
     
 
 
-def constantTm(Tm,n0g=1e17,ngbackg=1e11,kelighg=5e-16,kelighi=5e-16,cngfx=0,cngfy=0,cfcvtg=1,cftgcond=1):
+def constantTm(Tm,n0g=1e17,ngbackg=1e11,kelighg=5e-16,kelighi=5e-16,cngfx=0,cngfy=0,cfcvtg=1,cftgcond=1,ismolcrm=1):
 
     """====================================================================================================
     MOLECULAR HYDROGEN SETUP FOR MOLECULES WITH SPATIALLY CONSTANT TEMPERAUR
@@ -26,7 +26,8 @@ def constantTm(Tm,n0g=1e17,ngbackg=1e11,kelighg=5e-16,kelighi=5e-16,cngfx=0,cngf
     bbb.tgas[1]=Tm
 
     # Set parameters common to all mol models
-    common_mol(igh2,n0g,ngbackg,kelighg,kelighi,cngfx,cngfy,cfcvtg,cftgcond)
+    common_mol(igh2,n0g,ngbackg,kelighg,kelighi,cngfx,cngfy,cfcvtg,cftgcond,ismolcrm)
+
 
     """---------------------------------------------------------------------------------------------------- 
     ALLOCATE MOLECULAR ARRAYS
@@ -40,7 +41,7 @@ def constantTm(Tm,n0g=1e17,ngbackg=1e11,kelighg=5e-16,kelighi=5e-16,cngfx=0,cngf
 
 
 def Emol_V707( n0g=1e17,ngbackg=1e11,kelighg=5e-16,kelighi=5e-16,cngfx=0,cngfy=0,cfcvtg=1,cftgcond=1, 
-                    isngcore=1,albedoc=0.5,ngcore=1e12,istgcore=1,tgcore=100,tgwall=4e-2):
+                    isngcore=1,albedoc=0.5,ngcore=1e12,istgcore=1,tgcore=100,tgwall=4e-2,ismolcrm=1):
 
     igh2=activate_mol()
 
@@ -51,7 +52,7 @@ def Emol_V707( n0g=1e17,ngbackg=1e11,kelighg=5e-16,kelighi=5e-16,cngfx=0,cngfy=0
     energy_bc_mol(igh2,isngcore,albedoc,ngcore,istgcore,tgcore,tgwall)
 
     # Set parameters common to all mol models
-    common_mol(igh2,n0g,ngbackg,kelighg,kelighi,cngfx,cngfy,cfcvtg,cftgcond)
+    common_mol(igh2,n0g,ngbackg,kelighg,kelighi,cngfx,cngfy,cfcvtg,cftgcond,ismolcrm)
 
     """---------------------------------------------------------------------------------------------------- 
     ALLOCATE MOLECULAR ARRAYS
@@ -63,7 +64,7 @@ def Emol_V707( n0g=1e17,ngbackg=1e11,kelighg=5e-16,kelighi=5e-16,cngfx=0,cngfy=0
 
 
 def Emol(  n0g=1e17,ngbackg=1e14,kelighg=5e-16,kelighi=5e-16,cngfx=1,cngfy=1,cfcvtg=1,cftgcond=1,
-                isngcore=0,albedoc=0.5,ngcore=1e12,istgcore=2,tgcore=100,tgwall=4e-2):
+                isngcore=0,albedoc=0.5,ngcore=1e12,istgcore=2,tgcore=100,tgwall=4e-2,ismolcrm=1):
 
 
     igh2=activate_mol()
@@ -75,7 +76,7 @@ def Emol(  n0g=1e17,ngbackg=1e14,kelighg=5e-16,kelighi=5e-16,cngfx=1,cngfy=1,cfc
 
 
     # Set parameters common to all mol models
-    common_mol(igh2,n0g,ngbackg,kelighg,kelighi,cngfx,cngfy,cfcvtg,cftgcond)
+    common_mol(igh2,n0g,ngbackg,kelighg,kelighi,cngfx,cngfy,cfcvtg,cftgcond,ismolcrm)
 
     """---------------------------------------------------------------------------------------------------- 
     ALLOCATE MOLECULAR ARRAYS
@@ -116,7 +117,7 @@ def energy_bc_mol(igh2,isngcore,albedoc,ngcore,istgcore,tgcore,tgwall):
 
 
 
-def common_mol(igh2,n0g,ngbackg,kelighg,kelighi,cngfx,cngfy,cfcvtg,cftgcond):
+def common_mol(igh2,n0g,ngbackg,kelighg,kelighi,cngfx,cngfy,cfcvtg,cftgcond,ismolcrm):
         
     """---------------------------------------------------------------------------------------------
     BACKGROUND AND NORMALIZATION
@@ -129,6 +130,7 @@ def common_mol(igh2,n0g,ngbackg,kelighg,kelighi,cngfx,cngfy,cfcvtg,cftgcond):
     ---------------------------------------------------------------------------------------------"""
     bbb.kelighg[igh2]=kelighg     # Elastic collision coefficient for gas i and hydrogen gas
     bbb.kelighi[igh2]=kelighi     # Elastic collision coeffisient for gas i and hydrogen ions
+    bbb.ismolcrm=ismolcrm         # Switch for molecular particle and energy rates
     
     """---------------------------------------------------------------------------------------------
     SCALE FACTORS

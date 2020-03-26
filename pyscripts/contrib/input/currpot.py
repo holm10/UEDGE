@@ -5,6 +5,22 @@
 # 200216 - Created common blocks for all b-directions
 from uedge import bbb
 
+
+def slabB(cfniybbo=0,cfniydbo=0,cfeeybbo=0,cfeeydbo=0,iphibcc=0,cfeexdbo=0):
+    bbb.newbcl=0        # Linear scaling factor for left plate sheath potential:
+                            #=0: use bcei and bcee
+                            #=1: new model
+    bbb.newbcr=0        # Linear scaling factor for right plate sheath potential:
+                            #=0: use bcei and bcee
+                            #=1: new model
+    bbb.b0=1
+
+    drift_const(    cfjhf=0,cfjve=0,jhswitch=0,isfdiax=0,cfqydbo=0,cftdd=0,cfyef=0,cftef=0,cf2ef=0,
+                    cfybf=0, cf2bf=0, cfqybf=0, cfq2bf=0, cfniydbo=0, cfeeydbo=0, cfeixdbo=0, cfeexdbo=0,
+                    cfniybbo=cfniybbo,cfeeybbo=cfeeybbo)
+    potential(iphibcc=iphibcc)
+
+
 def fwdB(cfniybbo=0,cfniydbo=1,cfeeybbo=0,cfeeydbo=1,iphibcc=0,cfeexdbo=1):
     bbb.newbcl=1        # Linear scaling factor for left plate sheath potential:
                             #=0: use bcei and bcee
