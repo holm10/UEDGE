@@ -103,17 +103,17 @@ def models():
             if bbb.isi_sputw[i]>0 or bbb.isi_sputpf[i]>0: print('')
 
         for i in range(com.ngsp):
-            if bbb.isi_sputw[i]>0:
-                print('    OUTER WALL SPUTTRING OF {}'.format(S[ng[i-bbb.ishymol*(i>0)]-1]))
-                if bbb.isi_sputw[i]==1: wsput='Physical ion sputtering'
-                elif bbb.isi_sputw[i]==2: wsput='Chemical and physical ion sputtering'
-                print('      Sputtering model: {}'.format(chsput))
-            
-            if bbb.isi_sputpf[i]>0:
-                print('    PRIVATE-FLUX WALL SPUTTRING OF {}'.format(S[ng[i-bbb.ishymol*(i>0)]-1]))
-                if bbb.isi_sputpf[i]==1: wsput='Physical ion sputtering'
-                elif bbb.isi_sputpf[i]==2: wsput='Chemical and physical ion sputtering'
-                print('      Sputtering model: {}'.format(chsput))
+            print('    OUTER WALL SPUTTRING OF {} by ions'.format(S[ng[i-bbb.ishymol*(i>0)]-1]))
+            if bbb.isi_sputw[i]==0: wsput='deactivated'
+            elif bbb.isi_sputw[i]==1: wsput='Physical ion sputtering'
+            elif bbb.isi_sputw[i]==2: wsput='Chemical and physical ion sputtering'
+            print('      Ion sputtering model: {}'.format(chsput))
+        
+            print('    PRIVATE-FLUX WALL SPUTTRING OF {} by ions'.format(S[ng[i-bbb.ishymol*(i>0)]-1]))
+            if bbb.isi_sputw[i]==0: wsput='deactivated'
+            elif bbb.isi_sputpf[i]==1: wsput='Physical ion sputtering'
+            elif bbb.isi_sputpf[i]==2: wsput='Chemical and physical ion sputtering'
+            print('      Ion sputtering model: {}'.format(chsput))
 
         #print('    
 

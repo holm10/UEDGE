@@ -25,3 +25,4 @@ PyUEDGE_tutorial/testcase/case/solutions/testcase_last_ii2.hdf5
 PyUEDGE_tutorial/.ipynb_checkpoints/PyUEDGE-tutorial-checkpoint.ipynb
 PyUEDGE_tutorial/.ipynb_checkpoints/PyUEDGE_tutorial-checkpoint.ipynb
 PyUEDGE_tutorial/testcase/.ipynb_checkpoints/Untitled-checkpoint.ipynb
+*.swo
