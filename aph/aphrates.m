@@ -1332,6 +1332,7 @@ c----------------------------------------------------------------------c
       integer rate
 
 Use(Dim)
+Use(UEpar)
 Use(Share)                # istabon
 Use(Physical_constants)   # ev
 Use(Data_input)
@@ -1360,6 +1361,12 @@ c----------------------------------------------------------------------c
 c     Logarithmic interpolation as in Stotler-95
 
 
+
+      if (ishymol .eq. 0) then
+            sv_crumpet=0
+      elseif (ismolcrm .eq. 0) then
+            sv_crumpet=0
+      else
 c     compute abscissae --
          zloge=log(te/ev)
          rle=max(crlemin, min(zloge,crlemax))
@@ -1446,6 +1453,8 @@ c ... Zero-crossing – linear interpolation
                 
 
             endif
+
+        endif
         
 
 c----------------------------------------------------------------------c

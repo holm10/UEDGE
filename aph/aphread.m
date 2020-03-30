@@ -148,6 +148,7 @@ c ... Local variable:
       character*(MAXSTRING) aphdirx
       character*(MAXSTRING) adname
       character*(MAXSTRING) dataDir
+      integer jd,jt
 
       dataDir=data_directory
 
@@ -161,11 +162,34 @@ c...  Set-up tables for particle and energy sinks due to molecules
          cmpe=60
          cmpd=15
          call gallot("Rtcrumpet",0)
-         call findFile(crmnfname, aphdirx, dataDir, adname, isaphdir)
-         call readcrumpetn(TRIM(adname))
-         call findFile(crmefname, aphdirx, dataDir, adname, isaphdir)
-         call readcrumpete(TRIM(adname))
-         call setcrmvar
+
+          
+         do jt=1,cmpe
+             do jd=1,cmpd
+
+                    crmdiss(jt,jd)=0
+                    crmarate(jt,jd)=0
+                    crmselm(jt,jd)=0
+                    crmsiam(jt,jd)=0
+                    crmspotm(jt,jd)=0
+                    crmsradm(jt,jd)=0
+
+             enddo
+         enddo
+
+         if (ishymol .eq. 1) then
+                if (ismolcrm .ne. 0) then
+
+                     call findFile(crmnfname, aphdirx, dataDir, adname, isaphdir)
+                     call readcrumpetn(TRIM(adname))
+                     call findFile(crmefname, aphdirx, dataDir, adname, isaphdir)
+                     call readcrumpete(TRIM(adname))
+
+
+                endif
+         endif
+        
+      call setcrmvar
 
       return
       end
