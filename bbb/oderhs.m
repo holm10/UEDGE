@@ -10120,7 +10120,7 @@ c ... Common blocks:
       Use(Selec)            #ixm1,ixp1
       Use(Comflo)           #feex,feix,feey,feiy,fqx,fqy,fnix,fniy
       Use(Compla)           #up,mi,ng,v2,vy
-      Use(UEpar)            #ediss,eion,ebind,iigsp,ishosor,fsprd,ishymol
+      Use(UEpar)            #ediss,eion,ebind,iigsp,ishosor,fsprd,ishymol,ismolcrm
       Use(Phyvar)           #ev,qe
       Use(Share)            #cutlo
       Use(Rhsides)          #psor,psorg,psorxr,erliz,erlrc,psor_tmpov
@@ -10226,13 +10226,18 @@ c ... Implicit function:
 
 # Note that eion and ediss generally balance in the next line
 # because should have ediss=2*eion - transfer from electron to ion energy
+
                 pmloss(ix,iy) =(1-ismolcrm)*cnsor*(ediss*ev*(0.5*psordis(ix,iy,2))+
-     .                      ceisor*eion*ev*(psordis(ix,iy,2)) ) +
+     .                      ceisor*eion*ev*(psordis(ix,iy,2)) ) + 
      .                      ismolcrm*cnsor*(cmesori*emolia(ix,iy)+cmesore*edisse(ix,iy))
+
+                
+
                 pmpot(ix,iy) = ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
      .                          sv_crumpet(te(ix,iy), ne(ix,iy), 22)
                 pmrad(ix,iy) = ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
      .                          sv_crumpet(te(ix,iy), ne(ix,iy), 23)
+
 
             peirad(ix,iy) = cnsor*( erliz(ix,iy) + erlrc(ix,iy) +
      .                              ebind*ev*psor(ix,iy,1) -
@@ -10293,10 +10298,11 @@ cc            ptjdote = ptjdote + jdote(ix,iy)
       do igsp = 1, max(1, ngsp-nhgsp)
          pradimpt(igsp) = 0.
          do iimp = 0, nzsp(igsp)
-            pradimp(iimp,igsp) = 0.
+            if (ngsp .ne. 1) pradimp(iimp,igsp) = 0.
          enddo
       enddo    
       pradfft = 0.
+                
       
       do iy = 1, ny
          do ix = 1, nx

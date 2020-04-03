@@ -868,7 +868,7 @@ def create_dict(dump,variables=None):
                 ret[pack+'.'+var]=array(p.get(var))    # Store the variable to the dictionary as array
     return ret
 
-def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath='data',commands=[],ret=True,variables=None):
+def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath='data',commands=[],ret=True,variables=None,engbal=True):
     ''' Creates a database
         Parameters:
             savename        If set, saves dict as pickle named 'savename'
@@ -930,6 +930,8 @@ def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath
             exec(cmd) in globals(),locals()
         # Read and repopulate all arrays
         bbb.issfon=0;bbb.ftol=1e20;bbb.exmain()
+        if engbal is True:
+            bbb.engbal(bbb.pcoree+bbb.pcorei)
 
 
         retl.append(CASE(variables))
@@ -996,6 +998,8 @@ def default_variables():
                 'bbb.pradiz','bbb.pradrc','bbb.pbinde','bbb.pbindrc','bbb.prdiss','bbb.pibirth',
                 'bbb.pradc','bbb.pradz','bbb.pradzc','bbb.prad','bbb.pradht',
                 'bbb.erliz','bbb.erlrc',
+                'bbb.edisse','bbb.emolia','bbb.eiamoldiss',
+                'bbb.pmrad','bbb.pmpot',
                 'bbb.psorbgg','bbb.psorbgz',
                 'bbb.ziin', 'bbb.minu', 'bbb.mi', 'bbb.mg', 'bbb.ziin',
                 'bbb.label' ]
