@@ -177,7 +177,6 @@ c...  Set-up tables for particle and energy sinks due to molecules
              enddo
          enddo
 
-         if (ishymol .eq. 1) then
                 if (ismolcrm .ne. 0) then
 
                      call findFile(crmnfname, aphdirx, dataDir, adname, isaphdir)
@@ -187,7 +186,6 @@ c...  Set-up tables for particle and energy sinks due to molecules
 
 
                 endif
-         endif
         
       call setcrmvar
 
