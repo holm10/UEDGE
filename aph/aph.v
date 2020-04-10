@@ -51,6 +51,7 @@ crmarate(cmpe,cmpd) _real [m**3/s] # a-create rate from mol vs tem, dens
 crmselm(cmpe,cmpd) _real [W m**3] # el e-change due to mol diss vs temp, dens
 crmsiam(cmpe,cmpd) _real [W m**3] # ia e-change due to mol diss vs temp, dens
 crmspotm(cmpe,cmpd) _real [W m**3] # Epot change due to mol diss vs temp, dens
+crmsrada(cmpe,cmpd) _real [W m**3] # Radiation due to mol diss vs temp, dens
 crmsradm(cmpe,cmpd) _real [W m**3] # Radiation due to mol diss vs temp, dens
 cekpt(cmpe)	_real		# natural log of temperature (eV)
 crlemin		real		# minimum of ekpt

@@ -10235,8 +10235,10 @@ c ... Implicit function:
 
                 pmpot(ix,iy) = ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
      .                          sv_crumpet(te(ix,iy), ne(ix,iy), 22)
-                pmrad(ix,iy) = ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
+                pmrada(ix,iy) = ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
      .                          sv_crumpet(te(ix,iy), ne(ix,iy), 23)
+                pmradm(ix,iy) = ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
+     .                          sv_crumpet(te(ix,iy), ne(ix,iy), 24)
 
 
             peirad(ix,iy) = cnsor*( erliz(ix,iy) + erlrc(ix,iy) +

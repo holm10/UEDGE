@@ -1606,7 +1606,8 @@ fracvgpgp             real        /1./      #frac of vgp in vgradp eng terms
 fetx(0:nx+1,0:ny+1)   _real [W]  #total energy flow through a poloidal cell face
 fety(0:nx+1,0:ny+1)   _real [W]  #total energy flow through a radial cell face
 pdrift(0:nx+1,0:ny+1) _real [W/m^3] #power in bringing new ion to flow velocity
-pmrad(0:nx+1,0:ny+1)  _real [W]     #total radiated power due to mol. processes
+pmrada(0:nx+1,0:ny+1) _real [W]     #total atom radiated power due to mol. processes
+pmradm(0:nx+1,0:ny+1) _real [W]     #total mol. radiated power due to mol. processes
 pmpot(0:nx+1,0:ny+1)  _real [W]     #tot. pot E (bind e) due to mol. processes
 pmloss(0:nx+1,0:ny+1) _real [W]     #total power lost by electrons and ions due
                                     #to molecular processes
