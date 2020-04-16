@@ -126,7 +126,7 @@ class SETUP():
             self.cases.sort(key=lambda case: case.get(var)[ix,iy,suse])
 
 
-    def sort_rowmax(self,var,row,s=None):
+    def sort_rowmax(self,var,row,s=None,supress=False):
         ''' Sorts list by value of var at index (ix,iy) 
         sort_mp(var,row,**keys)
 
@@ -142,7 +142,8 @@ class SETUP():
         '''
         # Check and warn if row is in guard cells
         if row in [0,-1,self.cases[0].nx()+1]:
-            print('WARNING! Requested row is guard cell row')
+            if supress is False:
+                print('WARNING! Requested row is guard cell row')
 
         # Check whether the requested parameter has a species index
         suse=self.check_species(var,s) 
@@ -195,7 +196,7 @@ class SETUP():
     Get locations
     =========================================='''
 
-    def row(self,var,row,s=None):
+    def row(self,var,row,s=None,supress=False):
         ''' Returns a list of 1D arrays containing var for row
         row(var,row,**keys)
 
@@ -210,7 +211,8 @@ class SETUP():
 
         # Check and warn if row is in guard cells
         if row in [0,-1,self.cases[0].nx()+1]:
-            print('WARNING! Requested row is guard cell row')
+            if supress is False:
+                print('WARNING! Requested row is guard cell row')
 
         suse=self.check_species(var,s) 
         if suse is False:
@@ -257,7 +259,7 @@ class SETUP():
         return self.row(var,-2,s)
 
 
-    def ft(self,var,ft,s=None):
+    def ft(self,var,ft,s=None,supress=False):
         ''' Returns a list of 1D arrays containing var along flux-tube ft
         ft(var,ft,**keys)
 
@@ -272,7 +274,8 @@ class SETUP():
 
         # Check and warn if row is in guard cells
         if ft in [0,-1,self.cases[0].ny()+1]:
-            print('WARNING! Requested flux tube is guard cell flux tube')
+            if supress is False:
+                print('WARNING! Requested flux tube is guard cell flux tube')
 
         suse=self.check_species(var,s) 
         if suse is False:
@@ -292,7 +295,7 @@ class SETUP():
         '''
         return self.ft(var,self.cases[0].iysptrx()+1)
 
-    def index(self,var,ix,iy,s=None):
+    def index(self,var,ix,iy,s=None,supress=False):
         ''' Returns a list values of var at location (ix,iy)
         index(var,ix,iy,**keys)
 
@@ -305,9 +308,11 @@ class SETUP():
         s[=0]:      Species index to be used, defaults to 0
         '''
         if ix in [0,-1,self.cases[0].nx()+1]:
-            print('WARNING! Requested poloidal index is guard cell index')
+            if supress is False:
+                print('WARNING! Requested poloidal index is guard cell index')
         if iy in [0,-1,self.cases[0].ny()+1]:
-            print('WARNING! Requested radial index is guard cell index')
+            if supress is False:
+                print('WARNING! Requested radial index is guard cell index')
         from numpy import asarray
 
         suse=self.check_species(var,s) 
@@ -346,7 +351,7 @@ class SETUP():
     Get min/max
     =========================================='''
 
-    def row_min(self,var,row,s=None):
+    def row_min(self,var,row,s=None,supress=False):
         ''' Returns a list values of the minimum value of var the specified row
         row_min(var,row,**keys)
 
@@ -361,7 +366,8 @@ class SETUP():
 
         # Check and warn if row is in guard cells
         if row in [0,-1,self.cases[0].nx()+1]:
-            print('WARNING! Requested row is guard cell row')
+            if supress is False:
+                print('WARNING! Requested row is guard cell row')
 
         suse=self.check_species(var,s) 
         if suse is False:
@@ -407,7 +413,7 @@ class SETUP():
         return self.row_min(var,self.cases[0].ixmp(),s)
 
 
-    def row_max(self,var,row,s=None):
+    def row_max(self,var,row,s=None,supress=False):
         ''' Returns a list values of the maximum value of var the specified row
         row_max(var,row,**keys)
 
@@ -422,7 +428,8 @@ class SETUP():
 
         # Check and warn if row is in guard cells
         if row in [0,-1,self.cases[0].nx()+1]:
-            print('WARNING! Requested row is guard cell row')
+            if supress is False:
+                print('WARNING! Requested row is guard cell row')
 
         suse=self.check_species(var,s) 
         if suse is False:
@@ -473,7 +480,7 @@ class SETUP():
 
 
         
-    def ft_min(self,var,ft,s=None):
+    def ft_min(self,var,ft,s=None,supress=False):
         ''' Returns a list values of the minimum value of var the specified flux tube
         ft_min(var,ft,**keys)
 
@@ -487,8 +494,9 @@ class SETUP():
         from numpy import asarray
 
         # Check and warn if row is in guard cells
-        if ft in [0,-1,self.cases[0].nx()+1]:
-            print('WARNING! Requested flux tube is guard cell flux tube')
+        if ft in [0,-1,self.cases[0].nx()+1]:   
+            if supress is False:
+                print('WARNING! Requested flux tube is guard cell flux tube')
 
         suse=self.check_species(var,s) 
         if suse is False:
@@ -512,7 +520,7 @@ class SETUP():
 
 
 
-    def ft_max(self,var,ft,s=None):
+    def ft_max(self,var,ft,s=None,supress=False):
         ''' Returns a list values of the maximum value of var the specified flux tube
         ft_max(var,ft,**keys)
 
@@ -527,7 +535,8 @@ class SETUP():
 
         # Check and warn if row is in guard cells
         if ft in [0,-1,self.cases[0].nx()+1]:
-            print('WARNING! Requested flux tube is guard cell flux tube')
+            if supress is False:
+                print('WARNING! Requested flux tube is guard cell flux tube')
 
         suse=self.check_species(var,s) 
         if suse is False:
@@ -999,7 +1008,7 @@ def default_variables():
                 'bbb.pradc','bbb.pradz','bbb.pradzc','bbb.prad','bbb.pradht',
                 'bbb.erliz','bbb.erlrc',
                 'bbb.edisse','bbb.emolia','bbb.eiamoldiss',
-                'bbb.pmrad','bbb.pmpot',
+                'bbb.pmrada', 'bbb.pmradm' ,'bbb.pmpot',
                 'bbb.psorbgg','bbb.psorbgz',
                 'bbb.ziin', 'bbb.minu', 'bbb.mi', 'bbb.mg', 'bbb.ziin',
                 'bbb.label' ]
