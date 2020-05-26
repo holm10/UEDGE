@@ -411,7 +411,7 @@ def pltves(ax=False,plotoutline=True,plotves=True,plotsep=True):
 
 def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
         plotpol=True,plotrad=True,zoom="div",xlabel=None,ylabel=None,title=None,units=None,quiverunits=False,color=(0,0,0),cmap=False,plotvessel=["sep","outline"],
-        maintainaspect=True,unitlength=False, norm=None,s=None):
+        maintainaspect=True,unitlength=False, norm=None,s=None,gc=False):
     """Creates a quiver vector diagram on the supplied grid to the supplied axis.
     vecto(poldata,raddata,**keys)
 
@@ -469,6 +469,16 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
         except:
             pass
 
+    if gc is False:
+        idxl=1
+        idxu=-1
+        idyl=1
+        idyu=-1
+    else:
+        idxl=0
+        idxu=com.nx+3
+        idyl=0
+        idyu=com.nx+3
 
     # Check that shapes are correct
     if poldata.shape!=raddata.shape:
@@ -483,7 +493,7 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
         else:
             poldata=poldata[:,:,s]
             raddata=raddata[:,:,s]
-            
+            a
 
     # Calculate CC pol and rad angle from geom. data
     geo={"rm" : com.rm, "zm" : com.zm}
@@ -491,13 +501,17 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
     
 
     # Find which are to zoom to, mask out the remaining areas in order to get the arrow scaling right, and place legend
-    mask=full(shape(geo["angrad"][1:-1,1:-1]),True)
+    mask=full(shape(geo["angrad"][idxl:idxu,idyl:idyu]),True)
     qx,qy=0.8,0.05
     if bbb.mhdgeo==-1:
         maintainaspect=False
         if zoom in ["it","div",'ot']:
             xlim,ylim= [com.rm.min()-0.02*com.rm.max(),com.rm.max()*1.02],[com.zm[com.ixpt2[0]+1,:,:].min()*0.98,com.zm.max()*1.02]
-            mask[:com.ixpt2[0],:]=False
+            mask[:,:]=False
+        else:
+            xlim,ylim= [com.rm.min()-0.02*com.rm.max(),com.rm.max()*1.02],[com.zm.min()-com.zm.max()*0.02,com.zm.max()*1.02]
+            mask[:,:]=False
+            
     elif zoom=="it":
         xlim = [com.rm[com.ixpt1[0]-2,0,0]*0.99,com.rm[-1,-1,0]*1.01]
         ylim = [com.zm.min()*0.99,com.zm[com.ixpt1[0],com.iysptrx+1,0]*1.01]
@@ -523,8 +537,8 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
 
     # Calc carthesian contirbutions of poloidal and radial components
     # Also check whether to plot all contrib.holm10.tions, and if data scaling is requested
-    vix=datascale*(plotpol*poldata[1:-1,1:-1]*cos(geo["angpol"][1:-1,1:-1])+plotrad*raddata[1:-1,1:-1]*cos(geo["angrad"][1:-1,1:-1]))
-    viy=datascale*(plotpol*poldata[1:-1,1:-1]*sin(geo["angpol"][1:-1,1:-1])+plotrad*raddata[1:-1,1:-1]*sin(geo["angrad"][1:-1,1:-1]))
+    vix=datascale*(plotpol*poldata[idxl:idxu,idyl:idyu]*cos(geo["angpol"][idxl:idxu,idyl:idyu])+plotrad*raddata[idxl:idxu,idyl:idyu]*cos(geo["angrad"][idxl:idxu,idyl:idyu]))
+    viy=datascale*(plotpol*poldata[idxl:idxu,idyl:idyu]*sin(geo["angpol"][idxl:idxu,idyl:idyu])+plotrad*raddata[idxl:idxu,idyl:idyu]*sin(geo["angrad"][idxl:idxu,idyl:idyu]))
             
     Xp, Yp = array(vix,**arroptions), array(viy,**arroptions) #Mask arrays
     
@@ -541,7 +555,7 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
     if plotvessel is not False:
         pltves(ax,**vesselparams)
 
-    X, Y = com.rm[1:-1,1:-1,0],com.zm[1:-1,1:-1,0] # Parse geometric coords to X and Y
+    X, Y = com.rm[idxl:idxu,idyl:idyu,0],com.zm[idxl:idxu,idyl:idyu,0] # Parse geometric coords to X and Y
 
     # Calculate norm to determine arrow scaling 
     normarr=(Xp**2+Yp**2)**0.5
@@ -939,7 +953,7 @@ def radialplotter(X,Y,ax,line,marker,color,linewidth,markersize,xlabel,ylabel,ti
 
 
 
-def it(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=None,ylabel=False,title="IT profile",xlim=False,ylim=False,yaxis="lin",legend=False,xaxis='it',marksep=True):
+def it(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=None,ylabel=None,title="IT profile",xlim=False,ylim=False,yaxis="lin",legend=False,xaxis='it',marksep=True):
     """ Plots the specified parameter along the inner target
     it(var,**keys)
 
@@ -997,7 +1011,7 @@ def it(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,
         ret.show()
         return ret
 
-def ot(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=None,ylabel=False,title="OT profile",xlim=False,ylim=False,yaxis="lin",legend=False,mp=False,psi=False,xaxis='ot',marksep=True):
+def ot(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=None,ylabel=None,title="OT profile",xlim=False,ylim=False,yaxis="lin",legend=False,mp=False,psi=False,xaxis='ot',marksep=False):
     """ Plots the specified parameter along the outer target
     ot(var,**keys)
 
@@ -1056,7 +1070,7 @@ def ot(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,
         return ret
 
 
-def mp(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=None,ylabel=False,title="Midplane profile",xlim=False,ylim=False,yaxis="lin",legend=False,xaxis='mp',marksep=True):
+def mp(Y,s=None,ax=False,line='-',marker='o',color='k',linewidth=2,markersize=8,xlabel=None,ylabel=None,title="Midplane profile",xlim=False,ylim=False,yaxis="lin",legend=False,xaxis='mp',marksep=True):
     """ Plots the specified parameter along the midplane
     mp(var,**keys)
 

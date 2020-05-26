@@ -143,7 +143,7 @@ def snull(  gridpath='.', plate=None, nx_ileg=12, nx_oleg=10, nxcore_inside=14, 
 
 def slab_neumann(   radx=5e-2, rad0=0, radm=-1e-2, za0=0, zaxpt=2, zax=3, alfyt=-2, alfxt=4.0,
                     isadjalfxt=0, btfix=2, bpolfix=0.2, gengrid=1, nxxpt=0,nxmod=2,alfxptu=1, alfcy=1e-4,
-                    nx_oleg=32, nxcore_outside=12, nycore=6, nysol=12, dmix0=0):
+                    nx_oleg=32, nxcore_outside=12, nycore=6, nysol=12, dmix0=0,dispx=0,dispy=0):
     '''
     Function for defining the grid setup in UEGDE
     '''
@@ -164,12 +164,12 @@ def slab_neumann(   radx=5e-2, rad0=0, radm=-1e-2, za0=0, zaxpt=2, zax=3, alfyt=
 
     bbb.isfixlb[0]=2    # =1 fixes values on left boundary (nib, upb, teb, tib, yylb0)
                         # =2 for symmetry point
-    grd.radx=radx       # Maximum radius of cylinder or outer wall location for slab [m]
-    grd.rad0=rad0       # Radial separatrix location for cylinder and slab [m]
-    grd.radm=radm      # Minimum radius of cylinder or inner wall location for slab [m]
-    grd.za0=za0           # Axial position of LHB
-    grd.zaxpt=zaxpt         # Axial position of XPT
-    grd.zax=zax           # Axial position of RHB
+    grd.radx=dispy+radx       # Maximum radius of cylinder or outer wall location for slab [m]
+    grd.rad0=dispy+rad0       # Radial separatrix location for cylinder and slab [m]
+    grd.radm=dispy+radm      # Minimum radius of cylinder or inner wall location for slab [m]
+    grd.za0=dispx+za0           # Axial position of LHB
+    grd.zaxpt=dispx+zaxpt         # Axial position of XPT
+    grd.zax=dispx+zax           # Axial position of RHB
     grd.alfyt=alfyt        # Radial nonuniformity factor
     grd.alfxt=alfxt   # Axial nonuniformity factor
     grd.isadjalfxt=isadjalfxt    # Alter alfxt for smooth dx at XPT
@@ -276,4 +276,55 @@ def mesh_seed_points():
     grd.kxmesh=0
     grd.exponseed()
    
+
+def plasma_box(w=1e-1,res=40,dispx=0,dispy=0):
+    ''' Defines a square plasma box with uniform grid'''
  
+    bbb.mhdgeo=-1		#set cartesian com.geometry
+    # Set the com.geometry
+    grd.radx = dispy+w		#outer "radial" wall
+    grd.radm = dispy		#minimum "radial" position
+    grd.rad0 = dispy+w/2
+    grd.alfyt=1e-10		#radial nonuniformity factor < 0 => expanding
+    grd.za0 = 0.		#poloidal symmetry plane location
+    grd.zaxpt = dispx		#poloidal location of flx.x-point
+    grd.zax = dispx+w		#poloidal location of divertor plate
+    grd.alfxt=1e-10
+
+    grd.btfix = 5.		#constant total B-field
+    grd.bpolfix = 0.3     	#constant poloidal B-field
+    bbb.ngrid = 1
+    com.nxleg[0,0]=0
+    com.nxcore[0,0]=0
+    com.nxcore[0,1]=0
+    com.nxleg[0,1]=res
+    com.nycore[0]=0
+    com.nysol=res
+
+
+def plasma_tube(l=1,w=1e-2,nx=100,ny=10,dispx=0,dispy=0):
+    ''' Defines a square plasma box with uniform grid'''
+ 
+    bbb.mhdgeo=-1		#set cartesian com.geometry
+    # Set the com.geometry
+    grd.radx = dispy+w		#outer "radial" wall
+    grd.radm = dispy		#minimum "radial" position
+    grd.rad0 = dispy+w/2
+    grd.alfyt=1e-10		#radial nonuniformity factor < 0 => expanding
+    grd.za0 = 0.		#poloidal symmetry plane location
+    grd.zaxpt = dispx		#poloidal location of flx.x-point
+    grd.zax = dispx+l		#poloidal location of divertor plate
+    grd.alfxt=3
+
+    grd.btfix = 5.		#constant total B-field
+    grd.bpolfix = 0.3     	#constant poloidal B-field
+    bbb.ngrid = 1
+    com.nxleg[0,0]=0
+    com.nxcore[0,0]=0
+    com.nxcore[0,1]=0
+    com.nxleg[0,1]=nx
+    com.nycore[0]=0
+    com.nysol=ny
+
+
+

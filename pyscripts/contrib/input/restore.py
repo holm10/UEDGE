@@ -5,7 +5,7 @@
 from uedge import bbb,com,grd,flx
 from uedge.hdf5 import hdf5_restore
 
-def label(restart):
+def label(restart=True):
     """====================================================================================================
     RESTORE SAVE FILE
     ===================================================================================================="""

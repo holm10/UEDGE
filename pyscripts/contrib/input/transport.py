@@ -378,3 +378,17 @@ def kye_groth(    jtanh = 12.0,   jw = 1.0,   chi_core = 1.6, chi_edge = 2.0  ):
     return ret
 
 
+def box_transport():
+
+    bbb.flalfe=0.21
+    bbb.flalfi=0.21
+    bbb.flalfv=1.0
+    bbb.flalfgx=1.
+    bbb.flalfvgx=1.
+    bbb.flalftgx=1.
+    bbb.flalfvgy=1.
+    bbb.flalftgy=1.
+    bbb.isplflxlgx=0 # Turn off flux lim at plates -  causes issues when 
+                     # atom temperatures decrease below a threshold temperature
+    
+        

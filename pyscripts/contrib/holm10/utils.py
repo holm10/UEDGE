@@ -298,4 +298,27 @@ def reset():
     bbb.issfon=0;bbb.ftol=1e20;exmain();bbb.issfon=1;bbb.ftol=1e-8
 
 
+def div(varx,vary,ind=None):
+    ''' Calculates the divergence of var in the numerical domain '''
+    from numpy import zeros
 
+    if len(varx.shape)!=len(vary.shape):
+        print('Shape mismatch between varx and vary! Aborting...')
+        return
+    
+    if len(varx.shape)==3:
+        if ind is not None:
+            varx=varx[:,:,ind]
+            vary=vary[:,:,ind]
+        else:
+            print('Multi-dimensional array without specified 3rd dimension!')
+            print('Calculating for 3rd dimension index 0')
+            varx=varx[:,:,0]
+            vary=vary[:,:,0]
+
+    (nx,ny)=bbb.te.shape
+    ret=zeros(bbb.te.shape)
+    for iy in range(1,ny):
+        for ix in range(nx):
+            ret[ix,iy]=-varx[ix,iy]+varx[bbb.ixm1[ix,iy],iy]+vary[ix,iy-1]-vary[ix,iy]
+    return -ret
