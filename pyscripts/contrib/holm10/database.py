@@ -49,7 +49,7 @@ class SETUP():
                     'fqyqneo','fq2qneo','fnix','fnixcb','fniy','fniy4ord','fniycb','flnix','flniy',
                     'fmix','fmiy','fmity','fmixy','feex','feey','feexy','feey4ord','feix','feiy',
                     'qipar','fniycbo','feiycbo','feeycbo','feixy','feiy4ord','fngx','flngx','fngxs',
-                    'fngy','flngy','fngxy','flngxy','fngyx','uup','up','upi']
+                    'fngy','flngy','fngxy','flngxy','fngyx','uup','up','upi','uug','vyg']
         if var in fluxvar:
             return 0
         else:
@@ -698,7 +698,13 @@ class CASE():
             try:
                 exec('self.data["'+var+'"]=copy('+var+')') in globals(),locals()
             except:
-                print('Warning! '+var+' not found')
+                if var=='bbb.ioniz':
+                    try:
+                        exec('self.data["'+var+'"]=copy(bbb.psor[:,:,1])-copy(bbb.psordis[:,:,1])') in globals(),locals()
+                    except:
+                        exec('self.data["'+var+'"]=copy(bbb.psor[:,:,1])-copy(bbb.psordis)') in globals(),locals()
+                else:
+                    print('Warning! '+var+' not found')
 
 
     '''==========================================
@@ -877,7 +883,7 @@ def create_dict(dump,variables=None):
                 ret[pack+'.'+var]=array(p.get(var))    # Store the variable to the dictionary as array
     return ret
 
-def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath='data',commands=[],ret=True,variables=None,engbal=True):
+def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath='data',commands=[],ret=True,variables=None,engbal=True,eval=False):
     ''' Creates a database
         Parameters:
             savename        If set, saves dict as pickle named 'savename'
@@ -894,7 +900,7 @@ def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath
     from os.path import abspath  
     from uedge.uexec import uexec 
     from pickle import dump
-    from uedge import bbb
+    from uedge import bbb,com
     from importlib import reload
 
     outpath=abspath(outpath)    # Get absolute path of out directory
@@ -937,8 +943,15 @@ def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath
         # Execute any commands before executing
         for cmd in commands:
             exec(cmd) in globals(),locals()
+
         # Read and repopulate all arrays
-        bbb.issfon=0;bbb.ftol=1e20;bbb.exmain()
+        if eval is False:
+            bbb.issfon=0;bbb.ftol=1e20;
+        else:
+            bbb.ftol=1e-5
+
+        bbb.exmain()
+
         if engbal is True:
             bbb.engbal(bbb.pcoree+bbb.pcorei)
 
@@ -990,8 +1003,8 @@ def default_variables():
                 'bbb.fngx', 'bbb.fngy',
                 'bbb.te', 'bbb.ti', 'bbb.tg',
                 'bbb.ne', 'bbb.ni', 'bbb.ng',
-                'bbb.up', 'bbb.uup', 'bbb.vy',
-                'bbb.vex', 'bbb.upe', 'bbb.vey',
+                'bbb.up', 'bbb.uup', 'bbb.vy','bbb.uug',
+                'bbb.vex', 'bbb.upe', 'bbb.vey','bbb.vyg',
                 'com.xcs', 'com.yyc',
                 'com.rm', 'com.zm',
                 'com.gxf', 'com.gx',
@@ -1004,6 +1017,7 @@ def default_variables():
                 'com.bpol','com.bphi',
                 'bbb.hcxg', 'bbb.hcyg','bbb.floxge','bbb.floyge','bbb.conxge','bbb.conyge',
                 'bbb.kxg_use','bbb.kyg_use','bbb.psor','bbb.psordis','bbb.psorrgc',
+                'bbb.psordisg','bbb.ioniz',
                 'bbb.pradiz','bbb.pradrc','bbb.pbinde','bbb.pbindrc','bbb.prdiss','bbb.pibirth',
                 'bbb.pradc','bbb.pradz','bbb.pradzc','bbb.prad','bbb.pradht',
                 'bbb.erliz','bbb.erlrc',

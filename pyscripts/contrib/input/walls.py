@@ -264,8 +264,8 @@ def box_walls(alba=1e-2,albm=0.99):
     bbb.isupcore[0:2] = 1	#=1 gives dup[,,1:2]/com.dy=0
     bbb.istgcore[1] = 2		#=2 gives dTg/com.dy=0 on core bdry
     bbb.iflcore = -1		#if=0, specify core temps if -1, dTe,i/com.dy=0 
-    bbb.recycp[:2] = 1e-10
-    bbb.recycw[:2] = 1e-10
+    bbb.recycp[:2] = [1e-10,1]
+    bbb.recycw[:2] = [1e-10,1]
     bbb.nwsor=2
     bbb.igspsoro[1]=2
     bbb.igspsori[1]=2
@@ -328,17 +328,17 @@ def tube_walls(alba=0.99,albm=0.99,albl=0.55):
     bbb.iflcore = -1		#if=0, specify core temps if -1, dTe,i/com.dy=0 
 
     #bbb.isfixlb[0]=2 # Symmetry plane at LHS
-    bbb.recycp[:2] = 1e-10
-    bbb.recycw[:2] = 1e-10
+    bbb.recycp[:2] = [1e-10,1]
+    bbb.recycw[:2] = [1e-10,1]
 
     bbb.nwsor=2
     bbb.igspsoro[1]=2
     bbb.igspsori[1]=2
-    bbb.albdsi=0.99
-    bbb.albdso=0.99
-    bbb.albedorb[0] = 0.99  #pump 50% of atoms others reflected
+    bbb.albdsi[:2]=[alba,albm]
+    bbb.albdso[:2]=[alba,albm]
+    bbb.albedorb[0] = alba  #pump 50% of atoms others reflected
     bbb.albedolb[0] = albl  #pump 50% of atoms others reflected
-    bbb.albedorb[1] = 0.99  #pump 50% of atoms others reflected
+    bbb.albedorb[1] = albm  #pump 50% of atoms others reflected
     bbb.albedolb[1] = albl  #pump 50% of atoms others reflected
     bbb.istepfc=0
     bbb.istipfc=0	#bbb.priv. flux has api.zero temp. deriv.

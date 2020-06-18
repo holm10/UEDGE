@@ -409,11 +409,13 @@ def static_plasma(n,T,aphdir="../../rates/aph",isrecmon=1):
     # Parallel neutral momentum equation
     bbb.isupgon[0]=1
     bbb.isngon[0]=0
-    com.nhsp+=1
+    com.nhsp=2
+    com.ngsp=1
     bbb.ziin[com.nhsp-1]=0
     bbb.recycm = -10.		# -10 gives dup/com.dx=0 for atoms at plate5 APS rates
     bbb.methg=33
-
-    bbb.allocate()
+    if bbb.pyrestart_file[0].decode('UTF-8')!='read':
+        bbb.allocate()  
+    
 
 

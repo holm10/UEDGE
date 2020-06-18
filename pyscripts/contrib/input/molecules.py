@@ -174,20 +174,21 @@ def volsource(curr=1e15,h=0.5,w=0.5,r=0.01):
     '''
 
 
-def molbox(T,ismolcrm=1,ngbackg=1.5e8):
+def molbox(T,ismolcrm=1,ngbackg=1e10,istgon=0):
 
     # Add molecules density & temp
     bbb.ismolcrm=ismolcrm
-    bbb.ishymol = 1
-    com.ngsp += 1
-    com.nhgsp += 1
-    bbb.isngon[1] = 1
-    bbb.istgcon[1] = -1
-    bbb.allocate()
+
+    igh2=activate_mol()
+    bbb.isngon[igh2] = 1
+    bbb.istgcon[igh2] = -1
+    if bbb.pyrestart_file[0].decode('UTF-8')!='read':
+        bbb.allocate()  
     bbb.tgas = 0.02
     bbb.tgwall = 0.04
     bbb.istgon=0
-    bbb.tgs[:,:,1]=T*bbb.ev
-    bbb.ngbackg[1] = ngbackg		#floor level where background neut source on
+    bbb.istgon[1]=istgon
+    bbb.tgs[:,:,igh2]=T*bbb.ev
+    bbb.ngbackg[igh2] = ngbackg		#floor level where background neut source on
 
 

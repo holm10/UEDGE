@@ -115,7 +115,8 @@ def ue_interpolate(val,interp=1):
     return ret
 
 def heatmap(Z,s=None,ax=False,zrange=False,cbar=True,cmap="magma",zoom="div",plotvessel=["sep","outline"],maintainaspect=True,
-    xlabel=None,ylabel=None,title=None,units=None,zaxis="lin",showgrid=True):
+    xlabel=None,ylabel=None,title=None,units=None,zaxis="lin",showgrid=True,rm=None,zm=None,ixpt1=None,ixpt2=None,
+    iysptrx=None,mhdgeo=None,nx=None,ny=None):
     """Creates a heatmap of requested variable using polygons.
     heatmap(var,**keys)
 
@@ -179,28 +180,39 @@ def heatmap(Z,s=None,ax=False,zrange=False,cbar=True,cmap="magma",zoom="div",plo
         except:
             pass
 
+    if rm is None: rm=com.rm
+    if zm is None: zm=com.zm
+    if nx is None: nx=com.nx
+    if ny is None: ny=com.ny
+    if iysptrx is None: iysptrx=com.iysptrx
+    if ixpt1 is None: ixpt1=com.ixpt1[0]
+    if ixpt2 is None: ixpt2=com.ixpt2[0]
+    if mhdgeo is None:
+        try: mhdgeo=bbb.mhdgeo
+        except: mhdgeo=1
+
     # Set zoom location
     if zoom=="ot":
-        xlim = [com.rm[com.ixpt1[0]-2,0,0]*0.99,com.rm[-1,-1,0]*1.01]
-        ylim = [com.zm.min()*0.99,com.zm[com.ixpt1[0],com.iysptrx+1,0]*1.01]
+        xlim = [rm[ixpt1-2,0,0]*0.99,rm[-1,-1,0]*1.01]
+        ylim = [zm.min()*0.99,zm[ixpt1,iysptrx+1,0]*1.01]
     elif zoom=="it":
-        xlim = [com.rm[0,-1,0]*0.99,com.rm[com.ixpt2[0]+4,0,0]*1.01]
-        ylim = [com.zm.min()*0.99,com.zm[0,-1,0]*1.01]
+        xlim = [rm[0,-1,0]*0.99,rm[ixpt2+4,0,0]*1.01]
+        ylim = [zm.min()*0.99,zm[0,-1,0]*1.01]
     elif zoom=="div":
-        xlim = [com.rm[0,-1,0].min()*0.99,com.rm[-1,-1,0].max()*1.01]
-        ylim = [com.zm.min()*0.99,com.zm[com.ixpt1[0],com.iysptrx+1,0]*1.01]
+        xlim = [rm[0,-1,0].min()*0.99,rm[-1,-1,0].max()*1.01]
+        ylim = [zm.min()*0.99,zm[ixpt1,iysptrx+1,0]*1.01]
     elif zoom=="device":
-        xlim,ylim= [com.rm.min(),com.rm.max()],[com.zm.min(),com.zm.max()]
+        xlim,ylim= [rm.min(),rm.max()],[zm.min(),zm.max()]
 
 
     # Slab exception
-    if bbb.mhdgeo==-1:
+    if mhdgeo==-1:
         plotvessel=False
         if zoom=="ot" or zoom=="div":
-            ylim = [com.rm.min(),com.rm.max()]
-            xlim = [com.zm[com.ixpt2[0],0,2],com.zm.max()]
+            ylim = [rm.min(),rm.max()]
+            xlim = [zm[ixpt2,0,2],zm.max()]
         elif zoom=="device":
-            ylim,xlim= [com.rm.min(),com.rm.max()],[com.zm.min(),com.zm.max()]
+            ylim,xlim= [rm.min(),rm.max()],[zm.min(),zm.max()]
         else:
             print("Slab geometry is only compatible with 'ot' and 'device' zooming!")
             return
@@ -239,12 +251,12 @@ def heatmap(Z,s=None,ax=False,zrange=False,cbar=True,cmap="magma",zoom="div",plo
         for j in range(shape(Z)[1]):    
             # Create polygon for each grid cell
             xy=zeros((4,2))
-            if bbb.mhdgeo==-1:
-                xy[:,1]=[com.rm[i,j,4],com.rm[i,j,2],com.rm[i,j,1],com.rm[i,j,3]]
-                xy[:,0]=[com.zm[i,j,4],com.zm[i,j,2],com.zm[i,j,1],com.zm[i,j,3]]
+            if mhdgeo==-1:
+                xy[:,1]=[rm[i,j,4],rm[i,j,2],rm[i,j,1],rm[i,j,3]]
+                xy[:,0]=[zm[i,j,4],zm[i,j,2],zm[i,j,1],zm[i,j,3]]
             else:
-                xy[:,0]=[com.rm[i,j,4],com.rm[i,j,2],com.rm[i,j,1],com.rm[i,j,3]]
-                xy[:,1]=[com.zm[i,j,4],com.zm[i,j,2],com.zm[i,j,1],com.zm[i,j,3]]
+                xy[:,0]=[rm[i,j,4],rm[i,j,2],rm[i,j,1],rm[i,j,3]]
+                xy[:,1]=[zm[i,j,4],zm[i,j,2],zm[i,j,1],zm[i,j,3]]
             # Set color based on Z-value
 #            col=cmap((Z[i,j]-Zmin)/Zmax)
             col=cmap(Zcol[i,j])
@@ -264,11 +276,12 @@ def heatmap(Z,s=None,ax=False,zrange=False,cbar=True,cmap="magma",zoom="div",plo
         pltves(ax,**vesselparams)
 
     
-    if bbb.mhdgeo==-1:    
-        # Highlight sep and x-point
-        ax.plot(com.zm[:-1,com.iysptrx+1,2],com.rm[:-1,com.iysptrx+1,2],"k-",linewidth=3) 
-        ax.plot(com.zm[com.ixpt2[0]+1,:com.iysptrx+2,1][0],com.rm[com.ixpt2[0]+1,:com.iysptrx+2,1][0],"k-",linewidth=3) 
-        ax.plot(com.zm[com.ixpt2[0],com.iysptrx+1:,2][0],com.rm[com.ixpt2[0],com.iysptrx+1:,2][0],"k--",linewidth=3) 
+    if mhdgeo==-1:    
+        if plotvessel is not False:
+            # Highlight sep and x-point
+            ax.plot(zm[:-1,iysptrx+1,2],rm[:-1,iysptrx+1,2],"k-",linewidth=3) 
+            ax.plot(zm[ixpt2+1,:iysptrx+2,1][0],rm[ixpt2+1,:iysptrx+2,1][0],"k-",linewidth=3) 
+            ax.plot(zm[ixpt2,iysptrx+1:,2][0],rm[ixpt2,iysptrx+1:,2][0],"k--",linewidth=3) 
 
     # Set colorbar if requested
     if cbar is True:
@@ -295,14 +308,14 @@ def heatmap(Z,s=None,ax=False,zrange=False,cbar=True,cmap="magma",zoom="div",plo
     
     # Plot grid if requested
     if showgrid is True:
-        grid(ax=ax,color='grey',alpha=0.5,linewidth=0.1)
+        grid(ax=ax,color='grey',alpha=0.5,linewidth=0.1,rm=rm,zm=zm,ixpt1=ixpt1,ixpt2=ixpt2,iysptrx=iysptrx,mhdgeo=mhdgeo,nx=nx,ny=ny)
 
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
     
     # Check if aspect ratio should be preserved
     if maintainaspect is True:
-        if bbb.mhdgeo!=-1:
+        if mhdgeo!=-1:
             ax.set_aspect('equal', 'datalim')
 
 
@@ -635,7 +648,8 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
 
 
 
-def grid(ax=False,showcc=False,showcut=False,showves=False,showplates=False,color='k',alpha=1,linewidth=0.2):
+def grid(   ax=False,showcc=False,showcut=False,showves=False,showplates=False,color='k',alpha=1,linewidth=0.2,
+            rm=None,zm=None,nx=None,ny=None,ixpt1=None,ixpt2=None,iysptrx=None,mhdgeo=None):
     """ Plots grid from UE execution 
     grid(**keys)
 
@@ -651,6 +665,17 @@ def grid(ax=False,showcc=False,showcut=False,showves=False,showplates=False,colo
     from matplotlib.pyplot import figure
     from uedge import com,grd,bbb
 
+    if rm is None: rm=com.rm
+    if zm is None: zm=com.zm
+    if nx is None: nx=com.nx
+    if ny is None: ny=com.ny
+    if iysptrx is None: iysptrx=com.iysptrx
+    if ixpt1 is None: ixpt1=com.ixpt1[0]
+    if ixpt2 is None: ixpt2=com.ixpt2[0]
+    if mhdgeo is None:
+        try: mhdgeo=bbb.mhdgeo
+        except: mhdgeo=1
+
 
     # See if we are to add to axis or plot new fig
     if ax is False:
@@ -662,33 +687,33 @@ def grid(ax=False,showcc=False,showcut=False,showves=False,showplates=False,colo
         except:
             pass
 
-    for i in range(com.nx+2):   # Do poloidal dir
-        for j in range(com.ny+2):   # Do radial dir
+    for i in range(nx+2):   # Do poloidal dir
+        for j in range(ny+2):   # Do radial dir
             pltx,plty=[],[]
             for k in [1,2,4,3,1]:
                 if bbb.mhdgeo==-1:
-                    plty.append(com.rm[i,j,k])
-                    pltx.append(com.zm[i,j,k])
+                    plty.append(rm[i,j,k])
+                    pltx.append(zm[i,j,k])
                 else:
-                    pltx.append(com.rm[i,j,k])
-                    plty.append(com.zm[i,j,k])
+                    pltx.append(rm[i,j,k])
+                    plty.append(zm[i,j,k])
                     
             ax.plot(pltx,plty,"-",linewidth=linewidth,color=color,alpha=alpha)
             if showcc:
-                ax.plot(com.rm[i,j,0],com.zm[i,j,0],"r.")
+                ax.plot(rm[i,j,0],zm[i,j,0],"r.")
     if showcut:    # Mark most important cells around X-point cut
-        for xcell in [com.ixpt1[0],com.ixpt2[0]]: # Do each side of cut
+        for xcell in [ixpt1,ixpt2]: # Do each side of cut
             for dx in [0,1]: # Do both sides of cut
                 for dy in [0,1]: # Do both sides of sep
                     if bbb.mhdgeo==-1:
-                        ax.plot(com.zm[xcell+dx,com.iysptrx+dy,0],com.rm[xcell+dx,com.iysptrx+dy,0],"k.")
+                        ax.plot(zm[xcell+dx,iysptrx+dy,0],rm[xcell+dx,iysptrx+dy,0],"k.")
                     else:
-                        ax.plot(com.rm[xcell+dx,com.iysptrx+dy,0],com.zm[xcell+dx,com.iysptrx+dy,0],"k.")
+                        ax.plot(rm[xcell+dx,iysptrx+dy,0],zm[xcell+dx,iysptrx+dy,0],"k.")
     if bbb.mhdgeo==-1:    
         # Highlight sep and x-point
-        ax.plot(com.zm[:-1,com.iysptrx+1,2],com.rm[:-1,com.iysptrx+1,2],"-",linewidth=3,color=color,alpha=alpha) 
-        ax.plot(com.zm[com.ixpt2[0]+1,:com.iysptrx+2,1][0],com.rm[com.ixpt2[0]+1,:com.iysptrx+2,1][0],"-",linewidth=3,color=color,alpha=alpha) 
-        ax.plot(com.zm[com.ixpt2[0],com.iysptrx+1:,2][0],com.rm[com.ixpt2[0],com.iysptrx+1:,2][0],"--",linewidth=3,color=color,alpha=alpha) 
+        ax.plot(zm[:-1,iysptrx+1,2],rm[:-1,iysptrx+1,2],"-",linewidth=3,color=color,alpha=alpha) 
+        ax.plot(zm[ixpt2+1,:iysptrx+2,1][0],rm[ixpt2+1,:iysptrx+2,1][0],"-",linewidth=3,color=color,alpha=alpha) 
+        ax.plot(zm[ixpt2,iysptrx+1:,2][0],rm[ixpt2,iysptrx+1:,2][0],"--",linewidth=3,color=color,alpha=alpha) 
     
 
     if showves:

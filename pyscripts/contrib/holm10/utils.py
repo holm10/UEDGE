@@ -17,7 +17,7 @@ def readcase(casedir,dirpath='data'):
     dirpath     -   Path to input.py within casedir, default is "data"
     '''
     from os import chdir,getcwd
-    from os.path import exists, abspath, relpath
+    from os.path import exists, abspath, relpath, isabs
     from importlib import reload
     import sys
 
@@ -35,9 +35,17 @@ def readcase(casedir,dirpath='data'):
     reload(i)                                           # Reload case: should not strictly be necessary
     i.restore_input()                                              # Read the new setup 
 
+    aphabs=isabs(aph.aphdir[0].decode('utf-8'))
+    apiabs=isabs(api.apidir[0].decode('utf-8'))
+
+
     # Fix the path dependencies to be absolute paths for reading case out of data
-    newaphdir='{}/{}'.format(abspath(getcwd()),aph.aphdir[0].decode('utf-8'))
-    newapidir='{}/{}'.format(abspath(getcwd()),api.apidir[0].decode('utf-8'))
+    if aphabs is False:
+        newaphdir='{}/{}'.format(abspath(getcwd()),aph.aphdir[0].decode('utf-8'))
+    if apiabs is False:
+        newapidir='{}/{}'.format(abspath(getcwd()),api.apidir[0].decode('utf-8'))
+
+
     # Set grid path file in V7.08 and later
     try:
         newaeqdskfname='{}/{}'.format(abspath(getcwd()),com.aeqdskfname[0].decode('utf-8'))
@@ -48,13 +56,17 @@ def readcase(casedir,dirpath='data'):
     chdir(cwd)                                          # Go back to the original directory to enable recursive loads 
 
     # Shorten the concatenated path to fit into arrays
-    aph.aphdir[0]=abspath(newaphdir)
-    api.apidir[0]=abspath(newapidir)
+    if aphabs is False:
+        aph.aphdir[0]=abspath(newaphdir)
+    if apiabs is False:
+        api.apidir[0]=abspath(newapidir)
+
     try:
         com.aeqdskfname[0]=abspath(newaeqdskfname)
         com.geqdskfname[0]=abspath(newgeqdskfname)
     except:
         pass
+
 
 
 def write_csv(varlist,fname,header=None,probname='',descriptor=''):
@@ -316,9 +328,90 @@ def div(varx,vary,ind=None):
             varx=varx[:,:,0]
             vary=vary[:,:,0]
 
+    # TODO: FIX THIS
     (nx,ny)=bbb.te.shape
     ret=zeros(bbb.te.shape)
     for iy in range(1,ny):
         for ix in range(nx):
             ret[ix,iy]=-varx[ix,iy]+varx[bbb.ixm1[ix,iy],iy]+vary[ix,iy-1]-vary[ix,iy]
     return -ret
+
+
+
+def create_EIRENE(path='.',subpath='data'):
+    ''' Creates a database
+        Parameters:
+            savename        If set, saves dict as pickle named 'savename'
+            sortlocation    Location for sorting by te: 'core' or 'mp'
+            outpath         Path to location where pickle is saved
+            path            Path to parent directory
+            subpath         Path to input.py within child directories of path: 
+                            path/*/supath/input.py
+            commands        List of commands to be executed before restoring solution
+            variables       List of all variable names, including package, to be stored
+            ret             Boolean whether to return dict or not
+    '''
+    from os import getcwd,chdir,remove,walk
+    from os.path import abspath  
+    from uedge import bbb,com
+    from importlib import reload
+
+
+
+    def natsort(l): 
+        from re import split
+        convert = lambda text: int(text) if text.isdigit() else text.lower() 
+        alphanum_key = lambda key: [ convert(c) for c in split('([0-9]+)', key) ] 
+        return sorted(l, key = alphanum_key)
+
+    chdir(path)                 # Go to the parent directory
+    parent=getcwd()               # Get path to parent
+    # Get list of subdirectories in path
+    dirs=natsort(next(walk(path))[1])
+    # Omit supporting file directories
+    try:
+        dirs.remove('grid')
+    except:    
+        pass
+    try:
+        dirs.remove('rates')
+    except:
+        pass
+    try:
+        dirs.remove('ignore')
+    except:
+        pass
+    
+    if len(dirs)==0:
+        return 'No directories found! Aborting...'
+
+
+    loop=0
+    for child in dirs:      # Loop through all directories
+        loop+=1
+
+
+        # TODO: exmain every Nth step
+        print('******************************')
+        print('*** Directory: '+child+' ***')
+        print('******************************')
+
+        chdir('{}/{}'.format(child,subpath))
+        
+        import input as i
+        reload(i)
+        i.restore_input()
+
+
+        # Read and repopulate all arrays
+        bbb.issfon=0;bbb.ftol=1e20;bbb.exmain()
+        bbb.write_eirene()
+
+
+        chdir(parent)
+    
+
+
+
+
+
