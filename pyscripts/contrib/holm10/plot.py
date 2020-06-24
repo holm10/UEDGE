@@ -323,7 +323,7 @@ def heatmap(Z,s=None,ax=False,zrange=False,cbar=True,cmap="magma",zoom="div",plo
     if xlabel is not None:
         ax.set_xlabel(xlabel)
     if ylabel is not None:
-        ax.set_xlabel(ylabel)
+        ax.set_ylabel(ylabel)
     if title is not None:
         ax.set_title(title)
     if units is not None:

@@ -254,7 +254,7 @@ def impp_wallpuff(nzsor):
         api.impsoro=    [0, 0, 0, 0, 0, 0]      #  wall source strength [Amp]
 
 
-def box_walls(alba=1e-2,albm=0.99):
+def box_walls(alba=1e-2,albm=0.99,recyca=1e-10,recycm=1):
 
     # Boundary conditions
     bbb.curcore[0] = 0.
@@ -264,8 +264,8 @@ def box_walls(alba=1e-2,albm=0.99):
     bbb.isupcore[0:2] = 1	#=1 gives dup[,,1:2]/com.dy=0
     bbb.istgcore[1] = 2		#=2 gives dTg/com.dy=0 on core bdry
     bbb.iflcore = -1		#if=0, specify core temps if -1, dTe,i/com.dy=0 
-    bbb.recycp[:2] = [1e-10,1]
-    bbb.recycw[:2] = [1e-10,1]
+    bbb.recycp[:2] = [recyca,recycm]
+    bbb.recycw[:2] = [recyca,recycm]
     bbb.nwsor=2
     bbb.igspsoro[1]=2
     bbb.igspsori[1]=2

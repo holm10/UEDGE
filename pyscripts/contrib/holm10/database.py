@@ -883,7 +883,7 @@ def create_dict(dump,variables=None):
                 ret[pack+'.'+var]=array(p.get(var))    # Store the variable to the dictionary as array
     return ret
 
-def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath='data',commands=[],ret=True,variables=None,engbal=True,eval=False):
+def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath='data',commands=[],ret=True,variables=None,engbal=True,eval=False,istart=0,iend=None,res=1):
     ''' Creates a database
         Parameters:
             savename        If set, saves dict as pickle named 'savename'
@@ -931,6 +931,9 @@ def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath
     
     if variables is None:
         variables=default_variables()
+
+    if iend is None: iend=len(dirs)
+    dirs=dirs[istart:iend:res]
 
 
     for child in dirs:      # Loop through all directories
