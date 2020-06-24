@@ -104,9 +104,8 @@ try:
 except:
     pass
 
-
+"""
 try:
-
    class MyPrompt(Prompts):
      def in_prompt_tokens(self, cli=None):
          return [(Token.Prompt, 'UEDGE>>> ')]
@@ -120,7 +119,7 @@ else:
    ip = get_ipython()
    ip.prompts = MyPrompt(ip)
 
-
+"""
 ##############################################################################
 ######  Don't put anything below this line!!! ################################
 ##############################################################################
