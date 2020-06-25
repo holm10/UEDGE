@@ -955,6 +955,9 @@ def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath
 
         bbb.exmain()
 
+        # Assume same geometry for all cases
+        bbb.newgeo=0
+
         if engbal is True:
             bbb.engbal(bbb.pcoree+bbb.pcorei)
 
@@ -971,7 +974,7 @@ def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath
     elif sortlocation=='mp':
         lst.sort_mp('bbb.ne')
     else:
-        print('Error! Unknown sortin location "'+sortlocation+'". Terminating...')
+        print('Error! Unknown sorting location "'+sortlocation+'". Terminating...')
     chdir(outpath)
     # Check if save requested
     if savename is not None:

@@ -9,7 +9,8 @@ def activate_mol():
     ''' Turns on the molecular switches, returns the mol gas ind '''
     bbb.ishymol=1       # Includes molecules as 2nd gaseous species (index 1)
 
-    com.nhgsp=com.nhgsp+1       # Allocate space for molecules in hygrogenic gas species array
+    if bbb.pyrestart_file[0].decode('UTF-8')!='read': # Fix for multiple consequtive runs
+        com.nhgsp=com.nhgsp+1       # Allocate space for molecules in hygrogenic gas species array
     com.ngsp=com.ngsp+1     # Allocate space for hydrogen in gas species array
     return com.ngsp-1         # Index for molecules in gaseous arrays
     
