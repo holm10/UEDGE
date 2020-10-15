@@ -30,7 +30,7 @@ def restore_input():
     gridsetup(gridpath='../../grid')         # Grid definition: gridpath must be set if reading EFIT equilibriums
 
     # SPECIES
-    plasma(aphpath='../../rates')   # Plasma setup: aphpath must be set
+    plasma(aphpath='../../rates/')   # Plasma setup: aphpath must be set
     #molecules()                         # Molecular model setup
     allocate()                          # Allocate UEDGE arrays
     #carbon(apipath='../../rates/api')   # Carbon setup: apipath must be set

@@ -996,9 +996,7 @@ def default_variables():
                 'bbb.pradiz','bbb.pradrc','bbb.pbinde','bbb.pbindrc','bbb.prdiss','bbb.pibirth',
                 'bbb.pradc','bbb.pradz','bbb.pradzc','bbb.prad','bbb.pradht',
                 'bbb.erliz','bbb.erlrc',
-                'bbb.edisse','bbb.emolia','bbb.eiamoldiss',
-                'bbb.pmrada', 'bbb.pmradm' ,'bbb.pmpot',
-                'bbb.psorbgg','bbb.psorbgz','bbb.volpsorg',
+                'bbb.psorbgg','bbb.psorbgz',
                 'bbb.ziin', 'bbb.minu', 'bbb.mi', 'bbb.mg', 'bbb.ziin',
                 'bbb.label' ]
 
