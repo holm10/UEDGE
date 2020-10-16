@@ -148,6 +148,7 @@ c ... Local variable:
       character*(MAXSTRING) aphdirx
       character*(MAXSTRING) adname
       character*(MAXSTRING) dataDir
+      integer jd,jt
 
       dataDir=data_directory
 
@@ -161,11 +162,33 @@ c...  Set-up tables for particle and energy sinks due to molecules
          cmpe=60
          cmpd=15
          call gallot("Rtcrumpet",0)
-         call findFile(crmnfname, aphdirx, dataDir, adname, isaphdir)
-         call readcrumpetn(TRIM(adname))
-         call findFile(crmefname, aphdirx, dataDir, adname, isaphdir)
-         call readcrumpete(TRIM(adname))
-         call setcrmvar
+
+          
+         do jt=1,cmpe
+             do jd=1,cmpd
+
+                    crmdiss(jt,jd)=0
+                    crmarate(jt,jd)=0
+                    crmselm(jt,jd)=0
+                    crmsiam(jt,jd)=0
+                    crmspotm(jt,jd)=0
+                    crmsrada(jt,jd)=0
+                    crmsradm(jt,jd)=0
+
+             enddo
+         enddo
+
+                if (ismolcrm .ne. 0) then
+
+                     call findFile(crmnfname, aphdirx, dataDir, adname, isaphdir)
+                     call readcrumpetn(TRIM(adname))
+                     call findFile(crmefname, aphdirx, dataDir, adname, isaphdir)
+                     call readcrumpete(TRIM(adname))
+
+
+                endif
+        
+      call setcrmvar
 
       return
       end
@@ -1099,20 +1122,21 @@ c     Considered by UEDGE, discard zeros
          read(nget,9019) zdummy
          read(nget,9018)(crmdummy(jt,jd),jt=1,cmpe)
  28   continue
-c     Radiation source due to atom interactions (W cm**3):
+
+c     Atom radiation source due to atom interactions (W cm**3):
 c     Considered by UEDGE, discard zeros
       read(nget,9019) zdummy
       do 30 jd=1,cmpd
          read(nget,9019) zdummy
          read(nget,9018)(crmdummy(jt,jd),jt=1,cmpe)
  30   continue
-c     Radiation source due to molecule interactions (W cm**3):
+c     Atom radiation source due to molecule interactions (W cm**3):
       read(nget,9019) zdummy
       do 32 jd=1,cmpd
          read(nget,9019) zdummy
-         read(nget,9018)(crmsradm(jt,jd),jt=1,cmpe)
+         read(nget,9018)(crmsrada(jt,jd),jt=1,cmpe)
  32   continue
-c     Radiation source due to external interactions (W cm**3):
+c     Atom radiation source due to external interactions (W cm**3):
 c     Considered by UEDGE, discard zeros
       read(nget,9019) zdummy
       do 34 jd=1,cmpd
@@ -1120,16 +1144,39 @@ c     Considered by UEDGE, discard zeros
          read(nget,9018)(crmdummy(jt,jd),jt=1,cmpe)
  34   continue
 
+c     Mol. radiation source due to atom interactions (W cm**3):
+c     Considered by UEDGE, discard zeros
+      read(nget,9019) zdummy
+      do 36 jd=1,cmpd
+         read(nget,9019) zdummy
+         read(nget,9018)(crmdummy(jt,jd),jt=1,cmpe)
+ 36   continue
+c     Mol. radiation source due to molecule interactions (W cm**3):
+      read(nget,9019) zdummy
+      do 38 jd=1,cmpd
+         read(nget,9019) zdummy
+         read(nget,9018)(crmsradm(jt,jd),jt=1,cmpe)
+ 38   continue
+c     Mol. radiation source due to external interactions (W cm**3):
+c     Considered by UEDGE, discard zeros
+      read(nget,9019) zdummy
+      do 40 jd=1,cmpd
+         read(nget,9019) zdummy
+         read(nget,9018)(crmdummy(jt,jd),jt=1,cmpe)
+ 40   continue
+
+
 
       close (nget)
 
 c     convert to SI units:
       do jt=1,cmpe
          do jd=1,cmpd
-            crmselm(jt,jd)= crmselm(jt,jd)*ev*1e-0
-            crmsiam(jt,jd)= crmsiam(jt,jd)*ev*1e-0
-            crmspotm(jt,jd)= crmspotm(jt,jd)*ev*1e-0
-            crmsradm(jt,jd)= crmsradm(jt,jd)*ev*1e-0
+            crmselm(jt,jd)= crmselm(jt,jd)*ev
+            crmsiam(jt,jd)= crmsiam(jt,jd)*ev
+            crmspotm(jt,jd)= crmspotm(jt,jd)*ev
+            crmsrada(jt,jd)= crmsrada(jt,jd)*ev
+            crmsradm(jt,jd)= crmsradm(jt,jd)*ev
          enddo
       enddo
 

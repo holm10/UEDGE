@@ -254,4 +254,98 @@ def impp_wallpuff(nzsor):
         api.impsoro=    [0, 0, 0, 0, 0, 0]      #  wall source strength [Amp]
 
 
+def box_walls(alba=1e-2,albm=0.99):
+
+    # Boundary conditions
+    bbb.curcore[0] = 0.
+    bbb.ncore[0]=3.0e19
+    bbb.isnicore[0] = 1		#=1 gives bbb.ni=bbb.ncore on core bdry
+    bbb.isngcore[0] = 0		#=0 gives api.zero flux
+    bbb.isupcore[0:2] = 1	#=1 gives dup[,,1:2]/com.dy=0
+    bbb.istgcore[1] = 2		#=2 gives dTg/com.dy=0 on core bdry
+    bbb.iflcore = -1		#if=0, specify core temps if -1, dTe,i/com.dy=0 
+    bbb.recycp[:2] = [1e-10,1]
+    bbb.recycw[:2] = [1e-10,1]
+    bbb.nwsor=2
+    bbb.igspsoro[1]=2
+    bbb.igspsori[1]=2
+    bbb.albdsi[0]=alba
+    bbb.albdso[0]=alba
+    bbb.albdsi[1]=albm
+    bbb.albdso[1]=albm
+    bbb.albedorb[0] = alba  #pump 50% of atoms others reflected
+    bbb.albedolb[0] = alba  #pump 50% of atoms others reflected
+    bbb.albedorb[1] = albm  #pump 50% of atoms others reflected
+    bbb.albedolb[1] = albm  #pump 50% of atoms others reflected
+    bbb.istepfc=0
+    bbb.istipfc=0	#bbb.priv. flux has api.zero temp. deriv.
+    bbb.istewc=0
+    bbb.istiwc=0	#wall has api.zero temp. deriv.
+    bbb.istgpfc[ 1] = 2		#=3 gives dTg/com.dy=0 on PF wall
+    bbb.istgwc[1] = 2		#=3 gives dTg/com.dy=0 on outer wall
+
+def box_dirichlet(na=1e12,nm=1e12,psor=1e-2):
+
+    # Boundary conditions
+    bbb.curcore[0] = 0.
+    bbb.ncore[0]=3.0e19
+    bbb.isnicore[0] = 1		#=1 gives bbb.ni=bbb.ncore on core bdry
+    bbb.isngcore[0] = 0		#=0 gives api.zero flux
+    bbb.isupcore[0:2] = 1	#=1 gives dup[,,1:2]/com.dy=0
+    bbb.istgcore[1] = 2		#=2 gives dTg/com.dy=0 on core bdry
+    bbb.iflcore = -1		#if=0, specify core temps if -1, dTe,i/com.dy=0 
+    bbb.recycp[:2] = 1e-10
+    bbb.recycw[:2] = 1e-10
+    bbb.nwsor=0
+    bbb.istepfc=0
+    bbb.istipfc=0	#bbb.priv. flux has api.zero temp. deriv.
+    bbb.istewc=0
+    bbb.istiwc=0	#wall has api.zero temp. deriv.
+    bbb.istgpfc[ 1] = 2		#=3 gives dTg/com.dy=0 on PF wall
+    bbb.istgwc[1] = 2		#=3 gives dTg/com.dy=0 on outer wall
+    bbb.isfixlb=1
+    bbb.isfixrb=1
+    bbb.nib=na
+    bbb.ywnio=1e4   
+    bbb.ywnii=1e4   
+    bbb.isnwconi=1
+    bbb.isnwcono=1
+    bbb.nwalli=na
+    bbb.nwallo=na
+    bbb.ngbackg[1]=nm
+
+
+
+def tube_walls(alba=0.99,albm=0.99,albl=0.55):
+
+    # Boundary conditions
+    bbb.curcore[0] = 0.
+    bbb.ncore[0]=3.0e19
+    bbb.isnicore[0] = 1		#=1 gives bbb.ni=bbb.ncore on core bdry
+    bbb.isngcore[0] = 0		#=0 gives api.zero flux
+    bbb.isupcore[0:2] = 1	#=1 gives dup[,,1:2]/com.dy=0
+    bbb.istgcore[1] = 2		#=2 gives dTg/com.dy=0 on core bdry
+    bbb.iflcore = -1		#if=0, specify core temps if -1, dTe,i/com.dy=0 
+
+    #bbb.isfixlb[0]=2 # Symmetry plane at LHS
+    bbb.recycp[:2] = [1e-10,1]
+    bbb.recycw[:2] = [1e-10,1]
+
+    bbb.nwsor=2
+    bbb.igspsoro[1]=2
+    bbb.igspsori[1]=2
+    bbb.albdsi[:2]=[alba,albm]
+    bbb.albdso[:2]=[alba,albm]
+    bbb.albedorb[0] = alba  #pump 50% of atoms others reflected
+    bbb.albedolb[0] = albl  #pump 50% of atoms others reflected
+    bbb.albedorb[1] = albm  #pump 50% of atoms others reflected
+    bbb.albedolb[1] = albl  #pump 50% of atoms others reflected
+    bbb.istepfc=0
+    bbb.istipfc=0	#bbb.priv. flux has api.zero temp. deriv.
+    bbb.istewc=0
+    bbb.istiwc=0	#wall has api.zero temp. deriv.
+    bbb.istgpfc[ 1] = 2		#=3 gives dTg/com.dy=0 on PF wall
+    bbb.istgwc[1] = 2		#=3 gives dTg/com.dy=0 on outer wall
+
+
 

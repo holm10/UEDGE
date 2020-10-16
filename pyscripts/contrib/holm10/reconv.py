@@ -13,6 +13,8 @@ def reconv(path='.'):
 
     from os import chdir,getcwd,walk
     from uedge.rundt import rundt
+    from uedge import bbb
+    from importlib import reload
 
 
     path=getcwd()
@@ -22,6 +24,19 @@ def reconv(path='.'):
     f.write('Runnin in '+path+':\n')
     f.close
 
+    try:
+        dirs.remove('grid')
+    except:    
+        pass
+    try:
+        dirs.remove('rates')
+    except:
+        pass
+    try:
+        dirs.remove('ignore')
+    except:
+        pass
+
 
     for d in dirs:
         # Move to dir with input file
@@ -29,17 +44,12 @@ def reconv(path='.'):
         print('==================')
         print('CONVERGING DIRECOTRY '+d)
         print('==================')
-        execfile("input.py")
-        bbb.dt_tot=0
-        bbb.isteon=1
-        bbb.dtreal=1e-9
-        bbb.exmain()
-        rundt(bbb.dtreal)
-        bbb.dtreal=1e20
-        bbb.icntnunk=0
-        bbb.itermx=30
-        bbb.ftol=1e-8
-        bbb.exmain()
+        import input as i
+        reload(i)
+        i.restore_input()
+        bbb.dtreal=1e-9;bbb.exmain()
+
+        rundt()
         hdf5_save('../solutions/'+bbb.label[0].decode('UTF-8')+'.hdf5')
         f=open(path+'/reconv.log','a')
         if bbb.iterm==1:

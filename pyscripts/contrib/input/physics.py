@@ -5,7 +5,7 @@
 from uedge import bbb,com,grd,flx,aph
 
 
-def powerdens_core(pcoree,pcorei,ncore,aphpath='.',lyni=[0.05,0.05],nwomin=1e15,lyte=[0.05,0.05],lyti=[0.05,0.05],nwimin=1e16,isplflxl=1,ngbackg=1e13,cngflox=1,cngfloy=1,
+def powerdens_core(pcoree,pcorei,ncore,aphpath='.',lyni=[0.05,0.05],nwomin=1e15,lyte=[0.05,0.05],lyti=[0.05,0.05],nwimin=1e16,isplflxl=1,ngbackg=1e10,cngflox=1,cngfloy=1,
                     isngcore=1,albedoc=0.5,isupcore=1,xstscal=0.02,ngscal=1,xgscal=0.01,cfloxiplt=1
 
 ):
@@ -368,16 +368,54 @@ def wall_BC_scalelength(lyni=[0.05,0.05],nwomin=1e15,lyte=[0.05,0.05],lyti=[0.05
     # Flux limits
     bbb.isplflxl=isplflxl  # Switch activating flux limits (flalfe/flalfi) at plates (=1)
 
-def volsource(ivolcur,zwni=1000,rwni=1000):
+def atom_volsource(ivolcur,r=0.01,h=0.5,w=0.5):
     """---------------------------------------------------------------------------------------------------- 
     VOLUMETRIC PLASMA SOURCES
     ----------------------------------------------------------------------------------------------------"""
     # Volumetric sources
-    bbb.ivolcur=ivolcur     # Volume source [A] for EACH charge species
-    bbb.zwni=zwni      # Width for volume source
-    bbb.rwni=rwni      # Width for volume source
+    bbb.ivolcur[1]=ivolcur     # Volume source [A] for EACH charge species
+    bbb.zwni=r      # Width for volume source
+    bbb.rwni=r      # Width for volume source
+    bbb.z0ni=h*grd.zax
+    bbb.r0ni=w*grd.radx
 
 
+def static_plasma(n,T,aphdir="../../rates/aph",isrecmon=1):
+    ''' Static background plasma '''
+    aph.aphdir=aphdir
+    bbb.isnion[0]=0
+    bbb.isteon=0
+    bbb.istion=0
+    bbb.isupon=0
 
+    bbb.tes=T*bbb.ev
+    bbb.tis=T*bbb.ev
+    bbb.nis[:,:,0]=n
+    bbb.ups=0
+    # Currents and potential parameters
+    bbb.isphion=0
+
+    # Atomic physics packages
+    com.istabon=10		#Stotler's '9
+    # Neutral atom properties
+    bbb.eion = 2.3		#birth energy of ions
+    bbb.ediss = 4.6		#dissoc. energy lost from elecs [bbb.eion=2*bbb.ediss]
+    bbb.isrecmon = isrecmon		#=1 turns on recombination
+    bbb.ngbackg[0] = 1.5e8		#floor level where background neut source on
+    bbb.bcee = 4.
+    bbb.bcei = 2.5	#energy transmission coeffs.
+    bbb.isupss = 1		#parallel vel sonic
+
+    # Parallel neutral momentum equation
+    bbb.isupgon[0]=1
+    bbb.isngon[0]=0
+    com.nhsp=2
+    com.ngsp=1
+    bbb.ziin[com.nhsp-1]=0
+    bbb.recycm = -10.		# -10 gives dup/com.dx=0 for atoms at plate5 APS rates
+    bbb.methg=33
+    if bbb.pyrestart_file[0].decode('UTF-8')!='read':
+        bbb.allocate()  
+    
 
 

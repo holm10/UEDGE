@@ -1332,6 +1332,7 @@ c----------------------------------------------------------------------c
       integer rate
 
 Use(Dim)
+Use(UEpar)
 Use(Share)                # istabon
 Use(Physical_constants)   # ev
 Use(Data_input)
@@ -1353,13 +1354,20 @@ c                       11: atom source from mol dis, X=[]
 c                       20: el. energy change from mol interactions, X=[J]
 c                       21: i/a energy change from mol interactions, X=[J]
 c                       22: Epot (binding E) change from mol interactions, X=[J]
-c                       23: Radiation source from mol interactionsm X=[J]
+c                       23: Atom radiation source from mol interactionsm X=[J]
+c                       24: Mol. radiation source from mol interactionsm X=[J]
 c     svma_crumpet [X/s]    = radiation rate
 
 c----------------------------------------------------------------------c
 c     Logarithmic interpolation as in Stotler-95
 
 
+
+      if (ishymol .eq. 0) then
+            sv_crumpet=0
+      elseif (ismolcrm .eq. 0) then
+            sv_crumpet=0
+      else
 c     compute abscissae --
          zloge=log(te/ev)
          rle=max(crlemin, min(zloge,crlemax))
@@ -1401,6 +1409,11 @@ c     pick the appropriate matrix to interpolate from
               svd_crm21=crmspotm(je+1,jd) 
               svd_crm22=crmspotm(je+1,jd+1)
          elseif (rate .eq. 23) then
+              svd_crm11=crmsrada(je,jd) 
+              svd_crm12=crmsrada(je,jd+1)
+              svd_crm21=crmsrada(je+1,jd) 
+              svd_crm22=crmsrada(je+1,jd+1)
+         elseif (rate .eq. 24) then
               svd_crm11=crmsradm(je,jd) 
               svd_crm12=crmsradm(je,jd+1)
               svd_crm21=crmsradm(je+1,jd) 
@@ -1446,6 +1459,8 @@ c ... Zero-crossing – linear interpolation
                 
 
             endif
+
+        endif
         
 
 c----------------------------------------------------------------------c

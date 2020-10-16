@@ -63,7 +63,7 @@ def Emol_V707( n0g=1e17,ngbackg=1e11,kelighg=5e-16,kelighi=5e-16,cngfx=0,cngfy=0
 
 
 
-def Emol(  n0g=1e17,ngbackg=1e14,kelighg=5e-16,kelighi=5e-16,cngfx=1,cngfy=1,cfcvtg=1,cftgcond=1,
+def Emol(  n0g=1e17,ngbackg=1e10,kelighg=5e-16,kelighi=5e-16,cngfx=1,cngfy=1,cfcvtg=1,cftgcond=1,
                 isngcore=0,albedoc=0.5,ngcore=1e12,istgcore=2,tgcore=100,tgwall=4e-2,ismolcrm=1):
 
 
@@ -141,5 +141,54 @@ def common_mol(igh2,n0g,ngbackg,kelighg,kelighi,cngfx,cngfy,cfcvtg,cftgcond,ismo
     bbb.cftgcond=cftgcond          # Conductive thermal transport scaling coefficient for gas temperature
 
 
+
+
+def volsource(curr=1e15,h=0.5,w=0.5,r=0.01):
+    ''' Molecular volumetric source '''
+    # Volumetric sources
+    bbb.ivolcurg[1]=curr     # Volume source [A] for EACH charge species
+    bbb.zwng=r      # Width for volume source
+    bbb.rwng=r      # Width for volume source
+    bbb.z0ng=w*grd.zax
+    bbb.r0ng=h*grd.radx
+
+
+    '''
+    from numpy import array
+    # Define a cylindrical source in middle of domain
+    c=array([   [0,     0,      .25,    .25,    0,      0   ],
+                [0,     .25,    .5,     .5,     .25,    0   ],
+                [.25,   .5,     1,      1,      .5,     .25 ],
+                [.25,   .5,     1,      1,      .5,     .25 ],
+                [0,     .25,    .5,     .5,     .25,    0   ],
+                [0,     0,      .25,    .25,    0,      0   ]   ]   )
+    c=c/sum(sum(c)) # Normalize to one
+    # Get central coordinates
+
+    
+    h=int(h*com.nx)+1 
+    w=int(w*com.ny)+1
+    r=int(len(c)/2)
+    # Set source strength
+    bbb.psgov_use[h-r:h+r,w-r:w+r,1]=c*curr
+    '''
+
+
+def molbox(T,ismolcrm=1,ngbackg=1e10,istgon=0):
+
+    # Add molecules density & temp
+    bbb.ismolcrm=ismolcrm
+
+    igh2=activate_mol()
+    bbb.isngon[igh2] = 1
+    bbb.istgcon[igh2] = -1
+    if bbb.pyrestart_file[0].decode('UTF-8')!='read':
+        bbb.allocate()  
+    bbb.tgas = 0.02
+    bbb.tgwall = 0.04
+    bbb.istgon=0
+    bbb.istgon[1]=istgon
+    bbb.tgs[:,:,igh2]=T*bbb.ev
+    bbb.ngbackg[igh2] = ngbackg		#floor level where background neut source on
 
 

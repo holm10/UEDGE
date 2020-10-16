@@ -449,7 +449,7 @@ def ani_vec(varx,vary,path='.',norm=None,zoom='div',show_animation=True,savename
     else:
         close()
 
-def ani_hm(variable,path='.',zoom='div',zrange=False,zaxis='lin',norm=None,show_animation=True,savename=False,fps=10,figsize=(1.618*6,6),keys={},steps="",framerate=1,output='gif',database=None,subplot=None,commands=[]):
+def ani_hm(variable,path='.',zoom='div',zrange=False,zaxis='lin',norm=None,show_animation=True,savename=False,fps=10,figsize=(1.618*6,6),keys={},steps="",framerate=1,output='gif',database=None,subplot=None,commands=[],engbal=True):
     """ Function creating a flux-tube plot  animation 
         ani_hm(var,**keys)
         
@@ -534,6 +534,9 @@ def ani_hm(variable,path='.',zoom='div',zrange=False,zaxis='lin',norm=None,show_
                 exec(cmd)
 
             bbb.ftol=1e20;bbb.issfon=0;bbb.exmain()
+
+            if engbal is True:
+                bbb.engbal(bbb.pcoree+bbb.pcorei)
 
             # Add timestamp to plot title
             keys['title']=origtitle+' '+steps+str(bbb.ncore[0])

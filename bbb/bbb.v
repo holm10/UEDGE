@@ -240,7 +240,7 @@ isnupdot1sd               integer /0/  #=0, use 2-pt ndot for (n*up)_dot;
 isphicore0		  integer /0/  #=1 sets phi=0 in core if isphion=1
 is_z0_imp_const           integer /0/  #=0 use hydr Keilhacker;=1 z0_imp_const
 z0_imp_const              real    /1./ #z0 in therm force if is_z0_imp_const=1
-ismolcrm                  real  /1/ # =1 uses CRUMPET rates, =0 uses old model
+ismolcrm                  real  /0/ # =1 uses CRUMPET rates, =0 uses old model
 					
 ***** Model_choice restart:
 #Flags for choosing one or another calculation of a part of the model
@@ -1606,7 +1606,8 @@ fracvgpgp             real        /1./      #frac of vgp in vgradp eng terms
 fetx(0:nx+1,0:ny+1)   _real [W]  #total energy flow through a poloidal cell face
 fety(0:nx+1,0:ny+1)   _real [W]  #total energy flow through a radial cell face
 pdrift(0:nx+1,0:ny+1) _real [W/m^3] #power in bringing new ion to flow velocity
-pmrad(0:nx+1,0:ny+1)  _real [W]     #total radiated power due to mol. processes
+pmrada(0:nx+1,0:ny+1) _real [W]     #total atom radiated power due to mol. processes
+pmradm(0:nx+1,0:ny+1) _real [W]     #total mol. radiated power due to mol. processes
 pmpot(0:nx+1,0:ny+1)  _real [W]     #tot. pot E (bind e) due to mol. processes
 pmloss(0:nx+1,0:ny+1) _real [W]     #total power lost by electrons and ions due
                                     #to molecular processes
