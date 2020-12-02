@@ -250,7 +250,25 @@ def slab_neumann(   radx=5e-2, rad0=0, radm=-1e-2, za0=0, zaxpt=2, zax=3, alfyt=
                                 #=1: gradual change from orthogonal mesh to mesh12 between upstream an downstram pos    
 
     grd.iplate=0
-    
+
+
+def slab_neumann_SOLPS(   radx=8e-2, rad0=0, radm=-2e-2, za0=0, zaxpt=2, zax=3, alfyt=-2, alfxt=4.0,
+                    isadjalfxt=0, btor=2, bpol=0.2, gengrid=1, nxxpt=0,nxmod=2,alfxptu=1, alfcy=1e-4,
+                    nxleg=32, nxcore=12, nycore=6, nysol=12, dmix0=0,dispx=0,dispy=0):
+
+
+    # Calculate tot b-field based on toroidal an poloidal components
+    btot = (btor**2 + bpol**2)
+    # Calculate correct slab length for mirroring in middle of upstream cell
+    dc = ((zaxpt/(nxcore-0.5))*nxcore - zaxpt)
+    # Add required extension
+    zax += dc
+    zaxpt += dc
+
+    slab_neumann(radx=radx, rad0=rad0, radm=radm, za0=za0, zaxpt=zaxpt, zax=zax, alfyt=alfyt, alfxt=alfxt,
+                    isadjalfxt=isadjalfxt, btfix=btot, bpolfix=bpol, gengrid=gengrid, nxxpt=nxxpt,nxmod=nxmod,alfxptu=alfxptu, alfcy=alfcy,
+                    nx_oleg=nxleg, nxcore_outside=nxcore, nycore=nycore, nysol=nysol, dmix0=dmix0,dispx=dispx,dispy=dispy)
+
 
 
 def mesh_seed_points():

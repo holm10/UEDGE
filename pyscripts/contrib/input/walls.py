@@ -264,8 +264,10 @@ def box_walls(alba=1e-2,albm=0.99,recyca=1e-10,recycm=1):
     bbb.isupcore[0:2] = 1	#=1 gives dup[,,1:2]/com.dy=0
     bbb.istgcore[1] = 2		#=2 gives dTg/com.dy=0 on core bdry
     bbb.iflcore = -1		#if=0, specify core temps if -1, dTe,i/com.dy=0 
-    bbb.recycp[:2] = [recyca,recycm]
-    bbb.recycw[:2] = [recyca,recycm]
+    bbb.recycp[0] = recyca
+    bbb.recycw[0] = recyca
+    bbb.recycp[1] = recycm
+    bbb.recycw[1] = recycm
     bbb.nwsor=2
     bbb.igspsoro[1]=2
     bbb.igspsori[1]=2
@@ -284,7 +286,7 @@ def box_walls(alba=1e-2,albm=0.99,recyca=1e-10,recycm=1):
     bbb.istgpfc[ 1] = 2		#=3 gives dTg/com.dy=0 on PF wall
     bbb.istgwc[1] = 2		#=3 gives dTg/com.dy=0 on outer wall
 
-def box_dirichlet(na=1e12,nm=1e12,psor=1e-2):
+def box_dirichlet(na=1e12,nm=1e12,psor=1e-2,recyca=1e-10,recycm=1e-10):
 
     # Boundary conditions
     bbb.curcore[0] = 0.
@@ -294,8 +296,10 @@ def box_dirichlet(na=1e12,nm=1e12,psor=1e-2):
     bbb.isupcore[0:2] = 1	#=1 gives dup[,,1:2]/com.dy=0
     bbb.istgcore[1] = 2		#=2 gives dTg/com.dy=0 on core bdry
     bbb.iflcore = -1		#if=0, specify core temps if -1, dTe,i/com.dy=0 
-    bbb.recycp[:2] = 1e-10
-    bbb.recycw[:2] = 1e-10
+    bbb.recycp[0] = recyca
+    bbb.recycw[0] = recyca
+    bbb.recycp[1] = recycm
+    bbb.recycw[1] = recycm
     bbb.nwsor=0
     bbb.istepfc=0
     bbb.istipfc=0	#bbb.priv. flux has api.zero temp. deriv.

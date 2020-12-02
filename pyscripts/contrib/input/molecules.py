@@ -12,6 +12,8 @@ def activate_mol():
     if bbb.pyrestart_file[0].decode('UTF-8')!='read': # Fix for multiple consequtive runs
         com.nhgsp=com.nhgsp+1       # Allocate space for molecules in hygrogenic gas species array
     com.ngsp=com.ngsp+1     # Allocate space for hydrogen in gas species array
+    com.nhgsp=min(com.nhgsp+1,2)       # Allocate space for molecules in hygrogenic gas species array
+    com.ngsp=min(com.ngsp+1,2)     # Allocate space for hydrogen in gas species array
     return com.ngsp-1         # Index for molecules in gaseous arrays
     
 
@@ -144,14 +146,14 @@ def common_mol(igh2,n0g,ngbackg,kelighg,kelighi,cngfx,cngfy,cfcvtg,cftgcond,ismo
 
 
 
-def volsource(curr=1e15,h=0.5,w=0.5,r=0.01):
+def volsource(curr=1,h=0.5,w=0.5,r=0.01,nhgsp=1):
     ''' Molecular volumetric source '''
     # Volumetric sources
-    bbb.ivolcurg[1]=curr     # Volume source [A] for EACH charge species
-    bbb.zwng=r      # Width for volume source
-    bbb.rwng=r      # Width for volume source
-    bbb.z0ng=w*grd.zax
-    bbb.r0ng=h*grd.radx
+    bbb.ivolcurg[nhgsp]=curr     # Volume source [A] for EACH charge species
+    bbb.zwng[nhgsp]=r      # Width for volume source
+    bbb.rwng[nhgsp]=r      # Width for volume source
+    bbb.z0ng[nhgsp]=w*grd.zax
+    bbb.r0ng[nhgsp]=h*grd.radx
 
 
     '''
