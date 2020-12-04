@@ -4429,8 +4429,11 @@ c*************************************************************
             w0(ix,iy) = vol(ix,iy) * eqp(ix,iy) * (te(ix,iy)-ti(ix,iy))
             resee(ix,iy) = resee(ix,iy) - w0(ix,iy) + vsoree(ix,iy)
 c ... Energy density change due to molecular dissociation
-            eiamoldiss(ix,iy)=(1-ismolcrm)*eion*ev*psordis(ix,iy,2) + 
+            eiamoldiss(ix,iy)=(1-ismolcrm)*eion*ev*psordis(ix,iy,2) 
+            if (ishymol .ne. 0) then
+                eiamoldiss(ix,iy) = eiamoldiss(ix,iy) + 
      .                      ismolcrm*2*psordisg(ix,iy,2)*tg(ix,iy,2) 
+            endif
             emolia(ix,iy)=ismolcrm*ng(ix,iy,2)*vol(ix,iy)*
      .                      sv_crumpet(te(ix,iy), ne(ix,iy), 21) 
 
