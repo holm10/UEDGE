@@ -679,7 +679,7 @@ islbcn    integer      /2/	# b.c. for ni at limiter guard cells;
 islbcu    integer      /5/	# b.c. for up at limiter guard cells;
 				# =0,1 set up in 3 cells
 				# =2 set up in 2 cells, fmix at interface
-	isph_spu			# =3,4,6 set fmix at interface
+				# =3,4,6 set fmix at interface
 				# =5 set fmix-fmixy at interface
 islbce    integer      /2/	# b.c. for te at limiter guard cells;
 				# =0,1 set te in 2 cells

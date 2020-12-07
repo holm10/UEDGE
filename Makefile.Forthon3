@@ -15,7 +15,7 @@ INSTALLARGS = --pkgbase uedge $(BUILDBASE)
 # PETSC-UEDGE =
 # PETSC-COM =
 
-all: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/aphpydep $(BUILDDIR)/apipydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/flxpydep $(BUILDDIR)/grdpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep
+all: mppl2f90 $(BUILDDIR)/compydep $(BUILDDIR)/bbbpydep $(BUILDDIR)/flxpydep $(BUILDDIR)/grdpydep $(BUILDDIR)/svrpydep $(BUILDDIR)/wdfpydep $(BUILDDIR)/aphpydep $(BUILDDIR)/apipydep
 	rm -f uedgeC.so
 
 mppl2f90:

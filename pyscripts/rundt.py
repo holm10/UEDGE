@@ -89,8 +89,8 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
         print("*---------------------------------------------------------*")
         bbb.icntnunk = 0
         bbb.exmain()
-        if bbb.exmain_aborted: # If exmain is aborted, exit script
-            bbb.exmain_aborted=False # Restore False for consecutive runs
+        if bbb.exmain_aborted == 1: # If exmain is aborted, exit script
+            bbb.exmain_aborted == 0 # Restore False for consecutive runs
             return
         bbb.dtreal = bbb.dtreal*bbb.mult_dt #compensates dtreal divided by mult_dt below
 
@@ -229,8 +229,8 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
             bbb.isdtsfscal = isdtsf_sav
             bbb.ftol = max(min(bbb.ftol_dt, 0.01*fnrm_old),bbb.ftol_min)
             bbb.exmain() # take a single step at the present bbb.dtreal
-            if bbb.exmain_aborted: # If exmain is aborted, exit script
-                bbb.exmain_aborted=False # Restore False for consecutive runs
+            if bbb.exmain_aborted == 1: # If exmain is aborted, exit script
+                bbb.exmain_aborted = 0 # Restore False for consecutive runs
                 return
             if (bbb.iterm == 1):
                 bbb.dt_tot += bbb.dtreal
@@ -252,8 +252,8 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
                 bbb.itermx = bbb.itermxrdc
                 bbb.ftol = max(min(bbb.ftol_dt, 0.01*fnrm_old),bbb.ftol_min)
                 bbb.exmain()
-                if bbb.exmain_aborted: # If exmain is aborted, exit script
-                    bbb.exmain_aborted=False # Restore False for consecutive runs
+                if bbb.exmain_aborted == 1: # If exmain is aborted, exit script
+                    bbb.exmain_aborted = 0 # Restore False for consecutive runs
                     return
                 if (bbb.iterm == 1):
                     bbb.ylodt = bbb.yl
