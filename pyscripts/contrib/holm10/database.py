@@ -1030,6 +1030,7 @@ def default_variables():
                 'bbb.edisse','bbb.emolia','bbb.eiamoldiss',
                 'bbb.pmrada', 'bbb.pmradm' ,'bbb.pmpot',
                 'bbb.psorbgg','bbb.psorbgz','bbb.volpsorg',
+                'bbb.ivolcur',
                 'bbb.ziin', 'bbb.minu', 'bbb.mi', 'bbb.mg', 'bbb.ziin',
                 'bbb.label' ]
 
