@@ -7462,7 +7462,23 @@ c... flux-limit occurs in building hcxg - do not flux-limit 2nd time
         do iy = j2, j5
           do ix = i2, i5
             ix1 = ixm1(ix,iy)
-            reseg(ix,iy,igsp)= -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
+            if (isupgon(igsp).eq.0) then #..zml otherwise calculated elsewhere
+              t0 = cfvgpgx(igsp)*uug(ix,iy,igsp)
+     .                       *( ng(ix2,iy,igsp)*tg(ix2,iy,igsp)
+     .                         -ng(ix,iy,igsp)*tg(ix,iy,igsp) )*gxf(ix,iy)
+              t1 = cfvgpgx(igsp)*uug(ix1,iy,igsp)
+     .                       *( ng(ix,iy,igsp)*tg(ix,iy,igsp)
+     .                         -ng(ix1,iy,igsp)*tg(ix1,iy,igsp) )*gxf(ix1,iy)
+              t2 = cfvgpgy(igsp)*vyg(ix,iy,igsp)
+     .                       *( ng(ix,iy+1,igsp)*tg(ix,iy+1,igsp)
+     .                         -ng(ix,iy,igsp)*tg(ix,iy,igsp) )*gyf(ix,iy)
+              a = cfvgpgy(igsp)*vyg(ix,iy-1,igsp)
+     .                       *( ng(ix,iy,igsp)*tg(ix,iy,igsp)
+     .                         -ng(ix,iy-1,igsp)*tg(ix,iy-1,igsp) )*gyf(ix,iy-1)
+              sed0c(ix,iy,igsp) = 0.5*(t0+t1+t2+a)*vol(ix,iy)
+            endif
+            reseg(ix,iy,igsp)= sed0c(ix,iy,igsp) 
+     .                         -( fegx(ix,iy,igsp)-fegx(ix1,iy,  igsp)+
      .                            fegy(ix,iy,igsp)-fegy(ix, iy-1,igsp) )
             reseg(ix,iy,igsp)= reseg(ix,iy,igsp) + vol(ix,iy)* 
      .                      eqpg(ix,iy,igsp)*(ti(ix,iy)-tg(ix,iy,igsp))+

@@ -314,6 +314,8 @@ vboost    real      /1./    #previously scaled eqp; no longer in use
 cvgp      real      /1./    #Coef for v.Grad(p) terms.
 cfvgpx(1:nispmx) real /nispmx*1./ #Coefs for x components of v.grad(p) in ti-eq
 cfvgpy(1:nispmx) real /nispmx*1./ #Coefs for y components of v.grad(p) in ti-eq
+cfvgpgx(1:ngspmx) real /ngspmx*0./ # Coefs for v*grad(pg) term (poloidal component) for Tg if isupgon=0.
+cfvgpgy(1:ngspmx) real /ngspmx*0./ # Coefs for v*grad(pg) term (poloidal component) for Tg if isupgon=0.
 cfbgt     real      /0./    #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     #Coef for the Joule-heating terms
@@ -2109,6 +2111,7 @@ msorxr(0:nx+1,0:ny+1,1:nisp)  _real [kg-m/s**2]# cx&recomb. mom. sink for ions
 seec(0:nx+1,0:ny+1)           _real
 seev(0:nx+1,0:ny+1)           _real
 seic(0:nx+1,0:ny+1)           _real
+sed0c(0:nx+1,0:ny+1,1:ngsp)   _real  #..zml seperate temperatures for D+ and D0
 seiv(0:nx+1,0:ny+1)           _real
 resco(0:nx+1,0:ny+1,1:nisp)   _real
 resng(0:nx+1,0:ny+1,1:ngsp)   _real
@@ -2119,7 +2122,7 @@ resei(0:nx+1,0:ny+1)          _real
 resphi(0:nx+1,0:ny+1)         _real
 
 ***** MCN_dim:
-# array bounds used in connection with Monte Carlo Neutrals
+# array bounds used in connection with Monte Carlo Neutrals/
 nstra		integer		/2/
 # number of 'strata' or 'source groups' in Monte-Carlo-Neutrals model;
 # i.e., a surface or volume element where neutrals originate;

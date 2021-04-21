@@ -86,7 +86,7 @@ def conv_ncore_step(d, name, t_stop=100,ii1max=100,nstop=1.5e20,dtreal=1e-9):
         
 
 def conv_ivolcur_step(  d, name, t_stop=100,ii1max=100,ivolcurstop=100,
-                        dtreal=1e-9,iisp=0):
+                        dtreal=1e-9,iisp=0,res=3):
     """ Simple function to incrementally change the density of a converged solution """
     from uedge import bbb
     from uedge.rundt import rundt
@@ -110,10 +110,10 @@ def conv_ivolcur_step(  d, name, t_stop=100,ii1max=100,ivolcurstop=100,
         bbb.dtreal=dtreal # Small step size to ensure convergence
         bbb.ivolcur[iisp]+=d # Increase step size
         print('===================================')
-        print('Solving for ncore[0]={:.2E}'.format(bbb.ncore[0]))
+        print('Solving for ivolcur[0]={{:.{}E}}'.format(res).format(bbb.ivolcur[0]))
         print('===================================')
-        '''
         bbb.exmain() # Check convergence at small dt
+        '''
         # Check that we can get started
         if bbb.iterm!=1:    # The case did not converge
             bbb.isbcwdt=1       # Relax BC:s and try again
@@ -150,10 +150,10 @@ def conv_ivolcur_step(  d, name, t_stop=100,ii1max=100,ivolcurstop=100,
         # Check if SS or not
         if bbb.iterm==1:   # SS solution
             # Save to solutions with appropriate name
-            hdf5_save("../solutions/{}_{:.3E}_ss.hdf5".format(name,bbb.ivolcur[iisp]))
+            hdf5_save("../solutions/{{}}_{{:.{}E}}_ss.hdf5".format(res).format(name,bbb.ivolcur[iisp]))
         else:
-            hdf5_save("../solutions/{}_{:.2E}_failed.hdf5".format(name,bbb.ivolcur[iisp]))
-            print("Ramp did not converge for variable: {:.2E}. Aborting...".format(bbb.ivolcur[iisp]))
+            hdf5_save("../solutions/{{}}_{{:.{}E}}_failed.hdf5".format(res).format(name,bbb.ivolcur[iisp]))
+            print("Ramp did not converge for variable: {{:.{}E}}. Aborting...".format(res).format(bbb.ivolcur[iisp]))
             break
         if increasing:
             if bbb.ivolcur[iisp]>ivolcurstop:
