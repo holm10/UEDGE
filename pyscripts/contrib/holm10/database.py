@@ -613,6 +613,12 @@ class SETUP():
         return asarray([(1e-16*case.get_mp('bbb.ni',s=0)*case.get_rightL()[case.ixmp(),case.iysptrx()+1])/
                 ((case.get_mp('bbb.ti')/self.ev)**2) for case in self.cases])
 
+    def get_intnusoli(self):
+        for c in self.cases:
+            for ix in range(1,c.nx()+2):
+                1
+                 
+
     def get_rowsum(self):
         ''' To be implemented '''
         # TODO: implement
@@ -847,9 +853,11 @@ class CASE():
         from numpy import zeros_like
         ret=zeros_like(self.get('bbb.ne'))
         for ix in range(self.nx()+1,0,-1):
-            ret[ix,self.iysptrx()+1:]=((self.get('com.bphi')**2+self.get('com.bpol')**2)**0.5)[ix,self.iysptrx()+1:,0]*self.get('com.dx')[ix,self.iysptrx()+1:]
+            ret[ix,self.iysptrx()+1:]=(self.get('com.bphi')/self.get('com.bpol'))[ix,self.iysptrx()+1:,0]*self.get('com.dx')[ix,self.iysptrx()+1:]
+            #ret[ix,self.iysptrx()+1:]=((self.get('com.bphi')**2+self.get('com.bpol')**2)**0.5)[ix,self.iysptrx()+1:,0]*self.get('com.dx')[ix,self.iysptrx()+1:]
         for ix in range(self.nx()+1,self.ixpt2(),-1):
-            ret[ix,:self.iysptrx():]=((self.get('com.bphi')**2+self.get('com.bpol')**2)**0.5)[ix,:self.iysptrx():,0]*self.get('com.dx')[ix,:self.iysptrx():]
+            #ret[ix,:self.iysptrx():]=((self.get('com.bphi')**2+self.get('com.bpol')**2)**0.5)[ix,:self.iysptrx():,0]*self.get('com.dx')[ix,:self.iysptrx():]
+            ret[ix,:self.iysptrx():]=(self.get('com.bphi')/self.get('com.bpol'))[ix,:self.iysptrx():,0]*self.get('com.dx')[ix,:self.iysptrx():]
         return ret
 
 
