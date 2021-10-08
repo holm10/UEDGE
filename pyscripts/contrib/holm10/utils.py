@@ -405,7 +405,7 @@ def create_EIRENE(path='.',subpath='data'):
 
         # Read and repopulate all arrays
         bbb.issfon=0;bbb.ftol=1e20;bbb.exmain()
-        bbb.write_eirene()
+        bbb.write_eirene(verbatim=False)
 
 
         chdir(parent)

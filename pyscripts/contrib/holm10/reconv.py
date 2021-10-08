@@ -8,7 +8,7 @@ def natsort(l):
 
 
 
-def reconv(path='.'):
+def reconv(path='.', dtreal=1e-9):
     ''' Reconverges all cases in subfolders in path (default current folder)'''
 
     from os import chdir,getcwd,walk
@@ -50,7 +50,7 @@ def reconv(path='.'):
         i.restore_input()
         bbb.dtreal=1e-9;bbb.exmain()
 
-        rundt()
+        rundt(dtreal)
         hdf5_save('../solutions/'+bbb.label[0].decode('UTF-8')+'.hdf5')
         f=open(path+'/reconv.log','a')
         if bbb.iterm==1:

@@ -111,7 +111,7 @@ def getxy(rm, zm, flip=False, dispr=0, dispz=0):
 
 
 
-def writeSonnet_slab(fname='uedge.sonnet', runid=" UEDGE geometry data", flip=False, dgc=1e-7, d=6, sonnetGC=True, dispr=0, dispz=0, rm=None, zm=None):
+def writeSonnet_slab(fname='uedge.sonnet', runid=" UEDGE geometry data", flip=False, dgc=1e-7, d=6, sonnetGC=True, dispr=0, dispz=0, rm=None, zm=None, verbatim=True):
       
     from uedge import bbb, com
 
@@ -132,14 +132,15 @@ def writeSonnet_slab(fname='uedge.sonnet', runid=" UEDGE geometry data", flip=Fa
                 i+=1
                 write_cell(i, ix, iy, x[ix,iy], y[ix,iy], f)
 
-    print(" *** Sonnet slab geometry file written for EIRENE ***")
+    if verbatim:
+        print(" *** Sonnet slab geometry file written for EIRENE ***")
 
 
 
 
 
 
-def write30(rm=None, zm=None, fname='fort.30', runid='UEDGE geometry data', flip=False, dispr=0, dispz=0):
+def write30(rm=None, zm=None, fname='fort.30', runid='UEDGE geometry data', flip=False, dispr=0, dispz=0, verbatim=True):
     from uedge import com, bbb
     from uedge.contrib.holm10.plot import grid,plot
 
@@ -166,11 +167,12 @@ def write30(rm=None, zm=None, fname='fort.30', runid='UEDGE geometry data', flip
                     for n in [2, 4, 3, 1]:
                         f.write('{:>15}'.format(fortranFormat(o[ix,iy,n])))
                     f.write('\n')
-    print(" *** geometry file written for EIRENE ***")
+    if verbatim:
+        print(" *** geometry file written for EIRENE ***")
         
 
 
-def write31(fname='fort.31'):
+def write31(fname='fort.31', verbatim=True):
     from uedge import bbb, com
 
 
@@ -198,11 +200,12 @@ def write31(fname='fort.31'):
                         gfsub3(var[:,:,i], f)
             else:
                 gfsub3(var, f)
-    print(" *** background plasma file written for EIRENE ***")
+    if verbatim:
+        print(" *** background plasma file written for EIRENE ***")
 
 
 
-def write_neighbor(fname='triageom.neighbor'):
+def write_neighbor(fname='triageom.neighbor', verbatim=True):
     from uedge import com
     from numpy import reshape, zeros
 
@@ -258,13 +261,14 @@ def write_neighbor(fname='triageom.neighbor'):
                     f.write('{:>6d}  {:>6d}{:>6d}{:>6d}    {:>6d}{:>6d}{:>6d}    {:>6d}{:>6d}{:>6d}    {:>6d}{:>6d}\n'.format(*buff))
                     k += 1
 
-    print(" *** Triageom neighbor file for slab case  written for EIRENE ***")
+    if verbatim:
+        print(" *** Triageom neighbor file for slab case  written for EIRENE ***")
 
 
 
 
 
-def write_elemente(fname='triageom.elemente'):
+def write_elemente(fname='triageom.elemente', verbatim=True):
     from uedge import com
     from numpy import reshape
 
@@ -279,10 +283,10 @@ def write_elemente(fname='triageom.elemente'):
                 f.write('{:>6d}  {:>6d}{:>6d}{:>6d}\n'.format(k, indarr[i,j],indarr[i+1,j+1],indarr[i,j+1]))
                 f.write('{:>6d}  {:>6d}{:>6d}{:>6d}\n'.format(k+1, indarr[i,j],indarr[i+1,j],indarr[i+1,j+1]))
                 k += 2
+    if verbatim:
+        print(" *** Triageom elemente file for slab case  written for EIRENE ***")
 
-    print(" *** Triageom elemente file for slab case  written for EIRENE ***")
-
-def write_nodes(fname='triageom.nodes',rm=None, zm=None, flip=False, dispr=0, dispz=0, d=6):
+def write_nodes(fname='triageom.nodes',rm=None, zm=None, flip=False, dispr=0, dispz=0, d=6, verbatim=True):
     from uedge import com
     from numpy import zeros, reshape, around
 
@@ -317,13 +321,14 @@ def write_nodes(fname='triageom.nodes',rm=None, zm=None, flip=False, dispr=0, di
 
         for iy in yn:
             f.write(('{{:>{}.{}E}}'.format(19-8+d,d)*len(iy)+'\n').format(*iy).replace('E','{}E'.format('0'*(8-d))))
-    print(" *** Triageom node file for slab case  written for EIRENE ***")
+    if verbatim:
+        print(" *** Triageom node file for slab case  written for EIRENE ***")
 
 
-def writeEIRENE(sonnet=True, dispr=0, dispz=0, flip=False):
+def writeEIRENE(sonnet=True, dispr=0, dispz=0, flip=False, verbatim = True):
 
-    writeSonnet_slab(fname='fort.30', flip=flip, dispr=dispr, dispz=dispz)
-    write31()
-    write_nodes(flip=flip, dispr=dispr, dispz=dispz)
-    write_elemente()
-    write_neighbor() 
+    writeSonnet_slab(fname='fort.30', flip=flip, dispr=dispr, dispz=dispz, verbatim = verbatim)
+    write31(verbatim=verbatim)
+    write_nodes(flip=flip, dispr=dispr, dispz=dispz,verbatim=verbatim)
+    write_elemente(verbatim=verbatim)
+    write_neighbor(verbatim=verbatim) 
