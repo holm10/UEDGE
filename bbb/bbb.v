@@ -81,6 +81,7 @@ tibg      real [eV]    /1.e-20/   #backgrd ion eng sor to limit te~tebg
 iteb      integer         /2/     #exponent of (tebg*ev/te)**iteb for bkg sor
 temin     real [eV]      /0.03/   #min value of te allow; if less, reset to
 temin2    real [eV]      /0.03/   #soft floor with te=sqrt[te**2+(temin2*ev)**2]
+tgmin     real [eV]      /0.03/   #..zml: min value of tg allowed
 pwrbkg_c  real [W/m**3]  /1.e3/   #const background factor in pwrebkg express
 pwribkg_c real [W/m**3]  /1.e3/   #const background factor in pwribkg express
 cfwjdotelim real         /1./     #factor scaling reduction of wjdote if te<tebg
@@ -96,6 +97,7 @@ pcolwid   real [m]        /0./    #width of plasma column for 1-D gas-box model
 eion      real [eV]       /5./    #energy that ionized ion is born with
 ediss     real [eV]       /10./ +restart
                                   #elec eng lost by mol. dissoc; should = 2*eion
+cfdiss    real            /1./    #..zml fraction of neutrals that are from dissociations.
 ebind     real [eV]     /13.6/ +restart
                                   #binding energy carried by hydrogen ion
 tfcx      real [eV]    /1.e-20/   #NO LONGER USED; instead see tgas
@@ -183,10 +185,10 @@ isplflxlgxy integer /0/ #=0, flalfgxy not active at ix=0 & nx;=1 active all ix
 iswflxlgy   integer /0/ #=0, flalfgy not active at iy=0 & ny;=1 active all iy
 isplflxlvgx integer /0/ #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
 isplflxlvgxy integer /0/ #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
-iswflxlvgy  integer /0/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
+iswflxlvgy  integer /1/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
 isplflxltgx integer /0/ #=0, flalfvgx not active at ix=0 & nx;=1 active all ix
 isplflxltgxy integer /0/ #=0, flalfvgxy not active at ix=0 & nx;=1 active all ix
-iswflxltgy  integer /0/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
+iswflxltgy  integer /1/ #=0, flalfvgy not active at iy=0 & ny;=1 active all iy
 flalfipl  real /1.e20/ #ion therm flux lim factor on plates when isplflxl=0
 flalfepl  real /1.e20/ #elec therm flux lim factor on plates when isplflxl=0
 isfeexpl0 integer  /0/ #if=1, feex cannot be out of inner/outer plates
@@ -205,6 +207,8 @@ rup21          real      /1./        #rup21=up2/up1 if isup1up2
 isupgon(ngspmx) integer /ngspmx*0/   #user:=1 for par neutral vel. eqn.; index igsp
 isteon      integer  /1/             #user:turns on (=1) electron energy eqn.
 istion      integer  /1/             #user:turns on (=1) ion enegy eqn.
+istiexclg   integer  /0/             #..zml: Ti is only solved for ions (=1, cftiexclg=0.0).
+istiinclg_test integer  /0/             #..zml: only for test purpose. for Ti anisotropy, =1: cftiexclg=1.0.
 isngon(ngspmx) integer  /6*1/        #user:turns on (=1) neutral eqn.; index igsp
 istgon(ngspmx) integer  /6*0/        #user:turns on (=1) gas enegy eqn.
 isphion     integer  /0/             #user:turns on (=1) potential eqn.
@@ -253,6 +257,11 @@ cnfy      real      /1./    #Y-flux coef for conv. in n-eq.
 cnsor     real      /1./    #Coef for particle src. in n-eq.
 cfneut    real      /1./    #Coef for fluid neutrals contrib's to resid's
 cfnidh    real      /1./    #Coef for neutral-ion drift heating
+cfnidh2   real      /0./    #..zml: the above coef (cfnidh=1.0) is not exactly the real coef for neutral-ion drift heating term. That's why we introduce cfnidh2 but only for testing. Default =0.0: nothing; =1.0 (only for testing), remove the drift heating term.
+cfnidhgy  real      /0./    #..zml: =1, consider vgy(,,1)**2 for n-i drift heating
+cfnidhg2  real      /0./    #..zml: =1, consider vg2(,,1)**2 for n-i drift heating
+cfnidhdis real      /0./    #..zml: =1, consider drift heating term (vg(,,1)-vg(,,2))^2 for molecular dissociation.
+cfnidhmol real      /0./    #..zml: =1, consider vg2(,,2)**2 for n-i drift heating, e.g. H2,D2 dissociation.
 cfupcx    real      /1./    #Coef for nucx*(up_ion - up_gas) momentum coupling
 cfticx    real      /1./    #Coef for nucx*(up_ion-up_gas)**2 heating in Ti Eq
 cfupimpg  real      /0./    #Coef for impur up Cx/elast drag on up=0 imp gas
@@ -308,7 +317,11 @@ upvhflr   real      /1.e2/  #min denom for up harmc ave (isvhyha=1); visc heat
 vboost    real      /1./    #previously scaled eqp; no longer in use
 cvgp      real      /1./    #Coef for v.Grad(p) terms.
 cfvgpx(1:nispmx) real /nispmx*1./ #Coefs for x components of v.grad(p) in ti-eq
+cftiexclg real      /1./    #..zml Coef for including atom gas in Ti eq.
+cfhcyig_test real      /0./    #..zml Ti anisotropy. Coef for hcyi including gas contribution in Ti eq. Only for testing purpose.
 cfvgpy(1:nispmx) real /nispmx*1./ #Coefs for y components of v.grad(p) in ti-eq
+cfvgpgx(1:ngspmx) real /ngspmx*0./ #..zml test (=1) v*grad(pg) term (poloidal component) for Tg if isupgon=0.
+cfvgpgy(1:ngspmx) real /ngspmx*0./ #..zml test (=1) v*grad(pg) term (poloidal component) for Tg if isupgon=0.
 cfbgt     real      /0./    #Coef for the B x Grad(T) terms.
 cfjhf     real      /1./    #Coef for convective cur (fqp) heat flow
 jhswitch  integer   /0/     #Coef for the Joule-heating terms
@@ -389,6 +402,9 @@ ibctepr   integer	/1/	#Switch for ix=nx+1 energy flux bc's
 				#=1, standard sheath transmission b.c.
 				#=2, zero poloidal gradients for te
 ibctipr   integer       /1/	# Same as ibctepr, with te --> ti
+ibctgpl(ngspmx) integer /ngspmx*0/   #..zml 0:fixed tg at tgwall 
+                                     #      1:fraction of ti (=cftgtipltl*ti)
+ibctgpr(ngspmx) integer /ngspmx*0/   #..zml the same as above
 isphilbc	integer	/0/     #Switch for ix=0 b.c. on phi
 				#=0, phi = phi0l + kappal * te
 				#=1, phi = phi0l
@@ -445,6 +461,7 @@ istgcore(ngspmx) integer /ngspmx*1/ #switch for neutral-density core B.C.
                                     #=0, set tg(ixcore,0,igsp)=ti(ixcore,0)
 				    #=1, set fixed temp tgcore(igsp)
 				    #if > 1, set zero grad; tg(,0,)=tg(,1,)
+cftgticore(ngspmx) real /ngspmx*1./ #..zml
 curcore(1:nispmx) real [A] /0.,30*0./ #value of current from core if isnicore=0
 lzcore(1:nispmx)  real [kg/ms] /nispmx*0./ #tor. ang. mom dens core bdry; phi eqn
 lzflux(1:nispmx)  real [kg/s**2]/nispmx*0./ #tor. ang. mom dens flux core bdry; up eqn
@@ -472,6 +489,8 @@ tepltl    real [eV]  /2./    #left plate Te B.C. if ibctepl=0
 tipltl    real [eV]  /2./    #left plate Ti B.C. if ibctipl=0
 tepltr    real [eV]  /2./    #right plate Te B.C. if ibcteplr=0
 tipltr    real [eV]  /2./    #right plate Ti B.C. if ibctiplr=0
+cftgtipltl(ngspmx)  real   /ngspmx*1./    #..zml left plate Tg B.C. if ibctgpl=1
+cftgtipltr(ngspmx)  real   /ngspmx*1./    #..zml right plate Tg B.C. if ibctgpr=1
 tbmin     real [eV] /.1/     #min. wall & pf temp for extrap. b.c.(isextrt..)
 nbmin     real [m**-3] /1.e17/ #min. wall & pf den for extrap. b.c.(isextrn..)
 ngbmin    real [m**-3] /1.e10/ #min. core gas den for extrap. b.c.(isextrngc)
@@ -482,11 +501,6 @@ istewc    integer    /1/     # switch for outer-wall BC on Te
 			     # =3, set Te scale length to lyte
                              # =4, set feey = bceew*fniy*te
 istiwc    integer    /1/     #switch for outer-wall BC on Ti, see istewc detail
-istgwc(ngspmx) integer/ngspmx*0/    #switch for outer-wall BC on Tg(,0,igsp)
-	 		     # =0, set fixed temp to tgwall
-			     # =1, use extrapolation BC
-			     # =2, set Tg scale length to lytg(2,
-                             # >2, report error in input
 istepfc   integer    /0/     # switch for priv.-flux BC on Te
 			     # =0, set zero energy flux
 	 		     # =1, set fixed temp to tedge or tewalli
@@ -494,11 +508,16 @@ istepfc   integer    /0/     # switch for priv.-flux BC on Te
 			     # =3, set Te scale length to lyte
                              # =4, set feey = bceew*fniy*te
 istipfc   integer    /0/     #switch for priv.-flux BC on Ti, see istewc detail
-istgpfc(ngspmx) integer/ngspmx*0/   #switch for PF BC on Tg(,0,igsp)
-	 		     # =0, set fixed temp to tgwall
-			     # =1, use extrapolation BC
-			     # =2, set Tg scale length to lytg(1,
-                             # >2, report error in input
+istgwc(ngspmx)  integer /ngspmx*0/     #..zml 0: set fixed temp to tgwall
+                                       #      1: fraction of ti (cftgtiwc)
+                                       #      2: leaking option (2*tg*pumping_flux)
+                                       #      3: Tg scale length to lytg
+istgpfc(ngspmx) integer /ngspmx*0/     #..zml 0: set fixed temp to tgwall
+                                       #      1: fraction of ti (cftgtipfc)
+                                       #      2: leaking option
+                                       #      3: Tg scale length to lytg
+cftgtiwc(ngspmx)   real   /ngspmx*1./    #..zml wall Tg B.C. if istgwc=1
+cftgtipfc(ngspmx)  real   /ngspmx*1./    #..zml pfc Tg B.C. if istgpfc=1
 tewalli(0:nx+1) _real [eV] #/(nx+2)*0./
                              #inner wall Te for istepfc=1.; = tedge if not set
 tiwalli(0:nx+1) _real [eV] #/(nx+2)*0./
@@ -514,11 +533,14 @@ isulytex        integer /0/  #if=0, lytex filled with lyte
 lytex(2,0:nx+1)    _real [m] # pol dep radial te grad length if set < 1e5
                              # istepfc,wc=3: 1:2=i:o, 2nd dim ix
 lyti(1:2)  real /2*1e20/ [m] #decaying rad Ti grad leng;(1,2) istipfc,wc=3
-lytg(1:2,ngspmx) real /12*1e20/ #rad tg scale length: PF (1,; Outer(2,
 isulytix        integer /0/  #if=0, lytix filled with lyti
                              #if=1, user values of lytex used
 lytix(2,0:nx+1)    _real [m] # pol dep radial ti grad length if set < 1e5
                              # istipfc,wc=3: 1:2=i:o, 2nd dim ix
+lytg(1:2,ngspmx)  real /ngspmx*1e20,ngspmx*1e20/ [m] #.. zml decaying rad Tg grad leng;(1,2) istgpfc,wc=3
+isulytgx(ngspmx) integer /ngspmx*0/  #if=0, lytgx filled with lytg
+                                     #if=1, user values of lytgx used
+lytgx(1:2,0:nx+1,ngspmx)  _real [m] #..zml
 lyphi(1:2) real /2*1e20/ [m] #decaying rad phi grad leng;(1,2) iphibcwi,o=3
 isulyphix       integer /0/  #if=0, lyphix filled with lyphix
                              #if=1, user values of lyphix used
@@ -827,13 +849,15 @@ recycmlb_use(0:ny+1,ngspmx,nxptmx) _real #inner plt mom-recycl coeff user input
 recycmrb_use(0:ny+1,ngspmx,nxptmx) _real #outer plt mom-recycl coeff user input
 recycmlb(0:ny+1,ngspmx,nxptmx) _real   #total inner plt mom recycling coeff
 recycmrb(0:ny+1,ngspmx,nxptmx) _real   #total outer plt mom recycling coeff
-recyce           real       /0./       #energy recycling/Rp for inertial gas
+recyce           real       /0./       #energy recycling/Rp for inertial gas on targets
+recycwe          real       /0./       #..zml energy recycling/Rp for inertial gas on walls and prfs
 recycl           real       /1./       #recycling coef. at a limiter (ix_lim)
 recycml          real       /0.1/      #momentum recycling/Rp for gas at limtr
 recycc(ngspmx)   real       /6*1./     #core recycling coeff. if isnicore=3
 albedoc(ngspmx)  real       /6*1./     #core neut albedo for isngcore=0
 albedolb(ngspmx,nxptmx) _real /1./       #albedo at inner plate if ndatlb=0
 albedorb(ngspmx,nxptmx) _real /1./       #albedo at outer plate if ndatrb=0
+cfalbedo         real       /2./       #..zml coef. for Tg Eq. due to albedo
 ndatlb(ngspmx,nxptmx)    _integer   /0/  #number of recycp data pts on inner plt
 ndatrb(ngspmx,nxptmx)    _integer   /0/  #number of recycp data pts on outer plt
 ydatlb(ngspmx,50,nxptmx) _real [m]  /0./ #inner data pt location from sep.
@@ -1582,6 +1606,7 @@ upl(0:nx+1,0:ny+1,1:nisp)  _real  [m/s]   #parallel ion velocity at last output
 tel(0:nx+1,0:ny+1)         _real  [J]	  #electron temperature at last output
 til(0:nx+1,0:ny+1)         _real  [J]	  #ion temperature at last output
 ngl(0:nx+1,0:ny+1,1:ngsp)  _real  [m^-3]  #gas density at last output
+tgl(0:nx+1,0:ny+1,1:ngsp)  _real  [m^-3]  #..zml gas temperature at last output
 phil(0:nx+1,0:ny+1)        _real  [V]     #potential at last output
 upxpt(1:nusp,1:nxpt)       _real  [m/s]   #parallel velocity at x-point
 nixpt(1:nusp,1:nxpt)       _real  [m^-3]  #ion density at x-point
@@ -1737,6 +1762,7 @@ ni0(0:nx+1,0:ny+1,1:nisp)  _real [m^-3]  #old ion density
 ng0(0:nx+1,0:ny+1,1:ngsp)  _real [m^-3]  #old neutral density
 te0(0:nx+1,0:ny+1)         _real [J]     #old electron temperature
 ti0(0:nx+1,0:ny+1)         _real [J]     #old ion temperature
+tg0(0:nx+1,0:ny+1,1:nisp)  _real [J]     #..zml old gas temperature
 phi0(0:nx+1,0:ny+1)        _real [V]     #old electrostatic potential
 up0(0:nx+1,0:ny+1,1:nisp)  _real [m/s]   #old parallel velocity
 vy0(0:nx+1,0:ny+1,1:nisp)  _real [m/s]   #old radial velocity
@@ -2034,6 +2060,7 @@ cfvli(nisp)		    _real #/nisp*0./#scal fac for individ ion rate nuvl
 l_parloss		     real [m] /1.e20/ #parall length for nuvl loss rate
 eqp(0:nx+1,0:ny+1)          _real [1/m**3]#Te,i equipart. fact; needs *(Te-Ti)*vol
 eqpg(0:nx+1,0:ny+1,ngsp)    _real [1/m**3]#Tg,i equipart. fact; needs *(Tg-Ti)*vol
+                                          #..zml: modified to incorporate the separation of Tg and Ti.
 engcoolm(0:nx+1,0:ny+1)     _real [J/s]   #cool rate ion/atoms by mols if ishymol=1
 eeli(0:nx+1,0:ny+1)         _real  [J]    #electron energy loss per ionization
 pradhyd(0:nx+1,0:ny+1)      _real [W/m**3] /0./#power radiated by hydrogen
@@ -2095,6 +2122,7 @@ msorxr(0:nx+1,0:ny+1,1:nisp)  _real [kg-m/s**2]# cx&recomb. mom. sink for ions
 seec(0:nx+1,0:ny+1)           _real
 seev(0:nx+1,0:ny+1)           _real
 seic(0:nx+1,0:ny+1)           _real
+sed0c(0:nx+1,0:ny+1,1:ngsp)   _real  #..zml seperate temperatures for D+ and D0
 seiv(0:nx+1,0:ny+1)           _real
 resco(0:nx+1,0:ny+1,1:nisp)   _real
 resng(0:nx+1,0:ny+1,1:ngsp)   _real

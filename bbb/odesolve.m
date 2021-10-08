@@ -137,6 +137,8 @@ c_mpicvode        call fcvspgmr2 (jpre, igs, maxkd, delt_pv)
           do igsp = 1, ngsp
             call s2copy (nx+2, ny+2, ngs(0,0,igsp), 1, nx+2,
      .            ng0(0,0,igsp), 1, nx+2)
+            call s2copy (nx+2, ny+2, tgs(0,0,igsp), 1, nx+2,  #..zml
+     .            tg0(0,0,igsp), 1, nx+2)
           enddo
           call s2copy (nx+2, ny+2, tes, 1, nx+2, te0, 1,nx+2)
           call s2copy (nx+2, ny+2, tis, 1, nx+2, ti0, 1,nx+2)
@@ -482,6 +484,8 @@ c ... Average old and new values to damp oscillations if dtdamp > 0.
             do ix = 0, nx+1
               ng(ix,iy,igsp) = fnew*ng(ix,iy,igsp) + (1.-fnew)*
      .                                            ngl(ix,iy,igsp)
+              tg(ix,iy,igsp) = fnew*tg(ix,iy,igsp) + (1.-fnew)* #..zml
+     .                                            tgl(ix,iy,igsp)
             enddo
           enddo
         enddo
@@ -504,6 +508,8 @@ c ... Average old and new values to damp oscillations if dtdamp > 0.
          do igsp = 1, ngsp
             call s2copy (nx+2, ny+2, ng(0,0,igsp), 1, nx+2,
      .                   ngl(0,0,igsp), 1, nx+2)
+            call s2copy (nx+2, ny+2, tg(0,0,igsp), 1, nx+2,  #..zml
+     .                   tgl(0,0,igsp), 1, nx+2)
          enddo
       endif
 

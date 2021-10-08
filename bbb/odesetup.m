@@ -1013,6 +1013,14 @@ c...  Set boundary conditions for lyni on walls; if isulynix=0, use lyni
           lytix(2,iu) = lyti(2)
         enddo
       endif
+      do igsp = 1, ngsp   #..zml
+        if (isulytgx(igsp) == 0) then
+          do iu = 0, nx+1
+            lytgx(1,iu,igsp) = lytg(1,igsp)
+            lytgx(2,iu,igsp) = lytg(2,igsp)
+          enddo
+        endif
+      enddo
       if (isulyphix == 0) then
         do iu = 0, nx+1
           lyphix(1,iu) = lyphi(1)
@@ -1292,7 +1300,8 @@ c ... Initialize molecular thermal equilibration array in case not computed
             nit(ix,iy) = 0.0
             nm(ix,iy,1) = 0.0
             do 140 ifld = 1, nisp  # here init. gas only for diff. model
-               ng(ix,iy,1) = ngscal(igsp)*nibeg(1)*( exp(-xcs(ix)/xgscal)
+               #ng(ix,iy,1) = ngscal(igsp)*nibeg(1)*( exp(-xcs(ix)/xgscal)#..zml
+               ng(ix,iy,1) = ngscal(1)*nibeg(1)*( exp(-xcs(ix)/xgscal)
      .                            + exp(-(xcs(nx+1)-xcs(ix))/xgscal) )
      .                      + ngbackg(1)
                nginit(ix,iy) = ng(ix,iy,1)
@@ -7251,6 +7260,7 @@ c     returns time at beginning of last call to ueAdvance
       ngs=ng0
       tes=te0
       tis=ti0
+      tgs=tg0
       return
       end
 c... ** End of subroutine uedge_reset -------------------- c

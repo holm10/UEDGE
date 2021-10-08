@@ -120,6 +120,7 @@ c...  Omit constraint check on x-boundaries for Ti - ckinfl problem
          enddo
          do igsp = 1, ngsp
 	  if(istgonxy(ix,iy,igsp) .eq. 1) then
+            istgcon(igsp) = -1.   #..zml
             iv = iv + 1
             ntemp = ng(ix,iy,igsp)
             if(isflxvar == 0) ntemp=n0g(igsp)
@@ -291,7 +292,8 @@ c_mpi      integer ierr
                  if(isflxvar == 0) ntemp = n0g(igsp)
 		 tg(ix,iy,igsp) = yl(idxtg(ix,iy,igsp))*ennorm/
      .                                                  (1.5*ntemp)
-                 tg(ix,iy,igsp) = max(tg(ix,iy,igsp), temin*ev)
+                 #tg(ix,iy,igsp) = max(tg(ix,iy,igsp), temin*ev)
+                 tg(ix,iy,igsp) = max(tg(ix,iy,igsp), tgmin*ev)  #..zml
                endif
  65         continue
             ntemp = nit(ix,iy) + cngtgx(1)*ng(ix,iy,1)
@@ -497,6 +499,8 @@ c                               # interpolate 2-D array with a 5-point stencil
          do 12 iy = js, je
             do 11 ix = is, ie
                pri(ix,iy,ifld) = ni(ix,iy,ifld) * ti(ix,iy)
+               if (ifld.eq.iigsp .and. istgon(1).eq.1) pri(ix,iy,ifld) = #..zml
+     .                                     ni(ix,iy,ifld) * tg(ix,iy,1)
                if (zi(ifld).ne.0.) then
                   pr(ix,iy) = pr(ix,iy) + pri(ix,iy,ifld)
                   zeff(ix,iy)=zeff(ix,iy)+zi(ifld)**2*ni(ix,iy,ifld)
