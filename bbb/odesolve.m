@@ -109,7 +109,6 @@ c...  time-dependent solvers(imeth=0) and Newton solvers(imeth=1)
       endif
       istep_nk = 0   # not inside if test for switching from nksol to daspk
       iter = 0
-	  
 *  -- initialize the system --
       if (ismpion.eq.0) then  # Serial version
         call ueinit

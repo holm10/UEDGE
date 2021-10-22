@@ -9478,8 +9478,9 @@ c ... Local variables:
       integer iv,iv1,iv2,iv3,iv4,ifld,igsp,ix,iy,iym1,iyp1,ixm1u,ixp1u
       real up_5ca
 
-
+        write(*,*) 'set_dt entry'
       call rhsnk (neq, yl, f0)    # Reset f0 with nufak off
+        write(*,*) 'set_dt rhsnk'
 
 c ... special new section for adjustable timesteps
       do iy = 1-iymnbcl, ny+iymxbcl
