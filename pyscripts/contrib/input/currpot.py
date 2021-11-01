@@ -6,7 +6,7 @@
 from uedge import bbb
 
 
-def slabB(cfniybbo=0,cfniydbo=0,cfeeybbo=0,cfeeydbo=0,iphibcc=0,cfeexdbo=0):
+def slabB(cfniybbo=0,cfniydbo=0,cfeeybbo=0,cfeeydbo=0,iphibcc=3,cfeexdbo=0):
     bbb.newbcl=0        # Linear scaling factor for left plate sheath potential:
                             #=0: use bcei and bcee
                             #=1: new model
@@ -21,7 +21,7 @@ def slabB(cfniybbo=0,cfniydbo=0,cfeeybbo=0,cfeeydbo=0,iphibcc=0,cfeexdbo=0):
     potential(iphibcc=iphibcc)
 
 
-def fwdB(cfniybbo=0,cfniydbo=1,cfeeybbo=0,cfeeydbo=1,iphibcc=0,cfeexdbo=1):
+def fwdB(cfniybbo=0,cfniydbo=1,cfeeybbo=0,cfeeydbo=1,iphibcc=3,cfeexdbo=1):
     bbb.newbcl=1        # Linear scaling factor for left plate sheath potential:
                             #=0: use bcei and bcee
                             #=1: new model
@@ -33,7 +33,7 @@ def fwdB(cfniybbo=0,cfniydbo=1,cfeeybbo=0,cfeeydbo=1,iphibcc=0,cfeexdbo=1):
     drift_const(cfniybbo=cfniybbo,cfniydbo=cfniydbo,cfeeybbo=cfeeybbo,cfeeydbo=cfeeydbo,cfeexdbo=cfeexdbo)
     potential(iphibcc=iphibcc)
 
-def revB(cfniybbo=0,cfniydbo=1,cfeeybbo=0,cfeeydbo=1,iphibcc=0,cfeexdbo=1):
+def revB(cfniybbo=0,cfniydbo=1,cfeeybbo=0,cfeeydbo=1,iphibcc=3,cfeexdbo=1):
     bbb.newbcl=1        # Linear scaling factor for left plate sheath potential:
                             #=0: use bcei and bcee
                             #=1: new model
@@ -46,7 +46,7 @@ def revB(cfniybbo=0,cfniydbo=1,cfeeybbo=0,cfeeydbo=1,iphibcc=0,cfeexdbo=1):
     drift_const(cfniybbo=cfniybbo,cfniydbo=cfniydbo,cfeeybbo=cfeeybbo,cfeeydbo=cfeeydbo,cfeexdbo=cfeexdbo)
     potential(iphibcc=iphibcc)
 
-def noB(cfniybbo=0,cfniydbo=1,cfeeybbo=0,cfeeydbo=1,iphibcc=0,cfeexdbo=1):
+def noB(cfniybbo=0,cfniydbo=1,cfeeybbo=0,cfeeydbo=1,iphibcc=3, cfeexdbo=1):
     bbb.newbcl=1        # Linear scaling factor for left plate sheath potential:
                             #=0: use bcei and bcee
                             #=1: new model
@@ -111,7 +111,7 @@ def drift_const( rsigpl=1e-8,cfjhf=1,cfjve=1,jhswitch=1,isfdiax=1,cfqydbo=1,
 
 
 
-def potential(isnewpot=1,rnewpot=1,iphibcc=0,isutcore=2,iphibcwi=0,iphibcwo=0):
+def potential(isnewpot=1,rnewpot=1,iphibcc=3,isutcore=2,iphibcwi=0,iphibcwo=0):
     # 5.3.4: POTENTIAL
     #- - - - - - - - -
     bbb.isnewpot=isnewpot      # Potential model switch:
