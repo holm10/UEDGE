@@ -1,8 +1,19 @@
 from matplotlib.pyplot import ion
 ion()
 
-def save_grid(grid):
-    print('TBD: function to save processed grids - crm computationally intensive')
+def create_CRM(crmfname='input/psi22_spectro_vib.dat', crmpath='/Users/holma2/Dropbox (Aalto)/Analysis/PSI22/'):
+        from CRUMPET import Crumpet
+        return Crumpet(path=crmpath, fname=crmfname)
+    
+def save_grid(grid, savename):
+    from pickle import dump
+    with open(savename,'wb') as f:
+        dump(grid,f)
+
+def restore_grid(savename):
+    from pickle import load
+    with open(savename,'rb') as f:
+        return load(f)
 
 class Grid():
     def __init__(self):
@@ -25,6 +36,65 @@ class Grid():
         self.ue2arr = self.ue2arr.astype(int)
         self.arr2ue = self.arr2ue.astype(int)
 
+    
+    def plot_intensity(self, interval, ax=None,crm=None,zrange=(None,None), mol=True):
+        from matplotlib.pyplot import subplots
+        from numpy import array, nonzero, transpose, log10, floor
+        from tqdm import tqdm
+        from matplotlib.colors import Normalize,LogNorm
+        from matplotlib.cm import ScalarMappable
+        from matplotlib.pyplot import get_cmap,colorbar,figure
+
+        if ax is None:
+            f, ax = subplots()
+            ret = True
+        else:
+            ret = False
+
+        # Store all cell intensities in the requested interval to a list
+        intensity = []
+        for i in tqdm(range(len(self.cells))):
+            cell = self.cells[i]
+            if cell.crmeval is False:
+                cell.calc_emissivity(crm)
+
+            ci = [0,0]
+            for i in nonzero(cell.H2_emission[1])[0]:
+                ene = cell.H2_emission[0][i]
+                if 10*ene > interval[0] and 10*ene < interval[1]:
+                    ci[0] += cell.H2_emission[1][i]
+            for i in nonzero(cell.H_emission[1])[0]:
+                ene = cell.H_emission[0][i]
+                if 10*ene > interval[0] and 10*ene < interval[1]:
+                    ci[1] += cell.H_emission[1][i]
+            intensity.append(ci)
+        intensity = transpose(array(intensity))
+
+        ind = 0
+        if mol is False:
+            ind = 1
+        zmin, zmax = intensity[ind].min(), intensity[ind].max()
+        if zrange[0] is not None:
+            zmin=zrange[0]
+        if zrange[1] is not None:
+            zmax=zrange[1]
+        Zcol=((log10(intensity[ind])-floor(log10(zmin)))/(floor(log10(zmax))-floor(log10(zmin))))
+        cmap=get_cmap('magma')
+
+        for i in range(len(self.cells)):
+            cell = self.cells[i]
+            xs, ys = cell.polygon.exterior.xy    
+            col=cmap(Zcol[i])
+            ax.fill(xs, ys, fc=col, ec='none')
+
+        norm = Normalize(vmin=floor(log10(zmin)),vmax=floor(log10(zmax)))
+        norm = LogNorm(vmin=zmin,vmax=zmax)
+        sm = ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        cbar=colorbar(sm,ax=ax)
+        ax.set_aspect('equal')
+        return f
+
     def plot_grid(self, ax=None):
         ''' Plots a polygrid of Patches '''
         from matplotlib.pyplot import subplots
@@ -37,6 +107,8 @@ class Grid():
         for cell in self.cells:
             cell.plot_cell(ax)
 
+
+        ax.set_aspect('equal')
         if ret is True:
             return f
     
@@ -78,7 +150,9 @@ class Cell():
         self.H2_emission[1] *= self.polygon.area
         self.crmeval=True
 
-    def plot_cell(self, ax):
+    def plot_cell(self, ax=None):
+        if ax is None:
+            f, ax = subplots()
         ax.plot(*self.polygon.exterior.xy, 'k-', linewidth=0.5) 
    
 
@@ -92,7 +166,7 @@ class Chord():
                         Point((points[1][0], points[1][1])))
         self.width = width
         self.crm = crm
-        create_poly()
+        self.create_poly()
 
     def create_poly(self):
         from numpy import sqrt, cos, sin, arctan
@@ -118,7 +192,9 @@ class Chord():
                                 (r_elong + 0.5*w_elong*cos(theta), 
                                     z_elong - 0.5*w_elong*sin(theta))])
 
-    def plot_chord(self, ax, poly=True, line=True):
+    def plot_chord(self, ax=None, poly=True, line=True):
+        if ax is None:
+            f, ax = subplots()
         if line is True:
             (p1, p2) = self.points
             ax.plot([p1.x, p2.x], [p1.y, p2.y], 'r-', linewidth=0.5)
@@ -126,15 +202,31 @@ class Chord():
              xs, ys = self.poly.exterior.xy    
              ax.fill(xs, ys, alpha=0.2, fc='r', ec='none')
 
-    def plot_LOS_polygons(self, ax):
+    def plot_LOS_polygons(self, ax=None):
+        if ax is None:
+            f, ax = subplots()
         for poly in self.LOS_polygons:
              xs, ys = poly.exterior.xy    
              ax.fill(xs, ys, fc='g', ec='none')
+
+    def calc_LOS_spectra(self,lower, upper):
+        from numpy import nonzero
+        ret = [0,0]
+        for i in nonzero(self.LOS_H2_emission_integral)[0]:
+            ene = self.LOS_H2_energies[i]
+            if 10*ene > lower and 10*ene < upper:
+                ret[0] += self.LOS_H2_emission_integral[i]
+        for i in nonzero(self.LOS_H_emission_integral)[0]:
+            ene = self.LOS_H_energies[i]
+            if 10*ene > lower and 10*ene < upper:
+                ret[1] += self.LOS_H_emission_integral[i]
+        return ret     
             
     def plot_LOS_spectra(self, ax=None, xlim=(500,8500), ylim=(None, None),yaxis='lin'):
         from matplotlib.pyplot import subplots
         from numpy import nonzero
         ret = False
+        
         if ax is None:
             f, ax = subplots()
             ret = True
@@ -146,12 +238,14 @@ class Chord():
         
     
         for i in nonzero(self.LOS_H2_emission_integral)[0]:
-            ene = self.LOS_H2_energies[i]
-            pl([10*ene, 10*ene], [0, self.LOS_H2_emission_integral[i]], 'r-')
+            ene = 10*self.LOS_H2_energies[i]
+            if (ene > xlim[0]) and (ene < xlim[1]):
+                pl([ene, ene], [0, self.LOS_H2_emission_integral[i]], 'r-')
 
         for i in nonzero(self.LOS_H_emission_integral)[0]:
-            ene = self.LOS_H_energies[i]
-            pl([10*ene, 10*ene], [0, self.LOS_H_emission_integral[i]], 'b-')
+            ene = 10*self.LOS_H_energies[i]
+            if (ene > xlim[0]) and (ene < xlim[1]):
+                pl([ene, ene], [0, self.LOS_H_emission_integral[i]], 'b-')
         
 
         ax.set_xlabel(r'Wavelength [Å]')
@@ -161,6 +255,115 @@ class Chord():
 
         if ret is True:
             return f
+
+    def PARA_LOS_integral(self, grid, reevaluate=False, nH=None):
+        from multiprocessing import cpu_count
+        from joblib import Parallel, delayed
+        from tqdm import tqdm
+        
+        return Parallel(n_jobs=cpu_count())(delayed(
+                    self.PARA_LOS_integral_cell)(grid.cells[i], reevaluate=reevaluate, 
+                    nH=nH) for i in tqdm(range(len(grid.cells))))
+        
+
+    def PARA_LOS_integral_cell(self, cell, reevaluate=False, nH=None):
+        from numpy import sqrt, sum, array
+        from tqdm import tqdm
+        self.LOS_polygons = []
+        self.LOS_cells = [] 
+        self.LOS_area = []
+        self.LOS_H2_emission = []
+        self.LOS_H_emission = []
+        self.LOS_dL = []
+        self.LOS_L = []
+    
+        # Check if the grid cell is completely inside the line-of-
+        # sight polygon:
+        if self.poly.contains(cell.polygon):
+            
+            # Add the entire cell polygon to the list of grid cells
+            # inside the LOS polygon:
+            self.LOS_polygons.append(cell.polygon)
+            self.LOS_cells.append(cell)
+            
+            # Calculate dL for the integration by postulating a
+            # rectangular cell orthogonal to the line-of-sight with
+            # area of the original cell and width determined by the
+            # distance of the cell from the origin of the LOS and
+            # the width of the LOS at its end:
+            L_cell = sqrt((cell.polygon.centroid.x - self.points[0].x)**2 + 
+                            (cell.polygon.centroid.y - self.points[0].y)**2)
+            w_orthog = L_cell/sqrt((self.points[1].x - self.points[0].x)**2 + 
+                            (self.points[1].y - self.points[0].y)**2)*self.width
+            dL = cell.polygon.area/w_orthog
+            
+            # Store the emission in the grid cell multiplied by dL
+            # in the list of emission inside the LOS polygon:
+            # TODO: do CRM if it is not done
+            if (cell.crmeval is False) or (reevaluate is True):
+                cell.calc_emissivity(self.crm, nH=nH)
+            self.LOS_H_emission.append(cell.H_emission[1]*dL)
+            self.LOS_H2_emission.append(cell.H2_emission[1]*dL)
+            self.LOS_L.append(L_cell)
+            self.LOS_dL.append(dL)
+            
+            self.LOS_area.append(cell.polygon.area)
+            self.LOS_H_energies = cell.H_emission[0]
+            self.LOS_H2_energies = cell.H2_emission[0]
+        
+        # Alternatively, check if part of the grid cell is inside
+        # the line-of-sight polygon:
+        elif self.poly.intersects(cell.polygon):
+            
+            # Determine the part of the grid cell polygon that
+            # intersects with the line-of-sight polygon:
+            grid_poly_clipped = self.poly.intersection(cell.polygon)
+            
+            # Add the intersecting part of the cell polygon to the
+            # list of grid cells inside the LOS polygon:
+            # TODO: How to do this using objects?
+            self.LOS_polygons.append(grid_poly_clipped)
+            self.LOS_cells.append(cell)
+            
+            # Calculate dL for the integration by postulating a
+            # rectangular cell orthogonal to the line-of-sight with
+            # area of the original cell and width determined by the
+            # distance of the cell from the origin of the LOS and
+            # the width of the LOS at its end: 
+            L_cell = sqrt((grid_poly_clipped.centroid.x - self.points[0].x)**2 + 
+                            (grid_poly_clipped.centroid.y - self.points[0].y)**2)
+            w_orthog = L_cell/sqrt((self.points[1].x - self.points[0].x)**2 + 
+                            (self.points[1].y - self.points[0].y)**2)*self.width
+            dL = grid_poly_clipped.area/w_orthog
+            
+            # Store the emission in the grid cell multiplied by dL
+            # in the list of emission inside the LOS polygon:
+            if (cell.crmeval is False) or (reevaluate is True):
+                cell.calc_emissivity(self.crm, nH=nH)
+            self.LOS_H_emission.append(cell.H_emission[1]*dL)
+            self.LOS_H2_emission.append(cell.H2_emission[1]*dL)
+            self.LOS_dL.append(dL)
+            self.LOS_L.append(L_cell)
+            
+            self.LOS_area.append(cell.polygon.area)
+            self.LOS_H_energies = cell.H_emission[0]
+            self.LOS_H2_energies = cell.H2_emission[0]
+        
+        self.LOS_polygons = array(self.LOS_polygons)
+        self.LOS_cells = array(self.LOS_cells)
+        self.LOS_area = array(self.LOS_area)
+        self.LOS_H_emission = array(self.LOS_H_emission)
+        self.LOS_H2_emission = array(self.LOS_H2_emission)
+        self.LOS_dL = array(self.LOS_dL)
+        self.LOS_L = array(self.LOS_L)
+        # Calculate the LOS-integrated emission as a sum of each
+        # emission*dL element stored for the current LOS:   
+        self.LOS_H_emission_integral = sum(self.LOS_H_emission, axis=0)
+        self.LOS_H2_emission_integral = sum(self.LOS_H2_emission, axis=0)
+    
+        return cell.indices
+
+
 
     def LOS_integral(self, grid, reevaluate=False, nH=None):
         from numpy import sqrt, sum, array
@@ -265,11 +468,9 @@ class Chord():
 
 class Spectrometer():
 
-    def __init__(self, fname, displ=0, width = 0.017226946, norm_zmag=True, crmfname='input/psi22_spectro.dat', crmpath='/Users/holma2/Dropbox (Aalto)/Analysis/PSI22/'):
+    def __init__(self, fname, displ=0, width = 0.017226946, norm_zmag=True, crm=None):
         ''' Creates polygons for the chords from a data file '''
-        from CRUMPET import Crumpet
-        self.crm = Crumpet(path=crmpath, fname=crmfname)
-
+        self.crm=crm
         self.read_chordfile(fname, norm_zmag=norm_zmag, displ=displ, width=width)
 
         # Loop through the lines-of-sight:

@@ -55,6 +55,34 @@ class SETUP():
         else:
             return 1
 
+    '''==========================================
+    Plot figures
+    =========================================='''
+    def plot_arrays(self, x, y, ax=None, ylim=(None, None),
+            xlim=(None,None), yaxis = 'lin', xs = None, ys = None, xlabel='',
+            ylabel = '', linestyle = '-', marker = '.', color='k'):
+        from matplotlib.pyplot import subplots
+        if ax == None:
+            f, ax = subplots()
+        if yaxis.lower() == 'lin':
+            pl = ax.plot
+        elif yaxis.lower() == 'log':
+            pl = ax.semilogy
+
+        pl( x, y, linestyle, marker=marker, color=color)
+        ax.set_ylim(ylim)
+        ax.set_xlim(xlim)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        return f
+        
+    def plot_index_var_nemp(self, var, x, y, s=None, yscale=1, **kwargs):
+        return self.plot_arrays(self.mp('bbb.ne'), yscale*self.index(var, x, y, s), **kwargs)
+
+    def plot_otmax_var_nemp(self, var, s=None, yscale=1,**kwargs):
+        return self.plot_arrays(self.mp('bbb.ne'), yscale*self.ot_max(var, s), **kwargs)
+
+        
 
     '''==========================================
     Handle the case list
