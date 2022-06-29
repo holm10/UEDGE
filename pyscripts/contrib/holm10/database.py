@@ -82,6 +82,9 @@ class SETUP():
     def plot_otmax_var_nemp(self, var, s=None, yscale=1,**kwargs):
         return self.plot_arrays(self.mp('bbb.ne'), yscale*self.ot_max(var, s), **kwargs)
 
+    def plot_otsum_var_nemp(self, var, s=None, yscale=1,**kwargs):
+        from numpy import sum
+        return self.plot_arrays(self.mp('bbb.ne'), yscale*sum(self.row_ot(var, s), axis=1), **kwargs)
         
 
     '''==========================================
@@ -670,7 +673,7 @@ class SETUP():
     '''==========================================
     Get case indices
     =========================================='''
-    def get_closest(self,val,var,ix,iy,s=None):
+    def get_closest(self,val,var,ix,iy, verbatim=True, **kwargs):
         ''' Get index of  case with closest value to var at (ix,iy) 
         get_closest(vel,var,ix,iy,**keys)
 
@@ -684,11 +687,46 @@ class SETUP():
         s[=0]:          Species index to be used, defaults to 0
         '''
         ind=abs(self.index(var,ix,iy,s)-val).argmin()
-        print('Closest value is: '+str(self.index(var,ix,iy,s)[ind]))
+        if verbatim is true:
+            print('Closest value is: '+str(self.index(var,ix,iy,**kwargs)[ind]))
         return ind
-        
+
+    def get_closest_peakrow(self,val,var,row,verbatim=True,**kwargs):
+        ''' Get index of  case with closest value to var at (ix,iy) 
+        get_closest(vel,var,ix,iy,**keys)
+
+        Variables:
+        val:            Value to match
+        var:            String of variable to be returned, e.g. 'bbb.ne'
+        ix:             Poloidal location index
+        iy:             Radial location index
+
+        Keyword parameters:
+        s[=0]:          Species index to be used, defaults to 0
+        '''
+        peakrow = self.row(var,row,**kwargs).max(axis=1)
+        ind=abs(peakrow-val).argmin()
+        if verbatim is True:
+            print('Closest value is: {:.2e}'.format(peakrow[ind]))
+        return ind
+
+    def get_closest_peakot(self,val,var,**kwargs):
+        ''' Get index of  case with closest value to var at (ix,iy) 
+        get_closest(vel,var,ix,iy,**keys)
+
+        Variables:
+        val:            Value to match
+        var:            String of variable to be returned, e.g. 'bbb.ne'
+        ix:             Poloidal location index
+        iy:             Radial location index
+
+        Keyword parameters:
+        s[=0]:          Species index to be used, defaults to 0
+        '''
+        return self.get_closest_peakrow(val,var,-2,**kwargs)
+       
     
-    def get_closest_mp(self,val,var,s=None):
+    def get_closest_mp(self,val,var,**kwargs):
         ''' Get index of  case with closest value to var at midplane separatrix (immediately radially outside of) 
         get_closest_mp(vel,var,**keys)
 
@@ -700,10 +738,10 @@ class SETUP():
         s[=0]:          Species index to be used, defaults to 0
         '''
         ''' Get index of  case with closest value to var at OMP '''
-        return self.get_closest(val,var,self.cases[0].ixmp(),self.cases[0].iysptrx()+1,s)
+        return self.get_closest(val,var,self.cases[0].ixmp(),self.cases[0].iysptrx()+1,**kwargs)
 
     
-    def get_closest_core(self,val,var,s=None):
+    def get_closest_core(self,val,var,**kwargs):
         ''' Get index of  case with closest value to var at core midplane 
         get_closest_core(vel,var,**keys)
 
@@ -715,7 +753,7 @@ class SETUP():
         s[=0]:          Species index to be used, defaults to 0
         '''
         from numpy import asarray
-        return self.get_closest(val,var,self.cases[0].ixmp(),1,s)
+        return self.get_closest(val,var,self.cases[0].ixmp(),1,**kwargs)
 
 
 
@@ -726,6 +764,8 @@ class CASE():
         from uedge import com,aph,api,bbb,flx,grd,svr,wdf
         from numpy import copy
         ''' Reads 'variables' from 'packages' into dictionary '''
+        if variables is None:
+            variables=default_variables()
         self.data=dict()
         # Read variables
         for var in variables:
@@ -751,6 +791,11 @@ class CASE():
             return arr[:,:,s]
         else:
             return arr
+
+    def save(self, savename):
+        from pickle import dump
+        with open(savename,'wb') as f:
+            dump(self,f)
 
     '''==========================================
     Get functions
@@ -1053,11 +1098,14 @@ def default_variables():
                 'com.rm', 'com.zm',
                 'com.gxf', 'com.gx',
                 'com.gyf', 'com.gy',
+                'bbb.kyiv', 'bbb.kyev', 'bbb.difniv',
                 'com.dx', 'com.dy',
                 'bbb.eqpg', 'bbb.eqp',
                 'com.vol','com.nx','com.ny',
                 'bbb.ixmp', 'com.ixpt1', 'com.ixpt2', 'com.iysptrx',
+                'bbb.ixm1', 'bbb.ixp1',
                 'com.sx', 'com.sy', 
+                'com.angfx', 'com.psinormc', 'com.psi',
                 'com.bpol','com.bphi',
                 'bbb.hcxg', 'bbb.hcyg','bbb.floxge','bbb.floyge','bbb.conxge','bbb.conyge',
                 'bbb.kxg_use','bbb.kyg_use','bbb.psor','bbb.psordis','bbb.psorrgc',

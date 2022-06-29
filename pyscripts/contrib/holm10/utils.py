@@ -355,6 +355,7 @@ def create_EIRENE(path='.',subpath='data'):
     from os.path import abspath  
     from uedge import bbb,com
     from importlib import reload
+    from uedge.contrib.holm10.eireneinput import writeEIRENE
 
 
 
@@ -405,11 +406,70 @@ def create_EIRENE(path='.',subpath='data'):
 
         # Read and repopulate all arrays
         bbb.issfon=0;bbb.ftol=1e20;bbb.exmain()
-        bbb.write_eirene(verbatim=False)
+        writeEIRENE(verbatim=False)
 
 
         chdir(parent)
     
+
+def interpolate(x, y, z):
+    from scipy.interpolate import griddata
+    return interp2d(x,y,z)
+    
+
+def increase_resolution(new_nxleg, new_nxcore, new_nysol, new_nycore):
+    ''' WORK IN PROGRESS '''
+    from uedge import bbb, com
+    from copy import deepcopy    
+    import matplotlib.pyplot as plt
+
+    old_ftol = deepcopy(bbb.ftol)
+    bbb.issfon=0; bbb.ftol=1e20
+    exmain() # Generate jacobian
+    bbb.issfon=1 # Turn on jacobian evaluation
+
+    points_old = []
+    for ix in range(com.nx+2):
+        for iy in range(com.ny+2):
+            points_old.append([com.rm[ix,iy,0], com.zm[ix,iy,0]])
+ 
+
+    interp_vars = []
+    restore_vars = [bbb.tes]
+    for var in restore_vars:
+        buff = []
+        for ix in range(com.nx+2):
+            for iy in range(com.ny+2):
+                buff.append(var[ix,iy])
+
+
+    com.nxleg[0] = new_nxleg
+    com.nxcore[0] = new_nxcore
+    com.nysol[0] = new_nysol
+    com.nycore[0] = new_nycore
+
+    # Turn off molecular temperature eq interpolation - not yet implemented
+    if bbb.ishymol == 1:
+        istgon_old = deepcopy(bbb.istgon)
+        istgcon_old = deepcopy(bbb.istgcon)
+        bbb.istgcon = 0
+        bbb.istgon = 0
+
+    exmain() # Interpolate locally
+
+    # Restore molecular model 
+    if bbb.ishymol:
+        bbb.istgon = istgon_old
+        bbb.istgcon = istgcon_old
+
+    
+        
+
+    bbb.ftol = old_ftol
+#    return interp_vars
+
+
+
 
 
 

@@ -1493,4 +1493,16 @@ def plot(X,Y,ax=False,linewidth=2,markersize=8,xlabel=False,ylabel=False,title=F
         ret.show()
         return ret 
    
+def transport(ax=None):
+    from matplotlib.pyplot import subplots
+    from uedge import com, bbb
+    if ax is None:
+        f, ax = subplots()
 
+    ax.plot(com.psinormc[1:-1], bbb.difniv[1:-1,0], 'k-', label=r'$\rm D_\perp$')
+    ax.plot(com.psinormc[1:-1], bbb.kyev[1:-1], 'b-', label=r'$\rm \chi_e$')
+    ax.plot(com.psinormc[1:-1], bbb.kyiv[1:-1], 'r-', label=r'$\rm \chi_i$')
+    ax.legend()
+    ax.set_ylim((0,None))
+
+    return ax.get_figure()
