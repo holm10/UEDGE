@@ -646,6 +646,44 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
 
 
 
+def gridue(path='.', linewidth=0.1, color='k', fig=None, iax=0, dispz=0):
+    from numpy import array, array_split, reshape
+    from matplotlib.pyplot import subplots
+    
+    if fig is None:
+        fig, ax = subplots()
+    else:
+        ax = fig.get_axes()[iax]
+
+    with open('{}/gridue'.format(path)) as f:
+        lines = [line.strip().split() for line in f]
+    [nxm, nym, ixpt1, ixpt2, iysptrx] = [int(x) for x in lines.pop(0)]
+    print(nxm, nym)
+    data = []
+    for x in lines[:-1]:
+        for y in x:
+            data.append(float(y.replace('D','E')))
+    data = array_split(data, 8)# 5*(nxm+2)*(nym+2))
+
+    rm = data[0]
+    zm = data[1]
+    rm = reshape(rm, (5,nym+2, nxm+2)) 
+    zm = reshape(zm+dispz, (5,nym+2, nxm+2)) 
+    
+    for ix in range(1,nxm+1):
+        for iy in range(1,nym+1):
+#    for ix in range(1, nxm+2):
+#        for iy in range(1, nym+2):
+            x, y = [], []
+            for iz in [1,2,4,3,1]:
+                x.append(rm[iz,iy,ix])
+                y.append(zm[iz,iy,ix])
+            ax.plot(x,y,'-', linewidth=linewidth, color=color)#rm[1:,iy,ix], zm[1:,iy,ix], 'k.-') 
+
+    ax.set_aspect('equal')
+    return fig
+    
+
 
 
 def grid(   ax=False,showcc=False,showcut=False,showves=False,showplates=False,color='k',alpha=1,linewidth=0.2,

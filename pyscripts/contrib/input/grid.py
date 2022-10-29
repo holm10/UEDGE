@@ -4,6 +4,7 @@
 # 200213 - file created
 from uedge import bbb,com,grd,flx
 
+
 def snull(  gridpath='.', plate=None, nx_ileg=12, nx_oleg=10, nxcore_inside=14, nxcore_outside=14, nycore=15, nysol=16,
             gengrid=1, isnonog=1, psi0min1=.90, psi0min2=0.98, psi0sep=1.00005, psi0max=1.10,nxxpt=1,nxmod=3,
             alfxptu=0.75, alfcy=2.5, dmix0=0.5
@@ -35,6 +36,143 @@ def snull(  gridpath='.', plate=None, nx_ileg=12, nx_oleg=10, nxcore_inside=14, 
                                 #=2: toroidal circular limiter
 
     com.geometry="snull"    # Magnetic configuration
+                                #'snull': lower single null
+                                #'uppersn': upper single null
+                                #'dnbot': bottom half of double null
+                                #'dnull': full double null
+                                #'snowflake15': Ryutov's theta~15 deg
+                                #'snowflake45': Ryutov's theta~45 deg
+                                #'snowflake75': Ryutov's theta~75 deg
+                                #'dnXtarget': dnbot with Xtarget
+
+    com.isnonog=isnonog           # switch determining if 9-point differencing is on for non-orthogonal meshes
+
+
+    # Generate grid
+    bbb.gengrid=gengrid           #1= generates grid, 0=restores grid from gridue 
+
+
+    # Magnetic fluxes
+    #- - - - - - - - -
+    flx.psi0min1=psi0min1        # Normalized flux value at innermost core flux surface
+    flx.psi0min2=psi0min2        # Normalized flux value at innermost PF surface
+    flx.psi0sep=psi0sep     # Normalized flux value at separatrix flux surface (just slightly outside)
+    flx.psi0max=psi0max        # Normalized flux value at wall on outboard side of magnetic axis
+
+
+
+    # Cells
+    #- - - - 
+    com.nxleg[0,]=[nx_ileg,nx_oleg]                 # Number of poloidal cells in 1st divertor leg [inside, outside]
+    com.nxcore[0,]=[nxcore_inside,nxcore_outside]   # Number of poloidal cells along 1st core boundary [inside, outside]
+    com.nycore[0]=nycore                            # Number of radial zones in 1st core of plasma
+    com.nysol[0]=nysol                              # Number of radial zones in 1st SOL
+
+    com.nxxpt=nxxpt             # Number of extra poloidal cells at X-point (per quadrant)
+    grd.nxmod=nxmod             # Number of "upstream" poloidal cells (per quadrant) in the
+                            #   original mesh that are modified by subroutine refinex
+
+    bbb.isybdryog=1         #=1 sets fx0, fmx stencil to orthogonal values at iy=0 & iy=ny
+
+    # Shaping
+    #- - - - -
+    grd.alfxptu=alfxptu        # Variable for extra X-point grid spacign above X-point:
+                            #  frac=(i/(nxxpt+nxmod))**alfxptu 
+
+    flx.alfcy=alfcy           # SOL flux contour distribution:
+                            #  <1: uniform
+                            #  >1: concentrated near sep
+
+    grd.slpxt=1.2           # Slope enchantment factor for x(t) near core crown
+
+    grd.kxmesh=1            # X-mesh definition model:
+                                #=0: old model (manual def. of seed points)
+                                #=1: linear*rational form for x(t)
+                                #=2: linear*exponential form for x(t)
+                                #=3: spline form for x(t)
+                                #=4: exponential+spline form for x(t)
+
+    flx.istchkon=1          # Switches for imposing limits on polar angle about (rmagx,zmagx)
+    if flx.istchkon==1:     # Limts imposed
+        flx.dtheta_exclude    = array([.75,.50])*pi
+                            # angular width of region where SOL flux contours are excluded
+                            #   [inboard flux contours, outboard flux contours]
+        flx.dtheta_overlap_pf = array([.05,.01])*pi
+                            # angular width over which p.f. flux contours can overlap
+                            #   with flux contours in the adjacent region.
+        flx.dtheta_overlap_sol= array([0.25,0.25])*pi
+                            # angular width over which SOL flux contours can overlap
+                            #   with flux contours in the adjacent region.
+                            #   [inboard flux contours, outboard flux contours]
+        # com.theta_split=np.pi/2   # Computed poloidal angle where in-/outboard mesh regions meet
+        # flx.thetax=-1.88      # Computed poloidal angle of X-point relative to magnetic axis
+
+    flx.altsearch=1         # Search path for PF surfaces:
+                                #=0: search vertically up toward x-point
+                                #=1: search vertically down from x-point
+                                #=2: search diagonally down and in from x-point
+
+    com.ismmon=3            # Mesh modification:
+                                #=0: strictly orthogonal mesh and divertor plates
+                                #=1: non-orthogonal mesh, compressed distrib'n on each surface
+                                #=2: non-orthogonal mesh, standard distrib'n on all surfaces
+                                #=3: combination of options 1 and 2 using weight factor wtmesh1
+    if com.ismmon==3:       # Using weight factor
+        grd.wtmesh1=0.0     # Weight factor; =1: ismmon=1, =0: ismmon2
+
+    grd.istream=0           # Parameter dir fixed upstream reference surface
+                                #=0: midplane+cut(ismmon=1) or top-of-mesh(ismmon=2)
+                                #=1: user-defined upstream surface arrays
+
+    grd.nsmooth=4           # Number of times to apply the smoothing algorithm to each
+                            #   angle-like surface after non-orthogonal plate construction
+
+    grd.dmix0=dmix0           # Normalized poloidal mixing length for combining mesh0 with mesh 12
+                                #=0: abrupt  change from orthogonal mesh to mesh12 at upstream position
+                                #=1: gradual change from orthogonal mesh to mesh12 between upstream an downstram pos    
+
+    # Plates
+    #- - - - 
+    if plate==None:
+        grd.iplate=0
+    else:
+        grd.iplate=1            # Divertor plate definition
+                                    #=0: Orthogonal plates
+                                    #=1: User-defined plates
+        plate()  # Import plate geo
+
+
+def uppersn(  gridpath='.', plate=None, nx_ileg=12, nx_oleg=10, nxcore_inside=14, nxcore_outside=14, nycore=15, nysol=16,
+            gengrid=1, isnonog=1, psi0min1=.90, psi0min2=0.98, psi0sep=1.00005, psi0max=1.10,nxxpt=1,nxmod=3,
+            alfxptu=0.75, alfcy=2.5, dmix0=0.5
+         ):
+    from numpy import array,pi
+    '''
+    Function for defining the grid setup in UEGDE
+    '''
+    
+    # Set grid paths if V7.08 is being used: not available for earlier versions
+    # For previous versions, place EFIT files in data folder
+    try:
+        com.aeqdskfname=gridpath+"/aeqdsk" # Efit equilibrium
+        com.geqdskfname=gridpath+"/neqdsk" # Efit equilibrium
+    except: 
+        pass
+    """=====================================================================================================
+    GRID
+    ====================================================================================================="""
+    # Geometry definition
+    #- - - - - - - - - - -
+    bbb.ngrid=1             # Number of grids to allocate space for: odesetup.m L6488
+
+    bbb.mhdgeo=1            # Grid geometry:
+                                #=-2 mag mirror (FRC-annulus)   
+                                #=-1 cartesian geometry
+                                #=0: cylindrical geometry
+                                #=1: toroidal MHD equilibrium
+                                #=2: toroidal circular limiter
+
+    com.geometry="uppersn"    # Magnetic configuration
                                 #'snull': lower single null
                                 #'uppersn': upper single null
                                 #'dnbot': bottom half of double null

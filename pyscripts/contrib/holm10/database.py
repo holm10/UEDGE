@@ -661,9 +661,8 @@ class SETUP():
         return None
 
     def get_allsum(self,var):
-        ''' To be implemented '''
-        # TODO implement sum in bot spatial dimensions, not in index
-        return None
+        from numpy import sum
+        return sum(self.get(var)[:,1:-1,1:-1], axis = (1,2))
 
     def get_rangesum(self):
         ''' To be implemented '''
@@ -760,14 +759,27 @@ class SETUP():
 
 class CASE():
     ''' Class containing UEDGE run data '''
-    def __init__(self,variables=None):
+    def __init__(self,variables=None, engbal=None):
         from uedge import com,aph,api,bbb,flx,grd,svr,wdf
         from numpy import copy
+        import engbal as eb
         ''' Reads 'variables' from 'packages' into dictionary '''
         if variables is None:
             variables=default_variables()
         self.data=dict()
         # Read variables
+        if engbal is True:  
+            engerr, divfekin, divfevis, divfe, divfetot, pioniz, \
+            precom, pmloss = eb.engbal()
+            self.data['engerr'] = engerr
+            self.data['divfekin'] = divfekin
+            self.data['divfevis'] = divfevis
+            self.data['divfe'] = divfe
+            self.data['divfetot'] = divfetot
+            self.data['pioniz'] = pioniz
+            self.data['precom'] = precom
+            self.data['pmloss'] = pmloss
+
         for var in variables:
             try:
                 exec('self.data["'+var+'"]=copy('+var+')') in globals(),locals()
@@ -1039,11 +1051,7 @@ def create_database(savename=None,sortlocation='mp',outpath='.',path='.',subpath
         # Assume same geometry for all cases
         bbb.newgeo=0
 
-        if engbal is True:
-            bbb.engbal(bbb.pcoree+bbb.pcorei)
-
-
-        retl.append(CASE(variables))
+        retl.append(CASE(variables, engbal=engbal))
 
         chdir(parent)
     
