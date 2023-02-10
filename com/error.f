@@ -6,7 +6,9 @@ c     and then return control to the user.
 c     Note that "remark" and "kaboom" are part of the Basis runtime
 c     library.
 #ifdef FORTHON
-      call kaboom(msg)
+      call remark(msg)
+      call kaboom(0)
+c      call kaboom(msg)
 #else
       call remark(msg)
       call kaboom(0)

@@ -3,8 +3,132 @@
 #           Writes and reads dictionary with multi-dimensional arrays
 #           containing all restore-parameters.
 
+
+class RunData():
+    ''' Class containing information on run '''
+    def __init__(self, n_stor = False):
+        from time import time
+        from numpy import array        
+        from uedge import bbb
+
+        self.tstart = time()
+        self.numvar = bbb.numvar
+
+        # Time-slice parameters
+        self.ni = []
+        self.ng = []
+        self.up = []
+        self.te = []
+        self.ti = []
+        self.tg = []
+        self.phi= []
+        self.slicedt_tot = []
+
+        # Successful parameters
+        self.time = []
+        self.fnorm = []
+        self.nfe = []
+        self.dt_tot = []
+        self.dtreal = []
+        self.ii1 = []
+        self.ii2 = []
+
+        # Failed parameters
+        self.equationkey = array([b'te', b'ti', b'phi', b'up', b'ni', b'ng', b'tg'])
+        self.ii1fail = []
+        self.ii2fail = []
+        self.dtrealfail = []
+        self.itrouble = []
+        self.troubleeq = []
+        self.troubleindex = []
+        self.ylfail = []
+        
+
+
+    def itroub(self):
+        ''' Function that displays information on the problematic equation '''
+        from numpy import mod, argmax, where
+        from uedge import bbb
+        from copy import deepcopy
+
+        self.equations = [bbb.idxte, bbb.idxti, bbb.idxphi, 
+            bbb.idxu, bbb.idxn, bbb.idxg, bbb.idxtg]
+        equationsdescription = [ 'Electron energy', 'Ion energy', 'Potential',
+            'Ion momentum', 'Ion density', 'Gas density', 'Gas temperature']
+        # Find the fortran index of the troublemaking equation
+        self.neq = bbb.neq
+        self.itrouble.append(deepcopy(argmax(abs(bbb.yldot[:self.neq]))+1))
+        print("** Fortran index of trouble making equation is: {}".format(self.itrouble[-1]))
+        # Print equation information
+        print("** Number of equations solved per cell:\n    numvar = {}\n".format(self.numvar))
+
+        # TODO: add or subtract one??
+        self.troubleeq.append([abs(x-self.itrouble[-1]).min() for x in self.equations].index(0))
+#        self.troubleeq.append(ideepcopy(mod(self.itrouble[-1]-1,bbb.numvar) + 1)) # Use basis indexing for equation number
+
+        species = ''
+        if self.equations[self.troubleeq[-1]].ndim == 3:
+            species = ' of species {}'.format(where(self.equations[\
+                self.troubleeq[-1]]-self.itrouble[-1]==0)[-1][0])
+
+        print('** Troublemaker equation is:\n{} equation{}: iv_t={}\n'.format(\
+            equationsdescription[self.troubleeq[-1]], species, self.troubleeq[-1]+1))
+
+        # Display additional information about troublemaker cell
+        self.troubleindex.append(deepcopy(bbb.igyl[self.itrouble[-1]-1,]))
+        self.dtrealfail.append(deepcopy(bbb.dtreal))
+        self.ylfail.append(deepcopy(bbb.yl[self.itrouble[-1]-1]))
+        print("** Troublemaker cell (ix,iy) is:\n{}\n".format(self.troubleindex[-1]))
+        print("** Timestep for troublemaker equation:\n{:.3e}\n".format(self.dtrealfail[-1]))
+        print("** yl for troublemaker equation:\n{:.3e}\n".format(self.ylfail[-1]))
+    
+    def success(self, ii1, ii2, savedir, savename):
+        from time import time
+        from uedge import bbb
+        from uedge.hdf5 import hdf5_save
+        from copy import deepcopy
+        from h5py import File
+
+        self.time.append(time())
+        self.fnorm.append(deepcopy((sum((bbb.yldot[0:bbb.neq]*bbb.sfscal[0:bbb.neq])**2))**0.5))
+        self.nfe.append(deepcopy(bbb.nfe))
+        self.dt_tot.append(deepcopy(bbb.dt_tot))
+        self.dtreal.append(deepcopy(bbb.dtreal))
+        self.ii1.append(ii1)
+        self.ii2.append(ii2)
+        self.neq = bbb.neq
+
+        try:
+            hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,savename))
+        except:
+            print('Folder {} not found, saving output to cwd...'.format(savedir))
+            hdf5_save('{}_last_ii2.hdf5'.format(savename))
+
+        try:
+            file = File('{}/{}_last_ii2.hdf5'.format(savename))
+        except:
+            file = File('{}_last_ii2.hdf5'.format(savename))
+
+        file.create_group('convergence')
+        group = file['convergence']
+        group.create_dataset('t_start', data=self.tstart)
+        group.create_dataset('numvar', data=self.numvar)
+        group.create_dataset('neq', data=self.neq)
+
+        varlist = ['time', 'fnorm', 'nfe', 'dt_tot', 'dtreal', 'ii1', 'ii2',
+            'ii1fail', 'ii2fail', 'dtrealfail', 'itrouble', 'equationkey',
+            'troubleeq', 'troubleindex', 'ylfail']
+        for var in varlist:
+            group.create_dataset(var, data=self.__getattribute__(var))
+
+
+        file.close()
+
+
+
+
 def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2max=5,ftol_dt=1e-5,itermx=7,rlx=0.9,n_stor=0,
-            tstor=(1e-3,4e-2),incpset=7,dtmfnk3=1e-4):
+            tstor=(1e-3,4e-2),incpset=7,dtmfnk3=1e-4, ipt=None, eq=None, ieq=None):
     ''' Function advancing case time-dependently: increasing time-stepping is the default to attain SS solution
     rdrundt(dtreal,**keys)
 
@@ -24,6 +148,14 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
     tstor_s[(1e-3,4e-2)]    Tuple with start and stop times for storing snapshots to HDF5
     incpset[7]              Iterations until Jacobian is recomputed
     dtmfnk[1e-4]            dtreal for mfnksol signchange if ismfnkauto=1 (default)
+    ipt[None]               Tuple of indices (x,y) of value to be displayed
+                            Defaults to OSP location
+    eq[None]                Equation specifier string to be followed at location ipt
+                            Options are: te, ti, tg, ni, ng, up, phi
+                            Defaults to first found equation to be solved
+    ieq[None]               Index specifier of eq, if applicable
+                            Defaults to first index to be solved
+
     The above defaults are based on rdinitdt.
 
     Additional UEDGE parameters used in the function, assuming their default values are:
@@ -41,8 +173,6 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
     bbb.ismmaxuc[1]         # =1 for intern calc mmaxu; =0,set mmaxu & dont chng
     bbb.irev[-1]            # Flag to allow reduced dt advance after cutback
     bbb.initjac[0]          # If=1, calc initial Jac upon reading rdcontdt
-    bbb.ipt[1]              # Index of variable; value printed at step
-                            # If ipt not reset from unity, ipt=idxte(nx,iysptrx+1)
    
 
     Additional comments (from rdcontdt):
@@ -58,6 +188,7 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
     from os.path import exists
     from copy import copy
  
+    rundata = RunData()
 
     # Store the original values
     dt_tot_o=bbb.dt_tot
@@ -138,23 +269,54 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
 
     isdtsf_sav = bbb.isdtsfscal
 
+    # Use target strike-point as default index to investigate
+    if ipt is None:
+        ipt = (-2, com.iysptrx+1)
+    
 
-    if(bbb.ipt==1):  # No index requested
+    idxarr = [bbb.idxte, bbb.idxti, bbb.idxn, bbb.idxg, bbb.idxtg, bbb.idxu, bbb.idxphi]
+    idxlabel = ['TE', 'TI', 'NI', 'NG', 'TG', 'UP', 'PHI']
+
+    if eq is None:  # No index requested
         # Check for first variable solved: order is defined as Te,Ti,ni,ng,Tg,phi
-        for eq in [bbb.idxte, bbb.idxti, bbb.idxn, bbb.idxg, bbb.idxtg, bbb.idxu]:
+        for eq in idxarr:
             # If multi-species:
             if len(eq.shape)==3:
                 # Loop through all species to find first solved
-                for index in range(eq.shape[2]):
-                    # See if equation is solved
-                    if eq[:,:,index].min()!=0:
-                        ipt=eq[com.nx-1,com.iysptrx+1,index]
-                        break
+                if ieq is None:
+                    for index in range(eq.shape[2]):
+                        # See if equation is solved
+                        if eq[:,:,index].min()!=0:
+                            ipt=eq[ipt[0], ipt[1],index]
+                            break
+                else:
+                    ipt = eq[ipt[0], ipt[1], ieq]
+                    
             # If not, see if equation is solved
             else:
                 if eq.min()!=0:
-                    ipt=eq[com.nx-1,com.iysptrx+1]
+                    ipt=eq[ipt[0], ipt[1]]
                     break
+    # Use specified equation
+    else:
+        if eq.upper() not in idxlabel:
+            print('Equation "{}" requested not a valid specifier. Aborting!')
+            return
+        else:
+            ipt = idxarr[idxarr.index(eq.upper())][ipt[0], ipt[1]]
+            if len(ipt.shape) == 3:
+                if ieq is None:
+                    for index in range(eq.shape[2]):
+                        if eq[:,:,index].min()!=0:
+                            ipt=ipt[index]
+                        else:
+                            print('Requested equation not solved. Aborting!')
+                            return
+                else:
+                    ipt = ipt[ieq]
+                        
+                        # See if equation is solved
+                
 
 
     bbb.irev = -1         # forces second branch of irev in ii1 loop below
@@ -264,11 +426,12 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
                     dtreal_sav = bbb.dtreal
                     bbb.dt_tot += bbb.dtreal
                     nfe_tot += bbb.nfe[0,0]
-                    if exists(savedir):        
-                        hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,bbb.label[0].decode('UTF-8')))
-                    else:
-                        print('Folder {} not found, saving output to cwd...'.format(savedir))
-                        hdf5_save('{}_last_ii2.hdf5'.format(bbb.label[0].decode('UTF-8')))
+                    rundata.success(ii1, ii2, savedir,bbb.label[0].strip().decode('UTF-8'))
+#                    if exists(savedir):        
+#                        hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,bbb.label[0].strip().decode('UTF-8')))
+#                    else:
+#                        print('Folder {} not found, saving output to cwd...'.format(savedir))
+#                        hdf5_save('{}_last_ii2.hdf5'.format(bbb.label[0].strip().decode('UTF-8')))
                         
                     if (bbb.dt_tot>=0.999999999999*bbb.t_stop  or  fnrm_old<bbb.ftol_min):
                         print(' ')
@@ -297,13 +460,15 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
         if (bbb.dt_tot>=bbb.t_stop  or  fnrm_old<bbb.ftol_min): break   # need for both loops
         bbb.irev = bbb.irev-1
         if (bbb.iterm != 1):	#print bad eqn, cut dtreal by 3, set irev flag
-            itroub()
+            rundata.itroub()
+#            itroub()
             
             if (bbb.dtreal < bbb.dt_kill):
                 print(' ')
                 print('*************************************')
                 print('**  FAILURE: time-step < dt_kill   **')
                 print('*************************************')
+                rundata.success(ii1, ii2, savedir,bbb.label[0].strip().decode('UTF-8'))
                 break
             bbb.irev = 1
             print('*** Converg. fails for bbb.dtreal; reduce time-step by 3, try again')

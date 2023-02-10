@@ -646,19 +646,16 @@ def vector(poldata,raddata,ax=False,C=False,datascale=1, arrow_scale=10.,
 
 
 
-def gridue(path='.', linewidth=0.1, color='k', fig=None, iax=0, dispz=0):
+def gridue(fname='gridue', path='.',linewidth=0.1, color='k', ax=None, dispz=0, zoom='device'):
     from numpy import array, array_split, reshape
     from matplotlib.pyplot import subplots
     
-    if fig is None:
-        fig, ax = subplots()
-    else:
-        ax = fig.get_axes()[iax]
+    if ax is None:
+        fig, ax = subplots(figsize=(8,12))
 
-    with open('{}/gridue'.format(path)) as f:
+    with open('{}/{}'.format(path, fname)) as f:
         lines = [line.strip().split() for line in f]
     [nxm, nym, ixpt1, ixpt2, iysptrx] = [int(x) for x in lines.pop(0)]
-    print(nxm, nym)
     data = []
     for x in lines[:-1]:
         for y in x:
@@ -680,8 +677,15 @@ def gridue(path='.', linewidth=0.1, color='k', fig=None, iax=0, dispz=0):
                 y.append(zm[iz,iy,ix])
             ax.plot(x,y,'-', linewidth=linewidth, color=color)#rm[1:,iy,ix], zm[1:,iy,ix], 'k.-') 
 
+    if zoom == 'divertor':
+        ax.set_ylim((0.2, 1))
+        ax.set_xlim((1,1.9))
+#        ax.set_ylim(    (min(rm[:,1:-1,:ixpt1+1].min(), rm[:,1:-1,ixpt2+1:].min()),
+#                        max(rm[:,1:-1,:ixpt1+1].max(), rm[:,1:-1,ixpt2+1:].max())))
+        
+
     ax.set_aspect('equal')
-    return fig
+    return ax.get_figure()
     
 
 
@@ -776,6 +780,16 @@ def grid(   ax=False,showcc=False,showcut=False,showves=False,showplates=False,c
         ret.show()
         return ret 
 
+
+def plot_plates(ax=None):
+    from uedge import grd
+
+    if ax is None:
+        fig, ax = subplots(figsize=(8,12))
+
+    ax.plot(grd.rplate1,grd.zplate1,"r-")
+    ax.plot(grd.rplate2,grd.zplate2,"r-")
+    return ax.get_figure()
 
 
 def contours(Z,ax=False,cbar=True,cmap="YlOrRd",zoom="div",plotvessel=['sep','outline'],maintainaspect=True,
