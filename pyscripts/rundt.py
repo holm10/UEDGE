@@ -199,7 +199,7 @@ class RunData():
         ax[1].loglog(data['dt_tot'][()], data['fnorm'][()], '-', color=color, label=label)
 
         ax[0].set_xlabel(xlabel)
-        ax[1].set_xlabel('Time-step (dtreal) [s]')
+        ax[1].set_xlabel('Accumulated plasma simualtion time [s]')
         ax[2].set_xlabel(xlabel)
         ax[0].set_ylabel('Initial fnorm')
         ax[1].set_ylabel('Initial fnorm')
