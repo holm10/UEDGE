@@ -236,7 +236,8 @@ class RunData():
         # Bin the equation errors
         counts, bins = histogram(data['troubleeq'][()], bins=7, range=(-0.5,6.5))
         ax[0].hist(bins[:-1], bins, weights=counts)
-        ax[0].set_xticks(range(7), [x.decode('UTF-8') for x in data['equationkey'][()]])
+        ax[0].set_xticks(range(7))
+        ax[0].set_xticklabels([x.decode('UTF-8') for x in data['equationkey'][()]])
         ax[0].grid(linestyle=':', linewidth=0.5, axis='y')
 
 
