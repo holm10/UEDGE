@@ -33,7 +33,9 @@ class RunData():
             'slice_ti', 'slice_tg', 'slice_phi', 'slice_dttot', 'time', 
             'fnorm', 'nfe', 'dt_tot', 'dtreal', 'ii1', 'ii2', 'ii1fail', 
             'ii2fail', 'dtrealfail', 'itrouble', 'troubleeq', 'troubleindex',
-            'ylfail']
+            'ylfail', 'isteon', 'istion', 'isupon', 'isphion', 'isupgon',
+            'isngon', 'istgon', 'ishymol', 'nisp', 'ngsp', 'nhsp', 'nhgsp', 
+            'nzsp']
 
         # Intiialize all variables to empty lists in class
         for var in self.classvars:
@@ -50,6 +52,8 @@ class RunData():
             bbb.idxu, bbb.idxn, bbb.idxg, bbb.idxtg]
         equationsdescription = [ 'Electron energy', 'Ion energy', 'Potential',
             'Ion momentum', 'Ion density', 'Gas density', 'Gas temperature']
+
+
         # Find the fortran index of the troublemaking equation
         self.neq = bbb.neq
         self.itrouble.append(deepcopy(argmax(abs(bbb.yldot[:self.neq]))+1))
@@ -86,8 +90,8 @@ class RunData():
         from copy import deepcopy
 
         self.time.append(time())
-        self.fnorm.append(deepcopy((sum((bbb.yldot[0:bbb.neq]*\
-            bbb.sfscal[0:bbb.neq])**2))**0.5))
+        self.fnorm.append(deepcopy((sum((bbb.yldot[:bbb.neq]*\
+            bbb.sfscal[:bbb.neq])**2))**0.5))
         self.nfe.append(deepcopy(bbb.nfe))
         self.dt_tot.append(deepcopy(bbb.dt_tot))
         self.dtreal.append(deepcopy(bbb.dtreal))
@@ -113,6 +117,12 @@ class RunData():
     def save_intermediate(self, savedir, savename):
         from uedge.hdf5 import hdf5_save
         from h5py import File
+
+        for var in [ 'isteon', 'istion', 'isupon', 'isphion', 'isupgon',
+            'isngon', 'istgon', 'ishymol']:
+            self.__setattr__(var, bbb.__getattribute__(var))
+        for var in [ 'nisp', 'ngsp', 'nhsp', 'nhgsp', 'nzsp']:
+            self.__setattr__(var, com.__getattribute__(var))
 
         hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,savename))
         try:
