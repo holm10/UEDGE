@@ -2,48 +2,43 @@
 # 191121 -  Created hdf5-routines to read and save time-dependent data
 #           Writes and reads dictionary with multi-dimensional arrays
 #           containing all restore-parameters.
+# 230210 - Updated to...
 
+from matplotlib.pyplot import ion
+ion()
 
 class RunData():
     ''' Class containing information on run '''
     def __init__(self, n_stor = False):
         from time import time
         from numpy import array        
-        from uedge import bbb
+        from uedge import bbb, com
 
+
+        # TODO: Add functions for plotting convergence from savefile
+        # TODO: Add restore/recover from timeslice
+        # TODO: Add plot timeslice directly
+        # TODO: Use a dictionary to store data?
+        # NOTE: No -> Utilize direct I/O from file instead
         self.tstart = time()
         self.numvar = bbb.numvar
-
-        # Time-slice parameters
-        self.ni = []
-        self.ng = []
-        self.up = []
-        self.te = []
-        self.ti = []
-        self.tg = []
-        self.phi= []
-        self.slicedt_tot = []
-
-        # Successful parameters
-        self.time = []
-        self.fnorm = []
-        self.nfe = []
-        self.dt_tot = []
-        self.dtreal = []
-        self.ii1 = []
-        self.ii2 = []
-
-        # Failed parameters
+        self.nx = com.nx
+        self.ny = com.ny
+        self.ixpt1 = com.ixpt1[0]
+        self.ixpt2 = com.ixpt2[0]
+        self.iysptrx = com.iysptrx
         self.equationkey = array([b'te', b'ti', b'phi', b'up', b'ni', b'ng', b'tg'])
-        self.ii1fail = []
-        self.ii2fail = []
-        self.dtrealfail = []
-        self.itrouble = []
-        self.troubleeq = []
-        self.troubleindex = []
-        self.ylfail = []
-        
 
+        self.classvars = ['slice_ni', 'slice_ng', 'slice_up', 'slice_te', 
+            'slice_ti', 'slice_tg', 'slice_phi', 'slice_dttot', 'time', 
+            'fnorm', 'nfe', 'dt_tot', 'dtreal', 'ii1', 'ii2', 'ii1fail', 
+            'ii2fail', 'dtrealfail', 'itrouble', 'troubleeq', 'troubleindex',
+            'ylfail']
+
+        # Intiialize all variables to empty lists in class
+        for var in self.classvars:
+            self.__setattr__(var, [])
+  
 
     def itroub(self):
         ''' Function that displays information on the problematic equation '''
@@ -58,7 +53,7 @@ class RunData():
         # Find the fortran index of the troublemaking equation
         self.neq = bbb.neq
         self.itrouble.append(deepcopy(argmax(abs(bbb.yldot[:self.neq]))+1))
-        print("** Fortran index of trouble making equation is: {}".format(self.itrouble[-1]))
+        print("** Fortran index of trouble making equation is:\n{}".format(self.itrouble[-1]))
         # Print equation information
         print("** Number of equations solved per cell:\n    numvar = {}\n".format(self.numvar))
 
@@ -78,19 +73,21 @@ class RunData():
         self.troubleindex.append(deepcopy(bbb.igyl[self.itrouble[-1]-1,]))
         self.dtrealfail.append(deepcopy(bbb.dtreal))
         self.ylfail.append(deepcopy(bbb.yl[self.itrouble[-1]-1]))
-        print("** Troublemaker cell (ix,iy) is:\n{}\n".format(self.troubleindex[-1]))
-        print("** Timestep for troublemaker equation:\n{:.3e}\n".format(self.dtrealfail[-1]))
-        print("** yl for troublemaker equation:\n{:.3e}\n".format(self.ylfail[-1]))
+        print('** Troublemaker cell (ix,iy) is:\n' + \
+            '{}\n'.format(self.troubleindex[-1]))
+        print('** Timestep for troublemaker equation:\n' + \
+            '{:.4e}\n'.format(self.dtrealfail[-1]))
+        print('** yl for troublemaker equation:\n' + \
+            '{:.4e}\n'.format(self.ylfail[-1]))
     
     def success(self, ii1, ii2, savedir, savename):
         from time import time
         from uedge import bbb
-        from uedge.hdf5 import hdf5_save
         from copy import deepcopy
-        from h5py import File
 
         self.time.append(time())
-        self.fnorm.append(deepcopy((sum((bbb.yldot[0:bbb.neq]*bbb.sfscal[0:bbb.neq])**2))**0.5))
+        self.fnorm.append(deepcopy((sum((bbb.yldot[0:bbb.neq]*\
+            bbb.sfscal[0:bbb.neq])**2))**0.5))
         self.nfe.append(deepcopy(bbb.nfe))
         self.dt_tot.append(deepcopy(bbb.dt_tot))
         self.dtreal.append(deepcopy(bbb.dtreal))
@@ -98,6 +95,26 @@ class RunData():
         self.ii2.append(ii2)
         self.neq = bbb.neq
 
+        self.save_intermediate(savedir, savename)
+
+    def store_timeslice(self):
+        from copy import deepcopy
+        from uedge import bbb
+
+        self.slice_ni.append(deepcopy(bbb.ni))
+        self.slice_ng.append(deepcopy(bbb.ng))
+        self.slice_up.append(deepcopy(bbb.up))
+        self.slice_te.append(deepcopy(bbb.te))
+        self.slice_ti.append(deepcopy(bbb.ti))
+        self.slice_tg.append(deepcopy(bbb.tg))
+        self.slice_phi.append(deepcopy(bbb.phi))
+        self.slice_dttot.append(deepcopy(bbb.dt_tot))
+
+    def save_intermediate(self, savedir, savename):
+        from uedge.hdf5 import hdf5_save
+        from h5py import File
+
+        hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,savename))
         try:
             hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,savename))
         except:
@@ -105,30 +122,462 @@ class RunData():
             hdf5_save('{}_last_ii2.hdf5'.format(savename))
 
         try:
-            file = File('{}/{}_last_ii2.hdf5'.format(savename))
+            file = File('{}/{}_last_ii2.hdf5'.format(savedir, savename, 'r+'))
         except:
-            file = File('{}_last_ii2.hdf5'.format(savename))
+            file = File('{}_last_ii2.hdf5'.format(savename), 'r+')
 
-        file.create_group('convergence')
+        file.require_group('convergence')
         group = file['convergence']
         group.create_dataset('t_start', data=self.tstart)
         group.create_dataset('numvar', data=self.numvar)
         group.create_dataset('neq', data=self.neq)
+        group.create_dataset('nx', data=self.nx)
+        group.create_dataset('ny', data=self.ny)
+        group.create_dataset('ixpt1', data=self.ixpt1)
+        group.create_dataset('ixpt2', data=self.ixpt2)
+        group.create_dataset('iysptrx', data=self.iysptrx)
+        group.create_dataset('equationkey', data=self.equationkey)
 
-        varlist = ['time', 'fnorm', 'nfe', 'dt_tot', 'dtreal', 'ii1', 'ii2',
-            'ii1fail', 'ii2fail', 'dtrealfail', 'itrouble', 'equationkey',
-            'troubleeq', 'troubleindex', 'ylfail']
-        for var in varlist:
+        for var in self.classvars:
             group.create_dataset(var, data=self.__getattribute__(var))
 
+        file.close()
+    
+    def convergenceanalysis(savefname, savedir='../solutions', fig=None,
+        xaxis = 'exmain', logx = True, color='k', label=''):
+        from h5py import File
+        from matplotlib.pyplot import subplots
+        from numpy import cumsum
+        if fig is None:
+            f, ax = subplots(1, 3, figsize=(15, 5))
+        else:
+            ax = fig.get_axes()
+            if len(ax) < 3:
+                print('Three subplots required for plots! Aborting...')
+                return
+            f = fig
+        try:
+            file = File('{}/{}'.format(savedir, savefname), 'r')
+        except:
+            print('File {}/{} not found. Abprting!'.format(savedir, 
+                savefname))
+        data = file['convergence']
+        try:
+            data = file['convergence']
+        except:
+            print('Convergence data not found in {}/{}. Aborting!'.format(\
+                savedir, savefname))
+            return
+        
+        if xaxis == 'exmain':
+            xlabel = 'Exmain calls'
+            x = cumsum(data['ii2'][()])
+        elif xaxis == 'nfe':
+            xlabel = 'nfe internal iterations'
+            x = cumsum(data['nfe'][()][:, 0, 0])
+        elif xaxis == 'time':
+            xlabel = 'Total wall-clock time [s]'
+            x = data['time'][()] - data['t_start'][()]
 
+        if logx is True:
+            ax[0].loglog(x, data['fnorm'][()], '-', color=color, label=label)
+            ax[2].loglog(x, data['dtreal'][()], '-', color=color, label=label)
+        else:
+            ax[0].semilogy(x, data['fnorm'][()], '-', color=color, label=label)
+            ax[2].semilogy(x, data['dtreal'][()], '-', color=color, label=label)
+
+        ax[1].loglog(data['dt_tot'][()], data['fnorm'][()], '-', color=color, label=label)
+
+        ax[0].set_xlabel(xlabel)
+        ax[1].set_xlabel('Time-step (dtreal) [s]')
+        ax[2].set_xlabel(xlabel)
+        ax[0].set_ylabel('Initial fnorm')
+        ax[1].set_ylabel('Initial fnorm')
+        ax[2].set_ylabel('Time-step (dtreal) [s]')
+        ax[0].set_ylim(1e-4, None)
+        ax[1].set_ylim(1e-4, None)
+        ax[0].legend()
+
+        return f
+
+
+    def failureanalysis(savefname, savedir='../solutions', equation=None):
+        from h5py import File
+        from matplotlib.pyplot import subplots
+        from numpy import histogram, zeros
+        from matplotlib.collections import PolyCollection
+        
+        f, ax = subplots(2,1, figsize=(10, 7))
+        try:
+            file = File('{}/{}'.format(savedir, savefname), 'r')
+        except:
+            print('File {}/{} not found. Abprting!'.format(savedir, 
+                savefname))
+        data = file['convergence']
+        try:
+            data = file['convergence']
+        except:
+            print('Convergence data not found in {}/{}. Aborting!'.format(\
+                savedir, savefname))
+            return
+
+        if equation is not None:
+            iequation = [x.decode('UTF-8') for x in data['equationkey']].index(equation)
+        # Bin the equation errors
+        counts, bins = histogram(data['troubleeq'][()], bins=7, range=(-0.5,6.5))
+        ax[0].hist(bins[:-1], bins, weights=counts)
+        ax[0].set_xticks(range(7), [x.decode('UTF-8') for x in data['equationkey'][()]])
+        ax[0].grid(linestyle=':', linewidth=0.5, axis='y')
+
+
+        # Visualize error locations
+        nx = data['nx'][()]        
+        ny = data['ny'][()]        
+        ixpt1 = data['ixpt1'][()]
+        ixpt2 = data['ixpt2'][()]
+        iysptrx = data['iysptrx'][()]
+        frequency = zeros((nx, ny))
+
+        cells = []
+        for i in range(nx):
+            for j in range(ny):
+                cells.append([[i+0.5, j+0.5], [i+1.5, j+0.5], 
+                    [i+1.5, j+1.5], [i+0.5, j+1.5]])
+        polys = PolyCollection(cells, edgecolors='k', linewidth=0.5, linestyle=':')
+            
+
+
+        for i in range(len(data['itrouble'])):
+            coord = data['troubleindex'][()][i]
+            if equation is None:
+                frequency[coord[0]-1, coord[1]-1] += 1
+            elif iequation == data['troubleeq'][()][i]:
+                frequency[coord[0]-1, coord[1]-1] += 1
+
+        polys.set_cmap('Reds')
+        polys.set_array(frequency.reshape((nx*ny,)))
+
+        cbar = f.colorbar(polys, ax=ax[1])
+        cbar.ax.set_ylabel('N trouble'+' for {}'.format(equation)*\
+            (equation is not None), va='bottom', labelpad=20)
+
+        ax[1].set_xlabel('Poloidal index')
+        ax[1].set_ylabel('Radial index')
+        ax[1].add_collection(polys)
+        ax[1].plot([0.5, nx+0.5],[iysptrx+0.5, iysptrx+0.5], 'k-', linewidth=2)
+        ax[1].plot([ixpt1+0.5, ixpt1+0.5], [0.5, iysptrx+0.5], 'k-', linewidth=2)
+        ax[1].plot([ixpt2+0.5, ixpt2+0.5], [0.5, iysptrx+0.5], 'k-', linewidth=2)
+
+        return frequency, 0 
+
+        counts, bins = histogram(data['troubleindex'][()])
+        return counts, bins
+
+        #ax[0].hist(range(7), data['troubleeq'][()])
+        
+        
+        ax[1].autoscale_view()
         file.close()
 
+    def converge(dtreal=1e-9, ii1max=500, ii2max=5, itermx=7, ftol=1e-5,
+        dt_kill=1e-14, t_stop=100, dt_max=100, ftol_min = 1e-9,
+        n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, 
+        tstor=(1e-3, 4e-2), ismfnkauto=True, dtmnfk3=5e-4, mult_dt=3.4, 
+        reset=True, initjac=False, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9 
+    
+        ):
+        ''' Converges the case by increasing dt 
+        dtreal : float [1e-9]
+            Original time-step size
+        ii1max : int [500]
+            Outer loop iterations, i.e. time-step changes
+        ii2max : int [5]
+            Inner loop iterations, i.e. time-steps per time-step change
+        dt_kill : float [1e-14]
+            Time-step limit for aborting simulation
+        itermx : int [7]
+            Maximum iterations per time-step used internally in routine
+        ftol : float [1e-5]
+            Internal fnrm tolerance for time-steps
+        ftol_min : float [1e-9]
+            Value of fnrm where time-advance will stop
+        t_stop : float [100.]
+            Maximum total accumulated plasma-time before stopping if 
+            fnorm has not decreased below ftol_min
+        dt_max : float [100.]
+            Maximum allowable time-step size
+        numrevjmax : int [2]
+            Number of time-step reducitons before Jacobian is recomputed
+        numfwdjmax : int [2]
+            Number of time-step increases before Jacobian is recomputed
+        n_stor : int [0]
+            Number of time-slices to be stored in interval tstor
+        tstor : tuple of floats [(1e-3, 4e-2)]
+            Time-interval in which time-slices are stored (lower, upper)
+        storedist : str ['lin']
+            Distribution of time-slices in tstor. Options are 'lin' and 
+            'log' for linear and logarithmic distributions, respectively
+        reset : bool [True]
+            Switch whether to reset the total time etc of the case
+        initjac : bool [False]
+            Switch to re-evaluate Jacobian on first convegnec time-step
+            or not
+        ismfnkauto : bool [True]
+            If True, sets mfnksol=3 for time-steps smaller that dtmfnk3,
+            mfnksol=-3 for larger time-step sizes
+        dtmfnk3 : float [5e-4]
+            Time-step size for which ismfnkauto controls mfnksol if
+            ismfnkauto is True
+        mult_dt : float [3.4]
+            Time-step size increase factor after successful inner loop
+        rdtphidtr : float [1e20]
+            Ratio of potential-equation time-step to plasma equaiton time-step 
+            size: dtphi/dtreal
+        deldt_min : float [0.04]
+            Minimum relative change allowed for model_dt>0
+        rlx : float [0.9]
+            Maximum change in variable at each internal linear iteration
+         
+        '''
+        from numpy import linspace, logspace, log10
+        from copy import deepcopy
+        from uedge import bbb
 
 
+        self.orig = {}
+        self.orig['itermx'] = deepcopy(bbb.itermx)
+        self.orig['dtreal'] = deepcopy(bbb.dtreal)
+        self.orig['icntnunk'] = deepcopy(bbb.icntnunk)
+        self.orig['ftol'] = deepcopy(bbb.ftol)
+        self.orig['mfnksol'] = deepcopy(bbb.mfnksol)
+        self.orig['rlx'] = deepcopy(bbb.rlx)
+        self.orig['deldt'] = deepcopy(bbb.deldt)
+        self.orig['isdtsfscal'] = deepcopy(bbb.isdtsfscal)
+        bbb.rlx = rlx
+        bbb.ftol_dt = ftol # TODO: figure out how this can be used to set ftol directly?
+        bbb.itermx = itermx
+        bbb.dtreal = dtreal
+    
+# TODO: Add variable to control reduciton factor?
+# TODO: Should dtreal = min(x, t_stop) actually be t_stop or dt_max?
 
-def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2max=5,ftol_dt=1e-5,itermx=7,rlx=0.9,n_stor=0,
-            tstor=(1e-3,4e-2),incpset=7,dtmfnk3=1e-4, ipt=None, eq=None, ieq=None):
+        def restorevalues(self):
+            ''' Restores the original UEDGE values '''
+            for key, value in self.orig.items():
+                bbb.__setattr__(key, value)
+
+        def message(self, string, separator='-', pad='', seppad = '', 
+            nseparator=1):
+            ''' Prints formatted message to stdout '''
+            # TODO: add formatting for len>75 strings
+            message = pad.strip() + ' ' + string.strip() + ' ' + pad.strip()
+            for i in nseparator:
+                print(seppad + separator*(len(message)-2*len(seppad)) + seppad)
+            print(message)
+            print(seppad + separator*(len(message)-2*len(seppad)) + seppad)
+
+        def scale_timestep(scaling):
+            ''' Increases/decreases time-step ''' 
+            bbb.dtreal *= scaling
+
+        def exmain_isaborted(self):
+            ''' Checks if abort is requested '''
+            from uedge import bbb
+            bbb.exmain()
+            # Abort flag set, abort case
+            if bbb.exmain_aborted == 1: 
+                # Reset flag
+                bbb.exmain_aborted == 0 
+                # Restore parameters modified by script
+                restorevalues(self)
+                return True
+
+        def issuccess(t_stop, ftol_min):
+            ''' Checks if case is converged '''
+            if (bbb.dt_tot>=t_stop  or  fnrm_old<ftol_min):
+                print(' ')
+                message('SUCCESS: ' + 'fnrm < bbb.ftol'*(fnrm_old<ftol_min) +
+                    'dt_tot >= t_stop'*(bbb.dt_tot >= t_stop), pad='**', 
+                    separator='*')
+                restorevalues()
+                return True
+    
+        def isfail(dt_kill):
+            ''' Checks whether to abandon case '''
+            if (bbb.dtreal < dt_kill):
+                message('FAILURE: time-step < dt_kill', pad='**', 
+                separator='*')
+                self.save_intermediate(savedir,bbb.label[0].strip().decode('UTF-8'))
+                restorevalues()
+                return True
+
+        def setmfnksol(ismfnkauto, dtmfnk3):
+            ''' Sets mfnksol according to setup '''
+            if ismfnkauto is True:
+                bbb.mfnksol = 3*(-1)**(bbb.dtreal > dtmfnk3)
+
+        def calcfnrm():
+            ''' Calculates the initial fnrm '''
+            from uedge import bbb
+            bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
+            return sum((bbb.yldot[:bbb.neq-1]*bbb.sfscal[:bbb.neq-1])**2)**0.5
+                
+
+        # Check if successful time-step exists (bbb.iterm=1)
+        if bbb.iterm == 1:
+            message('Initial successful time-step exists', separator='')
+            scale_timestep(mult_dt)
+        else:
+            message('Need to take initial step with Jacobian; ' + \
+                'trying to do here', seppad='*')
+            bbb.icntnunk = 0
+            # Take timestep and see if abort requested
+            if exmain_isaborted():
+                return
+            scale_timestep(mult_dt)
+            # Verify time-step was successful
+            if (bbb.iterm != 1):
+                message('Error: converge an initial time-step first; then ' + \
+                    'retry rdcontdt', seppad='*')
+                return
+
+        ''' TIME-SLICING SETUP '''
+        if storedist == 'lin':
+            # Linearly spaced time slices for writing 
+            dt_stor = linspace(tstor[0], tstor[1], n_stor)
+        elif storedist == 'log':
+            # Logarithmically spaced time-slices
+            dt_stor = logspace(log10(tstor[0]), log10(tstor[1]), n_stor)
+        # Add end-point to avoid tripping on empty arrays
+        dt_stor = append(dt_stor, 1e20)
+
+        if reset is True:
+            bbb.dt_tot = max(bbb.dt_tot, 0)
+            nfe_tot = max(nfe_tot,0)
+        deldt_0 = deepcopy(bbb.deldt)
+        isdtsf_sav = deepcopy(bbb.isdtsfscal)
+
+# TODO: Replace with some more useful information?
+#        if (bbb.ipt==1 and bbb.isteon==1): 	# set ipt to te(nx,iysptrx+1) if no user value
+#           ipt = bbb.idxte[nx-1,com.iysptrx]  #note: ipt is local, bbb.ipt global
+
+# NOTE: This part of coding results in double-reduction of the initial time-step, removed
+#        if (bbb.iterm == 1):  # successful initial run with dtreal
+#            bbb.dtreal = bbb.dtreal/mult_dt     # gives same dtreal after irev loop
+#        else:                 # unsuccessful initial run; reduce dtreal
+#            bbb.dtreal = bbb.dtreal/(3*mult_dt) # causes dt=dt/mult_dt after irev loop
+           
+         
+        scale_timestep(1/mult_dt) #adjust for mult. to follow; mult_dt in rdinitdt
+        bbb.dtphi = rdtphidtr*bbb.dtreal
+        svrpkg=bbb.svrpkg.tostring().strip()
+        #
+        bbb.ylodt = bbb.yl
+        fnrm_old = calc_fnrm()
+        if initjac is True: 
+            fnrm_old = 1e20
+        else:
+            bbb.newgeo=0
+        print("initial fnrm =",fnrm_old)
+
+        irev = -1         # forces second branch of irev in ii1 loop below
+        numfwd = 0
+        numrev = 0
+        numrfcum = 0
+
+        ''' OUTER LOOP - MODIFY TIME-STEP SIZE'''
+        for ii1 in range(ii1max):
+            setmfnksol(ismfnkauto, dtmfnk3)
+            # adjust the time-step
+            # dtmult=3 only used after a dt reduc. success. completes loop ii2 for fixed dt
+            # either increase or decrease dtreal; depends on mult_dt
+            scale_timestep(3*(irev == 0) + mult_dt*(irev != 0))
+              
+            bbb.dtreal = min([dtmult*bbb.dtreal, t_stop, dt_max]) 
+            bbb.dtphi = rdtphidtr*bbb.dtreal
+            bbb.deldt =  min([dtmult*bbb.deldt, deldt_0, deldt_min])
+
+            message('Number of time-step changes = ''{} New time-step: {:.2E}]\n'\
+                .format((ii1+1), bbb.dtreal), pad='***', nseparator=1)
+
+            if (ii1>1)  or (initjac is True): # first time calc Jac if initjac=1
+                if (irev == 1): # Decrease time-step
+                    if (numrev < numrevjmax) and \
+                        (numrfcum < numrevjmax + numfwdjmax): #dont recom jac
+                        bbb.icntnunk = 1	
+                        numrfcum += 1
+                        numrev += 1
+                    else:       # force bbb.jac calc, reset numrev
+                        bbb.icntnunk = 0
+                        numrfcum = 0
+                    numfwd = 0
+                else:  # Increase time-step
+                    if (numfwd < numfwdjmax) and \
+                        (numrfcum < numrevjmax + numfwdjmax): 	#dont recomp bbb.jac
+                        bbb.icntnunk = 1
+                        numrfcum += 1
+                        numfwd += 1
+                    else:
+                        bbb.icntnunk = 0			#recompute jacobian for increase dt
+                        numrfcum = 0
+                    numrev = 0			# restart counter for dt reversals
+                bbb.isdtsfscal = isdtsf_sav
+                bbb.ftol = min([bbb.ftol_dt, 0.01*fnrm_old, ftol_min])
+                # Take timestep and see if abort requested
+                if exmain_isaborted():
+                    return
+                if (bbb.iterm == 1):
+                    bbb.dt_tot += bbb.dtreal
+                    bbb.ylodt = bbb.yl
+                    fnrm_old = calc_fnrm()
+                    ''' ISSUCCESS '''
+                    if issuccess(t_stop, ftol_min):
+                        return
+            bbb.icntnunk = 1
+            bbb.isdtsfscal = 0
+            for ii2 in range( 1, bbb.ii2max+1): #take ii2max steps at the present time-step
+                if (bbb.iterm == 1):
+                    bbb.ftol = min([bbb.ftol_dt, 0.01*fnrm_old, ftol_min])
+                    # Take timestep and see if abort requested
+                    if exmain_isaborted():
+                        return
+                    if (bbb.iterm == 1):
+                        bbb.ylodt = bbb.yl
+                        fnrm_old = calc_fnrm()
+                        message("Total time = {:.4E}; Timestep = {:.4E}".format(\
+                            bbb.dt_tot,bbb.dtreal), nseparator=0, separator='')
+#                       print("variable index ipt = ",ipt, " bbb.yl[ipt] = ",bbb.yl[ipt])
+                        bbb.dt_tot += bbb.dtreal
+                        # Store variable if threshold has been passed
+                        if (bbb.dt_tot >= dt_stor[0]):
+                            # Remove storing time-points smaller than current 
+                            # simulation time
+                            while bbb.dt_tot >= dt_stor[0]:
+                                dt_stor = dt_stor[1:]
+                            self.store_timeslice()
+                        ''' ISSUCCESS '''
+                        if issuccess(t_stop, ftol_min):
+                            return
+            irev -= 1
+            # Output troublemaker info, and store troublemaker info
+            if (bbb.iterm != 1):	
+                self.itroub()
+                ''' ISFAIL '''
+                if isfail(dt_kill):
+                    break
+                irev = 1
+                message('Converg. fails for bbb.dtreal; reduce time-step by ' + \
+                    '3, try again', pad = '***', nseparator=0)
+                scale_timestep(3*mult_dt)
+                bbb.dtphi = rdtphidtr*bbb.dtreal
+                bbb.deldt *=  1/(3*mult_dt) 
+                setmfnksol(ismfnkauto, dtmfnk3)
+                bbb.iterm = 1
+
+
+def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
+    ii2max=5, ftol_dt=1e-5, itermx=7, rlx=0.9, n_stor=0,tstor=(1e-3,4e-2),
+    incpset=7, dtmfnk3=1e-4, ipt=None, eq=None, ieq=None):
     ''' Function advancing case time-dependently: increasing time-stepping is the default to attain SS solution
     rdrundt(dtreal,**keys)
 
@@ -184,7 +633,7 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
     '''
     from uedge import bbb,com
     from uedge.hdf5 import hdf5_save
-    from numpy import sqrt,append,array,expand_dims
+    from numpy import sqrt,append,array, linspace
     from os.path import exists
     from copy import copy
  
@@ -264,7 +713,11 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
                     ['nfe',     None],
                     ['dtreal',  bbb.dtreal]     ]
     # Linearly spaced time slices for writing 
-    dt_stor = (bbb.tstor_e - bbb.tstor_s)/(bbb.n_stor - 1)
+    dt_stor = linspace(tstor[0], tstor[1], n_stor)
+    # Add end-point to avoid tripping on empty arrays
+    dt_stor = append(dt_stor, 1e20)
+    
+#    dt_stor = (bbb.tstor_e - bbb.tstor_s)/(bbb.n_stor - 1)
 
 
     isdtsf_sav = bbb.isdtsfscal
@@ -426,6 +879,16 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
                     dtreal_sav = bbb.dtreal
                     bbb.dt_tot += bbb.dtreal
                     nfe_tot += bbb.nfe[0,0]
+    ##       Store variables if a storage time has been crossed
+                    if (bbb.dt_tot >= dt_stor[0]):
+                        # Remove storing time-points smaller than current 
+                        # simulation time
+                        while bbb.dt_tot >= dt_stor[0]:
+                            dt_stor = dt_stor[1:]
+
+                        rundata.store_timeslice()
+
+       ##          End of storage section
                     rundata.success(ii1, ii2, savedir,bbb.label[0].strip().decode('UTF-8'))
 #                    if exists(savedir):        
 #                        hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,bbb.label[0].strip().decode('UTF-8')))
@@ -440,22 +903,6 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
                         print('*****************************************************')
                         break
                     print(" ")
-    ##       Store variables if a storage time has been crossed
-                    if (bbb.dt_tot >= tstor[0]+dt_stor*i_stor and i_stor<bbb.n_stor):
-                        # Check if variables are already present
-                        for var in storevar:
-                            if var[0]=='nfe':       var[1]=nfe_tot          # Update non-pointer variable
-                            if var[0]=='dtreal':    var[1]=copy(bbb.dtreal) # Update variable: unsure why pointer does not update
-                            if var[0]=='dt_tot':    var[1]=copy(bbb.dt_tot) # Update variable: unsure why pointer does not update
-                            # Check if array initialized
-                            if var[0] in data.keys():
-                                data[var[0]]=append(data[var[0]],expand_dims(array(copy(var[1])),axis=0),axis=0)
-                            else:
-                                data[var[0]]=expand_dims(array(copy(var[1])),axis=0)
-                                                
-
-                        i_stor = i_stor + 1
-       ##          End of storage section
           
         if (bbb.dt_tot>=bbb.t_stop  or  fnrm_old<bbb.ftol_min): break   # need for both loops
         bbb.irev = bbb.irev-1
@@ -468,7 +915,7 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
                 print('*************************************')
                 print('**  FAILURE: time-step < dt_kill   **')
                 print('*************************************')
-                rundata.success(ii1, ii2, savedir,bbb.label[0].strip().decode('UTF-8'))
+                rundata.save_intermediate(savedir,bbb.label[0].strip().decode('UTF-8'))
                 break
             bbb.irev = 1
             print('*** Converg. fails for bbb.dtreal; reduce time-step by 3, try again')
@@ -505,144 +952,5 @@ def rundt(  dtreal=1e-9,nfe_tot=0,savedir='../solutions',dt_tot=0,ii1max=500,ii2
     bbb.ftol=ftol_o
     bbb.dtreal=1e20
 
-
-def itroub():
-    ''' Function that displays information on the problematic equation '''
-    from numpy import mod,argmax
-    from uedge import bbb
-    # Set scaling factor
-    scalfac = bbb.sfscal
-    if (bbb.svrpkg[0].decode('UTF-8').strip() != "nksol"): scalfac = 1/(bbb.yl + 1.e-30)  # for time-dep calc.
-
-    # Find the fortran index of the troublemaking equation
-    itrouble=argmax(abs(bbb.yldot[:bbb.neq]))+1
-    print("** Fortran index of trouble making equation is:")
-    print(itrouble)
-
-    # Print equation information
-    print("** Number of equations solved per cell:")
-    print("numvar = {}".format(bbb.numvar))
-    print(" ")
-    iv_t = mod(itrouble-1,bbb.numvar) + 1 # Use basis indexing for equation number
-    print("** Troublemaker equation is:")
-    # Verbose troublemaker equation
-    if abs(bbb.idxte-itrouble).min()==0:
-        print('Electron energy equation: iv_t={}'.format(iv_t))           
-    elif abs(bbb.idxti-itrouble).min()==0:
-        print('Ion energy equation: iv_t={}'.format(iv_t))   
-    elif abs(bbb.idxphi-itrouble).min()==0:
-        print('Potential equation: iv_t={}'.format(iv_t))   
-    elif abs(bbb.idxu-itrouble).min()==0:
-        for species in range(bbb.idxu.shape[2]):
-            if abs(bbb.idxu[:,:,species]-itrouble).min()==0:
-                print('Ion momentum equation of species {}: iv_t={}'.format(species, iv_t))   
-    elif abs(bbb.idxn-itrouble).min()==0:
-        for species in range(bbb.idxn.shape[2]):
-            if abs(bbb.idxn[:,:,species]-itrouble).min()==0:
-                print('Ion density equation of species {}: iv_t={}'.format(species, iv_t))   
-    elif abs(bbb.idxg-itrouble).min()==0:
-        for species in range(bbb.idxg.shape[2]):
-            if abs(bbb.idxg[:,:,species]-itrouble).min()==0:
-                print('Gas density equation of species {}: iv_t={}'.format(species, iv_t))   
-    elif abs(bbb.idxtg-itrouble).min()==0:
-        for species in range(bbb.idxtg.shape[2]):
-            if abs(bbb.idxtg[:,:,species]-itrouble).min()==0:
-                print('Gas temperature equation of species {}: iv_t={}'.format(species, iv_t))   
-    # Display additional information about troublemaker cell
-    print(" ")
-    print("** Troublemaker cell (ix,iy) is:")
-    print(bbb.igyl[itrouble-1,])
-    print(" ")
-    print("** Timestep for troublemaker equation:")
-    print(bbb.dtreal)
-    print(" ")
-    print("** yl for troublemaker equation:")
-    print(bbb.yl[itrouble-1])
-    print(" ")
-
-
-def save_dt(file,data):
-    ''' 
-    Save HDF5 file containing time-evolution of restore parameters and time
-    Created by holm10 based on meyer8's hdf5.py
-    '''
-    import h5py
-    from time import ctime
-    from uedge import bbb
-
-    # Open file for writing
-    try:
-        hf = h5py.File(file,'w')        # Open file for writing
-        hfb = hf.create_group('globals')# Create group for dt data
-        hfb.attrs['date'] = ctime()
-        hfb.attrs['code'] = 'UEDGE'
-        hfb.attrs['ver'] = bbb.uedge_ver
-    except ValueError as error:
-        print("HDF5 file open failed to {}".format(file))
-        print(error)
-    except:
-        print("HDF5 file open failed to {}".format(file))
-        raise
-
-    # Store variables from dictionary data
-    for var in ['dt_tot','dtreal','nfe','ni','up','te','ti','tg','ng','phi']:
-        try:
-            hfb.create_dataset(var, data=data[var])
-        except ValueError as error:
-            print("{} HDF5 file write failed to {}".format(var,file))
-            print(error)
-        except:
-            print("{} HDF5 file write failed to {}".format(var,file))
-
-
-def restore_dt(file,ReturnDict=True):
-    ''' 
-    Restore HDF5 file containing time-evolution of restore parameters and time
-    Created by holm10 based on meyer8's hdf5.py
-    '''
-    import h5py
-    from numpy import array    
-
-    data=dict() # Empty dictionary for storage
-    
-    # Open file for reading
-    try:
-        hf = h5py.File(file,'r')        # Open file for reading
-    except ValueError as error:
-        print("HDF5 file open failed to {}".format(file))
-        print(error)
-        return
-    except:
-        print("HDF5 file open failed to {}".format(file))
-        return
-
-    try:
-        dummy = hf['globals']    # Force exception if group not found
-        hfb=hf.get('globals')
-
-
-    except ValueError as error:
-        print("HDF5 file could not find group 'globals' in {}".format(file))
-        print(error)
-        return
-    except:
-        print("HDF5 file could not find group 'globals' in {}".format(file))
-        return
-    # Print information on save
-    print('Restored time-dependent data for {} case written {} using version {}'.format(hfb.attrs['code'], hfb.attrs['date'],hfb.attrs['ver'][0].decode('UTF-8').strip()[7:-1].replace('_','.')))
-    # Loop over all variables
-    for var in ['dt_tot','dtreal','nfe','ni','up','te','ti','tg','ng','phi']:
-        try:
-            data[var] = array(hfb.get(var))
-        except ValueError as error:
-            print("Couldn't read {} from {}".format(var,file))
-            print(error)
-        except:
-            print("Couldn't read {} from {}".format(var,file))     
- 
-    if ReturnDict:
-        return data
-    else:
-        return data['dt_tot'],data['dtreal'],data['nfe'],data['ni'],data['up'],data['te'],data['ti'],data['tg'],data['ng'],data['phi']
 
 
