@@ -278,16 +278,10 @@ class RunData():
         ax[1].plot([ixpt1+0.5, ixpt1+0.5], [0.5, iysptrx+0.5], 'k-', linewidth=2)
         ax[1].plot([ixpt2+0.5, ixpt2+0.5], [0.5, iysptrx+0.5], 'k-', linewidth=2)
 
-        return frequency, 0 
-
-        counts, bins = histogram(data['troubleindex'][()])
-        return counts, bins
-
-        #ax[0].hist(range(7), data['troubleeq'][()])
-        
-        
-        ax[1].autoscale_view()
         file.close()
+        return f
+
+
 
     def converge(dtreal=1e-9, ii1max=500, ii2max=5, itermx=7, ftol=1e-5,
         dt_kill=1e-14, t_stop=100, dt_max=100, ftol_min = 1e-9,
