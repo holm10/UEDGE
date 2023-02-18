@@ -526,7 +526,6 @@ class RunData():
 
         ''' OUTER LOOP - MODIFY TIME-STEP SIZE'''
         for ii1 in range(ii1max):
-            print('OLDFTOL: ', self.fnrm_old)
             setmfnksol(ismfnkauto, dtmfnk3)
             # adjust the time-step
             # dtmult=3 only used after a dt reduc. success. completes loop ii2 for fixed dt
@@ -549,23 +548,23 @@ class RunData():
                     if (numrev < numrevjmax and \
                         numrfcum < numrevjmax + numfwdjmax): #dont recom bbb.jac
                         bbb.icntnunk = 1	
+                        numrev += 1
                         numrfcum += 1
                     else:                          # force bbb.jac calc, reset numrev
                         icntnunk = 0
-                        numrev = -1		      # yields api.zero in next statement
+                        numrev = 0
                         numrfcum = 0
-                    numrev += 1
                     numfwd = 0
                 else:  # increase in bbb.dtreal
                     if (numfwd < numfwdjmax and \
                         numrfcum < numrevjmax + numfwdjmax): 	#dont recomp bbb.jac
                         bbb.icntnunk = 1
+                        numfwd += + 1
                         numrfcum += 1
                     else:
                         bbb.icntnunk = 0			#recompute jacobian for increase dt
-                        numfwd = -1
+                        numfwd = 0
                         numrfcum = 0
-                    numfwd += + 1
                     numrev = 0			#bbb.restart counter for dt reversals
                 bbb.isdtsfscal = isdtsf_sav
                 # Dynamically decrease ftol as the initial ftol decreases
@@ -575,7 +574,6 @@ class RunData():
                     return
 #                if bbb.iterm == 1:
 #                    fnrm_old = calc_fnrm()
-                print('ii1 END FNRM: ', self.fnrm_old)
                 if issuccess(self, t_stop, ftol_min):
                     return
             bbb.icntnunk = 1
@@ -583,7 +581,6 @@ class RunData():
             # Take ii2max time-steps at current time-step size while 
             # time-steps converge: if not, drop through
             for ii2 in range(bbb.ii2max): 
-                print('ii2 FNRM: ', self.fnrm_old)
                 if (bbb.iterm == 1):
                     bbb.ftol = max(min(ftol, 0.01*self.fnrm_old),ftol_min)
                     # Take timestep and see if abort requested
