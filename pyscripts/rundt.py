@@ -84,14 +84,18 @@ class RunData():
         print('** yl for troublemaker equation:\n' + \
             '{:.4e}\n'.format(self.ylfail[-1]))
     
-    def success(self, ii1, ii2, savedir, savename):
+    def savesuccess(self, ii1, ii2, savedir, savename, fnrm=None):
         from time import time
         from uedge import bbb
         from copy import deepcopy
 
         self.time.append(time())
-        self.fnorm.append(deepcopy((sum((bbb.yldot[:bbb.neq]*\
-            bbb.sfscal[:bbb.neq])**2))**0.5))
+        if fnrm is None:
+            bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
+            self.fnorm.append(deepcopy((sum((bbb.yldot[:bbb.neq]*\
+                bbb.sfscal[:bbb.neq])**2))**0.5))
+        else:
+            self.fnorm.append(fnrm)
         self.nfe.append(deepcopy(bbb.nfe))
         self.dt_tot.append(deepcopy(bbb.dt_tot))
         self.dtreal.append(deepcopy(bbb.dtreal))
@@ -116,6 +120,7 @@ class RunData():
 
     def save_intermediate(self, savedir, savename):
         from uedge.hdf5 import hdf5_save
+        from uedge import bbb, com
         from h5py import File
 
         for var in [ 'isteon', 'istion', 'isupon', 'isphion', 'isupgon',
@@ -154,10 +159,11 @@ class RunData():
         file.close()
     
     def convergenceanalysis(savefname, savedir='../solutions', fig=None,
-        xaxis = 'exmain', logx = True, color='k', label=''):
+        xaxis = 'exmain', logx = False, color='k', label=None,
+        ylim = (None, None)):
         from h5py import File
         from matplotlib.pyplot import subplots
-        from numpy import cumsum
+        from numpy import cumsum, ones
         if fig is None:
             f, ax = subplots(1, 3, figsize=(15, 5))
         else:
@@ -171,6 +177,7 @@ class RunData():
         except:
             print('File {}/{} not found. Abprting!'.format(savedir, 
                 savefname))
+            return
         data = file['convergence']
         try:
             data = file['convergence']
@@ -181,7 +188,8 @@ class RunData():
         
         if xaxis == 'exmain':
             xlabel = 'Exmain calls'
-            x = cumsum(data['ii2'][()])
+            xones = ones(data['ii2'][()].shape)
+            x = cumsum(xones)
         elif xaxis == 'nfe':
             xlabel = 'nfe internal iterations'
             x = cumsum(data['nfe'][()][:, 0, 0])
@@ -189,24 +197,37 @@ class RunData():
             xlabel = 'Total wall-clock time [s]'
             x = data['time'][()] - data['t_start'][()]
 
+        '''
+        moveave = []
+        for i in range(len(x)-100):
+            moveave.append(sum(data['dtreal'][i:i+10])/10)
+        for i in range(-100,-0):
+            moveave.append(sum(data['dtreal'][-i:])/-i)
+        '''
         if logx is True:
             ax[0].loglog(x, data['fnorm'][()], '-', color=color, label=label)
+            ax[1].loglog(data['dt_tot'][()], data['fnorm'][()], '-', color=color, label=label)
             ax[2].loglog(x, data['dtreal'][()], '-', color=color, label=label)
+#            ax[2].loglog(x, moveave, '-', color='gold', label=label)
         else:
             ax[0].semilogy(x, data['fnorm'][()], '-', color=color, label=label)
+            ax[1].semilogy(data['dt_tot'][()], data['fnorm'][()], '-', color=color, label=label)
             ax[2].semilogy(x, data['dtreal'][()], '-', color=color, label=label)
+#            ax[2].semilogy(x, moveave, '-', color='gold', label=label)
 
-        ax[1].loglog(data['dt_tot'][()], data['fnorm'][()], '-', color=color, label=label)
 
         ax[0].set_xlabel(xlabel)
         ax[1].set_xlabel('Accumulated plasma simualtion time [s]')
         ax[2].set_xlabel(xlabel)
+        ax[1].set_title('Total exmain evaluations: {}'.format\
+            (len(data['dtreal'][()])))
         ax[0].set_ylabel('Initial fnorm')
         ax[1].set_ylabel('Initial fnorm')
         ax[2].set_ylabel('Time-step (dtreal) [s]')
-        ax[0].set_ylim(1e-4, None)
-        ax[1].set_ylim(1e-4, None)
-        ax[0].legend()
+        ax[0].set_ylim(ylim)
+        ax[1].set_ylim(ylim)
+        if label is not None:
+            ax[0].legend()
 
         return f
 
@@ -221,7 +242,7 @@ class RunData():
         try:
             file = File('{}/{}'.format(savedir, savefname), 'r')
         except:
-            print('File {}/{} not found. Abprting!'.format(savedir, 
+            print('File {}/{} not found. Aborting!'.format(savedir, 
                 savefname))
         data = file['convergence']
         try:
@@ -284,13 +305,12 @@ class RunData():
 
 
 
-    def converge(dtreal=1e-9, ii1max=500, ii2max=5, itermx=7, ftol=1e-5,
-        dt_kill=1e-14, t_stop=100, dt_max=100, ftol_min = 1e-9,
+    def converge(self, dtreal=1e-9, ii1max=500, ii2max=5, itermx=7, ftol=1e-5,
+        dt_kill=1e-14, t_stop=100, dt_max=100, ftol_min = 1e-9, incpset=7,
         n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, 
-        tstor=(1e-3, 4e-2), ismfnkauto=True, dtmnfk3=5e-4, mult_dt=3.4, 
-        reset=True, initjac=False, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9 
-    
-        ):
+        tstor=(1e-3, 4e-2), ismfnkauto=True, dtmfnk3=5e-4, mult_dt=3.4, 
+        reset=True, initjac=False, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9,
+        tsnapshot=None, savedir='../solutions'):
         ''' Converges the case by increasing dt 
         dtreal : float [1e-9]
             Original time-step size
@@ -304,6 +324,10 @@ class RunData():
             Maximum iterations per time-step used internally in routine
         ftol : float [1e-5]
             Internal fnrm tolerance for time-steps
+        incpset : int [7]
+            
+        savedir : str ['../solutions']
+            
         ftol_min : float [1e-9]
             Value of fnrm where time-advance will stop
         t_stop : float [100.]
@@ -342,9 +366,13 @@ class RunData():
             Minimum relative change allowed for model_dt>0
         rlx : float [0.9]
             Maximum change in variable at each internal linear iteration
+        tsnapshot : list [None]
+            If None, uses linear/logarithmic interpolation according to storedist
+            in the interval tstor. Snapshot times can be defined in a list and 
+            supplied. Then, the tnsaphsot list defines the time-slices
          
         '''
-        from numpy import linspace, logspace, log10
+        from numpy import linspace, logspace, log10, append
         from copy import deepcopy
         from uedge import bbb
 
@@ -358,8 +386,9 @@ class RunData():
         self.orig['rlx'] = deepcopy(bbb.rlx)
         self.orig['deldt'] = deepcopy(bbb.deldt)
         self.orig['isdtsfscal'] = deepcopy(bbb.isdtsfscal)
+        self.orig['incpset'] = deepcopy(bbb.isdtsfscal)
         bbb.rlx = rlx
-        bbb.ftol_dt = ftol # TODO: figure out how this can be used to set ftol directly?
+        bbb.incpset = incpset
         bbb.itermx = itermx
         bbb.dtreal = dtreal
     
@@ -371,12 +400,12 @@ class RunData():
             for key, value in self.orig.items():
                 bbb.__setattr__(key, value)
 
-        def message(self, string, separator='-', pad='', seppad = '', 
+        def message(string, separator='-', pad='', seppad = '', 
             nseparator=1):
             ''' Prints formatted message to stdout '''
             # TODO: add formatting for len>75 strings
             message = pad.strip() + ' ' + string.strip() + ' ' + pad.strip()
-            for i in nseparator:
+            for i in range(nseparator):
                 print(seppad + separator*(len(message)-2*len(seppad)) + seppad)
             print(message)
             print(seppad + separator*(len(message)-2*len(seppad)) + seppad)
@@ -397,23 +426,29 @@ class RunData():
                 restorevalues(self)
                 return True
 
-        def issuccess(t_stop, ftol_min):
+        def issuccess(self, t_stop, ftol_min):
             ''' Checks if case is converged '''
-            if (bbb.dt_tot>=t_stop  or  fnrm_old<ftol_min):
-                print(' ')
-                message('SUCCESS: ' + 'fnrm < bbb.ftol'*(fnrm_old<ftol_min) +
-                    'dt_tot >= t_stop'*(bbb.dt_tot >= t_stop), pad='**', 
-                    separator='*')
-                restorevalues()
-                return True
+            if (bbb.iterm == 1):
+                bbb.ylodt = bbb.yl
+                bbb.dt_tot += bbb.dtreal
+                bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
+                self.fnrm_old = sum((bbb.yldot[:bbb.neq-1]*bbb.sfscal[:bbb.neq-1])**2)**0.5
+                self.savesuccess(ii1, ii2, savedir, bbb.label[0].strip(\
+                    ).decode('UTF-8'), self.fnrm_old)
+                if (bbb.dt_tot>=t_stop  or  self.fnrm_old<ftol_min):
+                    print(' ')
+                    message('SUCCESS: ' + 'fnrm < bbb.ftol'*(self.fnrm_old<ftol_min) +
+                        'dt_tot >= t_stop'*(bbb.dt_tot >= t_stop), pad='**', 
+                        separator='*')
+                    restorevalues(self)
+                    return True
     
         def isfail(dt_kill):
             ''' Checks whether to abandon case '''
             if (bbb.dtreal < dt_kill):
                 message('FAILURE: time-step < dt_kill', pad='**', 
                 separator='*')
-                self.save_intermediate(savedir,bbb.label[0].strip().decode('UTF-8'))
-                restorevalues()
+                restorevalues(self)
                 return True
 
         def setmfnksol(ismfnkauto, dtmfnk3):
@@ -421,25 +456,26 @@ class RunData():
             if ismfnkauto is True:
                 bbb.mfnksol = 3*(-1)**(bbb.dtreal > dtmfnk3)
 
-        def calcfnrm():
+        def calc_fnrm():
             ''' Calculates the initial fnrm '''
             from uedge import bbb
             bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
             return sum((bbb.yldot[:bbb.neq-1]*bbb.sfscal[:bbb.neq-1])**2)**0.5
                 
 
-        # Check if successful time-step exists (bbb.iterm=1)
+        ''' TIME-STEP INITIALIZATION '''
+        bbb.ftol = ftol
         if bbb.iterm == 1:
             message('Initial successful time-step exists', separator='')
-            scale_timestep(mult_dt)
         else:
             message('Need to take initial step with Jacobian; ' + \
                 'trying to do here', seppad='*')
+            # Ensure time-step is taken
             bbb.icntnunk = 0
             # Take timestep and see if abort requested
-            if exmain_isaborted():
+            if exmain_isaborted(self):
                 return
-            scale_timestep(mult_dt)
+            # Increase time
             # Verify time-step was successful
             if (bbb.iterm != 1):
                 message('Error: converge an initial time-step first; then ' + \
@@ -447,18 +483,20 @@ class RunData():
                 return
 
         ''' TIME-SLICING SETUP '''
-        if storedist == 'lin':
-            # Linearly spaced time slices for writing 
-            dt_stor = linspace(tstor[0], tstor[1], n_stor)
-        elif storedist == 'log':
-            # Logarithmically spaced time-slices
-            dt_stor = logspace(log10(tstor[0]), log10(tstor[1]), n_stor)
+        if tsnapshot is None:
+            if storedist == 'lin':
+                # Linearly spaced time slices for writing 
+                dt_stor = linspace(tstor[0], tstor[1], n_stor)
+            elif storedist == 'log':
+                # Logarithmically spaced time-slices
+                dt_stor = logspace(log10(tstor[0]), log10(tstor[1]), n_stor)
+        else:
+            dt_stor = tsnapshot
         # Add end-point to avoid tripping on empty arrays
         dt_stor = append(dt_stor, 1e20)
 
         if reset is True:
             bbb.dt_tot = max(bbb.dt_tot, 0)
-            nfe_tot = max(nfe_tot,0)
         deldt_0 = deepcopy(bbb.deldt)
         isdtsf_sav = deepcopy(bbb.isdtsfscal)
 
@@ -466,114 +504,119 @@ class RunData():
 #        if (bbb.ipt==1 and bbb.isteon==1): 	# set ipt to te(nx,iysptrx+1) if no user value
 #           ipt = bbb.idxte[nx-1,com.iysptrx]  #note: ipt is local, bbb.ipt global
 
-# NOTE: This part of coding results in double-reduction of the initial time-step, removed
-#        if (bbb.iterm == 1):  # successful initial run with dtreal
-#            bbb.dtreal = bbb.dtreal/mult_dt     # gives same dtreal after irev loop
-#        else:                 # unsuccessful initial run; reduce dtreal
-#            bbb.dtreal = bbb.dtreal/(3*mult_dt) # causes dt=dt/mult_dt after irev loop
-           
-         
-        scale_timestep(1/mult_dt) #adjust for mult. to follow; mult_dt in rdinitdt
         bbb.dtphi = rdtphidtr*bbb.dtreal
         svrpkg=bbb.svrpkg.tostring().strip()
-        #
         bbb.ylodt = bbb.yl
-        fnrm_old = calc_fnrm()
+        self.fnrm_old = calc_fnrm()
+
         if initjac is True: 
-            fnrm_old = 1e20
+            self.fnrm_old = 1e20
         else:
             bbb.newgeo=0
-        print("initial fnrm =",fnrm_old)
 
-        irev = -1         # forces second branch of irev in ii1 loop below
+#        irev = False         # forces second branch of irev in ii1 loop below
+        irev = -1
         numfwd = 0
         numrev = 0
         numrfcum = 0
 
+        # Compensate for first time-step before entering loop
+        scale_timestep(1/(3*(irev == 0) + mult_dt*(irev != 0)))
+#        scale_timestep(1/(3*(irev is False) + mult_dt*(irev is True)))
+
         ''' OUTER LOOP - MODIFY TIME-STEP SIZE'''
         for ii1 in range(ii1max):
+            print('OLDFTOL: ', self.fnrm_old)
             setmfnksol(ismfnkauto, dtmfnk3)
             # adjust the time-step
             # dtmult=3 only used after a dt reduc. success. completes loop ii2 for fixed dt
             # either increase or decrease dtreal; depends on mult_dt
+#            scale_timestep(3*(irev is False) + mult_dt*(irev is True))
             scale_timestep(3*(irev == 0) + mult_dt*(irev != 0))
               
-            bbb.dtreal = min([dtmult*bbb.dtreal, t_stop, dt_max]) 
+            bbb.dtreal = min([bbb.dtreal, dt_max]) 
             bbb.dtphi = rdtphidtr*bbb.dtreal
-            bbb.deldt =  min([dtmult*bbb.deldt, deldt_0, deldt_min])
+            bbb.deldt =  min([bbb.deldt, deldt_0, deldt_min])
 
-            message('Number of time-step changes = ''{} New time-step: {:.2E}]\n'\
+            message('Number of time-step changes = ''{} New time-step: {:.2E}\n'\
                 .format((ii1+1), bbb.dtreal), pad='***', nseparator=1)
 
-            if (ii1>1)  or (initjac is True): # first time calc Jac if initjac=1
-                if (irev == 1): # Decrease time-step
-                    if (numrev < numrevjmax) and \
-                        (numrfcum < numrevjmax + numfwdjmax): #dont recom jac
+            # Enter for every loop except first, unless intijac == True
+            if ii1 > -int(initjac): 
+                # Check whether the number of time-step changes exceeds
+                # the requested maximums or not
+                if (irev == 1):      # decrease in bbb.dtreal
+                    if (numrev < numrevjmax and \
+                        numrfcum < numrevjmax + numfwdjmax): #dont recom bbb.jac
                         bbb.icntnunk = 1	
                         numrfcum += 1
-                        numrev += 1
-                    else:       # force bbb.jac calc, reset numrev
-                        bbb.icntnunk = 0
+                    else:                          # force bbb.jac calc, reset numrev
+                        icntnunk = 0
+                        numrev = -1		      # yields api.zero in next statement
                         numrfcum = 0
+                    numrev += 1
                     numfwd = 0
-                else:  # Increase time-step
-                    if (numfwd < numfwdjmax) and \
-                        (numrfcum < numrevjmax + numfwdjmax): 	#dont recomp bbb.jac
+                else:  # increase in bbb.dtreal
+                    if (numfwd < numfwdjmax and \
+                        numrfcum < numrevjmax + numfwdjmax): 	#dont recomp bbb.jac
                         bbb.icntnunk = 1
                         numrfcum += 1
-                        numfwd += 1
                     else:
                         bbb.icntnunk = 0			#recompute jacobian for increase dt
+                        numfwd = -1
                         numrfcum = 0
-                    numrev = 0			# restart counter for dt reversals
+                    numfwd += + 1
+                    numrev = 0			#bbb.restart counter for dt reversals
                 bbb.isdtsfscal = isdtsf_sav
-                bbb.ftol = min([bbb.ftol_dt, 0.01*fnrm_old, ftol_min])
+                # Dynamically decrease ftol as the initial ftol decreases
+                bbb.ftol = max(min(ftol, 0.01*self.fnrm_old),ftol_min)
                 # Take timestep and see if abort requested
-                if exmain_isaborted():
+                if exmain_isaborted(self):
                     return
-                if (bbb.iterm == 1):
-                    bbb.dt_tot += bbb.dtreal
-                    bbb.ylodt = bbb.yl
-                    fnrm_old = calc_fnrm()
-                    ''' ISSUCCESS '''
-                    if issuccess(t_stop, ftol_min):
-                        return
+#                if bbb.iterm == 1:
+#                    fnrm_old = calc_fnrm()
+                print('ii1 END FNRM: ', self.fnrm_old)
+                if issuccess(self, t_stop, ftol_min):
+                    return
             bbb.icntnunk = 1
             bbb.isdtsfscal = 0
-            for ii2 in range( 1, bbb.ii2max+1): #take ii2max steps at the present time-step
+            # Take ii2max time-steps at current time-step size while 
+            # time-steps converge: if not, drop through
+            for ii2 in range(bbb.ii2max): 
+                print('ii2 FNRM: ', self.fnrm_old)
                 if (bbb.iterm == 1):
-                    bbb.ftol = min([bbb.ftol_dt, 0.01*fnrm_old, ftol_min])
+                    bbb.ftol = max(min(ftol, 0.01*self.fnrm_old),ftol_min)
                     # Take timestep and see if abort requested
-                    if exmain_isaborted():
+                    if exmain_isaborted(self):
                         return
-                    if (bbb.iterm == 1):
-                        bbb.ylodt = bbb.yl
-                        fnrm_old = calc_fnrm()
-                        message("Total time = {:.4E}; Timestep = {:.4E}".format(\
-                            bbb.dt_tot,bbb.dtreal), nseparator=0, separator='')
+#                    if bbb.iterm == 1:
+#                        fnrm_old = calc_fnrm()
+                    if issuccess(self, t_stop, ftol_min):
+                        return
+                    message("Total time = {:.4E}; Timestep = {:.4E}".format(\
+                        bbb.dt_tot-bbb.dtreal,bbb.dtreal), nseparator=0, 
+                        separator='')
 #                       print("variable index ipt = ",ipt, " bbb.yl[ipt] = ",bbb.yl[ipt])
-                        bbb.dt_tot += bbb.dtreal
-                        # Store variable if threshold has been passed
-                        if (bbb.dt_tot >= dt_stor[0]):
-                            # Remove storing time-points smaller than current 
-                            # simulation time
-                            while bbb.dt_tot >= dt_stor[0]:
-                                dt_stor = dt_stor[1:]
-                            self.store_timeslice()
-                        ''' ISSUCCESS '''
-                        if issuccess(t_stop, ftol_min):
-                            return
+                    # Store variable if threshold has been passed
+                    if (bbb.dt_tot >= dt_stor[0]):
+                        # Remove storing time-points smaller than current 
+                        # simulation time
+                        while bbb.dt_tot >= dt_stor[0]:
+                            dt_stor = dt_stor[1:]
+                        self.store_timeslice()
+#            irev = False
             irev -= 1
             # Output troublemaker info, and store troublemaker info
             if (bbb.iterm != 1):	
                 self.itroub()
                 ''' ISFAIL '''
                 if isfail(dt_kill):
+                    self.save_intermediate(savedir, bbb.label[0].strip().decode('UTF-8'))
                     break
                 irev = 1
                 message('Converg. fails for bbb.dtreal; reduce time-step by ' + \
                     '3, try again', pad = '***', nseparator=0)
-                scale_timestep(3*mult_dt)
+                scale_timestep(1/(3*mult_dt))
                 bbb.dtphi = rdtphidtr*bbb.dtreal
                 bbb.deldt *=  1/(3*mult_dt) 
                 setmfnksol(ismfnkauto, dtmfnk3)
@@ -795,6 +838,10 @@ def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
     print("initial fnrm ={:.4E}".format(fnrm_old))
 
     for ii1 in range( 1, bbb.ii1max+1):
+        try:
+            print('FNORM: ', fnorm)
+        except:
+            pass
         if (bbb.ismfnkauto==1): bbb.mfnksol = 3
         # adjust the time-step
         if (bbb.irev == 0):
@@ -849,6 +896,8 @@ def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
             bbb.isdtsfscal = isdtsf_sav
             bbb.ftol = max(min(bbb.ftol_dt, 0.01*fnrm_old),bbb.ftol_min)
             bbb.exmain() # take a single step at the present bbb.dtreal
+#            bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
+#            fnorm = sum((bbb.yldot[:bbb.neq-1]*bbb.sfscal[:bbb.neq-1])**2)**0.5
             if bbb.exmain_aborted == 1: # If exmain is aborted, exit script
                 bbb.exmain_aborted = 0 # Restore False for consecutive runs
                 return
@@ -858,6 +907,7 @@ def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
                 bbb.ylodt = bbb.yl
                 bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
                 fnrm_old = sqrt(sum((bbb.yldot[0:bbb.neq-1]*bbb.sfscal[0:bbb.neq-1])**2))
+                rundata.savesuccess(ii1, ii2, savedir,bbb.label[0].strip().decode('UTF-8'))
                 if (bbb.dt_tot>=0.9999999*bbb.t_stop  or  fnrm_old<bbb.ftol_min):
                     print(' ')
                     print('*****************************************************')
@@ -894,7 +944,9 @@ def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
                         rundata.store_timeslice()
 
        ##          End of storage section
-                    rundata.success(ii1, ii2, savedir,bbb.label[0].strip().decode('UTF-8'))
+#                    bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
+#                    fnorm = sum((bbb.yldot[:bbb.neq-1]*bbb.sfscal[:bbb.neq-1])**2)**0.5
+                    rundata.savesuccess(ii1, ii2, savedir,bbb.label[0].strip().decode('UTF-8'))
 #                    if exists(savedir):        
 #                        hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,bbb.label[0].strip().decode('UTF-8')))
 #                    else:
