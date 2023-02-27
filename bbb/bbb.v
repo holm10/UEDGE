@@ -3827,6 +3827,7 @@ yielz(imx+1,lnst+1)    _real
 ***** Ident_vars:
 uedge_ver  character*80 /'$Name: V7_09_02 $'/
 uedge_date character*80 /'Version date in README_Uedge_vers in dir uedge'/
+run_id  integer /1/ # Identifier for use with uetools
 
 ***** Last_group_ex_sav_var:
 # Last group in bbb where new variables from read save files get stored
