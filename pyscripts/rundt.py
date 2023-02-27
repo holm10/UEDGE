@@ -376,6 +376,7 @@ class RunData():
         from copy import deepcopy
         from uedge import bbb
 
+        # TODO: count number of jacobian evals
 
         self.orig = {}
         self.orig['itermx'] = deepcopy(bbb.itermx)
@@ -391,6 +392,7 @@ class RunData():
         bbb.incpset = incpset
         bbb.itermx = itermx
         bbb.dtreal = dtreal
+        bbb.ftol = ftol
     
 # TODO: Add variable to control reduciton factor?
 # TODO: Should dtreal = min(x, t_stop) actually be t_stop or dt_max?
