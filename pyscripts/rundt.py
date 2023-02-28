@@ -556,7 +556,7 @@ class RunData():
 
                 if (irev == 1):      # decrease in bbb.dtreal
                     if (numrev < numrevjmax and \
-                        numrfcum < numrevjmax+numfwdjmax): #dont recom bbb.jac
+                        numrfcum < numtotjmax): #dont recom bbb.jac
                         bbb.icntnunk = 1	
                         numrfcum += 1
                     else:                          # force bbb.jac calc, reset numrev
@@ -567,7 +567,7 @@ class RunData():
                     numfwd = 0
                 else:  # increase in bbb.dtreal
                     if (numfwd < numfwdjmax and \
-                        numrfcum < numrevjmax+numfwdjmax): 	#dont recomp bbb.jac
+                        numrfcum < numtotjmax): 	#dont recomp bbb.jac
                         bbb.icntnunk = 1
                         numrfcum += 1
                     else:
@@ -576,33 +576,6 @@ class RunData():
                         numrfcum = 0
                     numfwd += 1
                     numrev = 0			#bbb.restart counter for dt reversals
-
-                '''
-                # Check whether the number of time-step changes exceeds
-                # the requested maximums or not
-                if (irev == 1):      # decrease in bbb.dtreal
-                    if (numrev < numrevjmax and \
-                        numrfcum < numtotjmax): #dont recom bbb.jac
-                        bbb.icntnunk = 1	
-                        numrev += 1
-                        numrfcum += 1
-                    else:                          # force bbb.jac calc, reset numrev
-                        icntnunk = 0
-                        numrev = 0
-                        numrfcum = 0
-                    numfwd = 0
-                else:  # increase in bbb.dtreal
-                    if (numfwd < numfwdjmax and \
-                        numrfcum < numtotjmax): 	#dont recomp bbb.jac
-                        bbb.icntnunk = 1
-                        numfwd += + 1
-                        numrfcum += 1
-                    else:
-                        bbb.icntnunk = 0			#recompute jacobian for increase dt
-                        numfwd = 0
-                        numrfcum = 0
-                    numrev = 0			#bbb.restart counter for dt reversals
-                '''
                 bbb.isdtsfscal = isdtsf_sav
                 # Dynamically decrease ftol as the initial ftol decreases
                 bbb.ftol = max(min(ftol, 0.01*self.fnrm_old),ftol_min)
