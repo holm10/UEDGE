@@ -22,6 +22,7 @@
       Use(Compla)   # ni,up,vy,te,ti,phi,zeff,nil,upl,tel,til,ngl,phil
       Use(Grid)     # ngrid,ig,imeth,ijac,iyld,yldmax
       Use(Stat)
+      Use(Ident_vars) # exmain_evals
       Use(Ynorm)    # suscal,sfscal
       Use(Oldpla)
       Use(Decomp)   # ubw,lbw
@@ -366,6 +367,8 @@ cpetsc      if ((svrpkg.eq.'nksol' .and. npes.eq.1) .or. (snesdebug. eq. 1)) the
      .                 lrw,iwork,liw,iopts,iterm,psetnk,psolnk,mfnksol,
      .                 mdif,ipflag,icflag,icnstr,rlx,epscon1,epscon2,
      .                 icntnunk,adjf1)
+
+            if (iterm .eq. 1) exmain_evals = exmain_evals + 1
 *-------------------------------------------------------------------------
 cpetsc      endif
 cpetsc      if (snesdebug. eq. 1) then

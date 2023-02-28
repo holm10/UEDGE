@@ -307,7 +307,7 @@ class RunData():
 
     def converge(self, dtreal=1e-9, ii1max=500, ii2max=5, itermx=7, ftol=1e-5,
         dt_kill=1e-14, t_stop=100, dt_max=100, ftol_min = 1e-9, incpset=7,
-        n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, 
+        n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, numtotjmax=None, 
         tstor=(1e-3, 4e-2), ismfnkauto=True, dtmfnk3=5e-4, mult_dt=3.4, 
         reset=True, initjac=False, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9,
         tsnapshot=None, savedir='../solutions'):
@@ -327,6 +327,8 @@ class RunData():
         incpset : int [7]
             
         savedir : str ['../solutions']
+
+        numtotjmax : int [None]
             
         ftol_min : float [1e-9]
             Value of fnrm where time-advance will stop
@@ -430,6 +432,8 @@ class RunData():
 
         def issuccess(self, t_stop, ftol_min):
             ''' Checks if case is converged '''
+            from datetime import timedelta
+            from time import time
             if (bbb.iterm == 1):
                 bbb.ylodt = bbb.yl
                 bbb.dt_tot += bbb.dtreal
@@ -438,10 +442,12 @@ class RunData():
                 self.savesuccess(ii1, ii2, savedir, bbb.label[0].strip(\
                     ).decode('UTF-8'), self.fnrm_old)
                 if (bbb.dt_tot>=t_stop  or  self.fnrm_old<ftol_min):
-                    print(' ')
+                    print('')
                     message('SUCCESS: ' + 'fnrm < bbb.ftol'*(self.fnrm_old<ftol_min) +
                         'dt_tot >= t_stop'*(bbb.dt_tot >= t_stop), pad='**', 
                         separator='*')
+                    print('Total runtime: {}'.format(timedelta(
+                        seconds=round(time()-self.tstart))))
                     restorevalues(self)
                     return True
     
@@ -526,6 +532,9 @@ class RunData():
         scale_timestep(1/(3*(irev == 0) + mult_dt*(irev != 0)))
 #        scale_timestep(1/(3*(irev is False) + mult_dt*(irev is True)))
 
+        if numtotjmax is None:
+            numtotjmax = numrevjmax + numfwdjmax
+
         ''' OUTER LOOP - MODIFY TIME-STEP SIZE'''
         for ii1 in range(ii1max):
             setmfnksol(ismfnkauto, dtmfnk3)
@@ -544,11 +553,36 @@ class RunData():
 
             # Enter for every loop except first, unless intijac == True
             if ii1 > -int(initjac): 
+
+                if (irev == 1):      # decrease in bbb.dtreal
+                    if (numrev < numrevjmax and \
+                        numrfcum < numrevjmax+numfwdjmax): #dont recom bbb.jac
+                        bbb.icntnunk = 1	
+                        numrfcum += 1
+                    else:                          # force bbb.jac calc, reset numrev
+                        bbb.icntnunk = 0
+                        numrev = -1		      # yields api.zero in next statement
+                        numrfcum = 0
+                    numrev += 1
+                    numfwd = 0
+                else:  # increase in bbb.dtreal
+                    if (numfwd < numfwdjmax and \
+                        numrfcum < numrevjmax+numfwdjmax): 	#dont recomp bbb.jac
+                        bbb.icntnunk = 1
+                        numrfcum += 1
+                    else:
+                        bbb.icntnunk = 0			#recompute jacobian for increase dt
+                        numfwd = -1
+                        numrfcum = 0
+                    numfwd += 1
+                    numrev = 0			#bbb.restart counter for dt reversals
+
+                '''
                 # Check whether the number of time-step changes exceeds
                 # the requested maximums or not
                 if (irev == 1):      # decrease in bbb.dtreal
                     if (numrev < numrevjmax and \
-                        numrfcum < numrevjmax + numfwdjmax): #dont recom bbb.jac
+                        numrfcum < numtotjmax): #dont recom bbb.jac
                         bbb.icntnunk = 1	
                         numrev += 1
                         numrfcum += 1
@@ -559,7 +593,7 @@ class RunData():
                     numfwd = 0
                 else:  # increase in bbb.dtreal
                     if (numfwd < numfwdjmax and \
-                        numrfcum < numrevjmax + numfwdjmax): 	#dont recomp bbb.jac
+                        numrfcum < numtotjmax): 	#dont recomp bbb.jac
                         bbb.icntnunk = 1
                         numfwd += + 1
                         numrfcum += 1
@@ -568,6 +602,7 @@ class RunData():
                         numfwd = 0
                         numrfcum = 0
                     numrev = 0			#bbb.restart counter for dt reversals
+                '''
                 bbb.isdtsfscal = isdtsf_sav
                 # Dynamically decrease ftol as the initial ftol decreases
                 bbb.ftol = max(min(ftol, 0.01*self.fnrm_old),ftol_min)
@@ -620,6 +655,7 @@ class RunData():
                 bbb.deldt *=  1/(3*mult_dt) 
                 setmfnksol(ismfnkauto, dtmfnk3)
                 bbb.iterm = 1
+#        bbb.iterm = -1 # Ensure subsequent repetitions work as intended
 
 
 def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
