@@ -166,23 +166,6 @@ class RunData():
         for var in self.classvars:
             group.create_dataset(var, data=self.__getattribute__(var))
 
-        # Case setup data
-        file.require_group('case_setup')
-        group = file['case_setup']
-        group.create_dataset('isteon', data=bbb.isteon)
-        group.create_dataset('istion', data=bbb.istion)
-        group.create_dataset('isphion', data=bbb.isphion)
-        group.create_dataset('isnion', data=bbb.isnion)
-        group.create_dataset('isngon', data=bbb.isngon)
-        group.create_dataset('istgon', data=bbb.istgon)
-        group.create_dataset('ngsp', data=com.ngsp)
-        group.create_dataset('nisp', data=com.nisp)
-        group.create_dataset('nhgsp', data=com.nhgsp)
-        group.create_dataset('nhsp', data=com.nhsp)
-        group.create_dataset('nzsp', data=com.nzsp)
-        group.create_dataset('ishymol', data=bbb.ishymol)
-
-
         file.close()
     
     def convergenceanalysis(savefname, savedir='../solutions', fig=None,
