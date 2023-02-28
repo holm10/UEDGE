@@ -835,7 +835,7 @@ def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
             print('Equation "{}" requested not a valid specifier. Aborting!')
             return
         else:
-            ipt = idxarr[idxarr.index(eq.upper())][ipt[0], ipt[1]]
+            ipt = idxarr[idxlabel.index(eq.upper())][ipt[0], ipt[1]]
             if len(ipt.shape) == 3:
                 if ieq is None:
                     for index in range(eq.shape[2]):
