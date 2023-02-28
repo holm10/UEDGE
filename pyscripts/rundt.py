@@ -400,11 +400,6 @@ class RunData():
         self.orig['deldt'] = deepcopy(bbb.deldt)
         self.orig['isdtsfscal'] = deepcopy(bbb.isdtsfscal)
         self.orig['incpset'] = deepcopy(bbb.isdtsfscal)
-        bbb.rlx = rlx
-        bbb.incpset = incpset
-        bbb.itermx = itermx
-        bbb.dtreal = dtreal
-        bbb.ftol = ftol
 
         if numtotjmax == 0:
             numtotjmax = numrevjmax + numfwdjmax
@@ -514,6 +509,13 @@ class RunData():
                 message('Error: converge an initial time-step first; then ' + \
                     'retry rdcontdt', seppad='*')
                 return
+
+
+        bbb.rlx = rlx
+        bbb.incpset = incpset
+        bbb.itermx = itermx
+        bbb.dtreal = dtreal
+        bbb.ftol = ftol
 
         ''' TIME-SLICING SETUP '''
         if tsnapshot is None:
@@ -802,6 +804,7 @@ def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
     isdtsf_sav = bbb.isdtsfscal
 
     # Use target strike-point as default index to investigate
+    '''
     if ipt is None:
         ipt = (-2, com.iysptrx+1)
     
@@ -835,7 +838,7 @@ def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
             print('Equation "{}" requested not a valid specifier. Aborting!')
             return
         else:
-            ipt = idxarr[idxlabel.index(eq.upper())][ipt[0], ipt[1]]
+            ipt = idxarr[idxarr.index(eq.upper())][ipt[0], ipt[1]]
             if len(ipt.shape) == 3:
                 if ieq is None:
                     for index in range(eq.shape[2]):
@@ -848,7 +851,7 @@ def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
                     ipt = ipt[ieq]
                         
                         # See if equation is solved
-                
+    '''
 
 
     bbb.irev = -1         # forces second branch of irev in ii1 loop below
@@ -961,7 +964,7 @@ def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
                     bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
                     fnrm_old = sqrt(sum((bbb.yldot[0:bbb.neq-1]*bbb.sfscal[0:bbb.neq-1])**2))
                     print("Total time = {:.4E}; Timestep = {:.4E}".format(bbb.dt_tot,bbb.dtreal))
-                    print("variable index ipt = {} bbb.yl[ipt] = {:.4E}".format(ipt,bbb.yl[ipt]))
+#                    print("variable index ipt = {} bbb.yl[ipt] = {:.4E}".format(ipt,bbb.yl[ipt]))
                     dtreal_sav = bbb.dtreal
                     bbb.dt_tot += bbb.dtreal
                     nfe_tot += bbb.nfe[0,0]
