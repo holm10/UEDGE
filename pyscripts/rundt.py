@@ -871,6 +871,19 @@ def rundt(dtreal=1e-9, nfe_tot=0, savedir='../solutions', dt_tot=0,ii1max=500,
     if (bbb.initjac == 1): fnrm_old=1.e20
     print("initial fnrm ={:.4E}".format(fnrm_old))
 
+
+    rundata.itermx = bbb.itermx
+    rundata.incpset = bbb.incpset
+    rundata.ii1max = bbb.ii1max
+    rundata.ii2max = bbb.ii2max
+    rundata.numrevjmax = bbb.numrevjmax
+    rundata.numfwdjmax = bbb.numfwdjmax
+    rundata.numtotjmax = bbb.numrevjmax + bbb.numfwdjmax
+    rundata.rdtphidtr = bbb.rdtphidtr
+    rundata.deldt_min = bbb.deldt_min
+    rundata.rlx = bbb.rlx
+
+
     for ii1 in range( 1, bbb.ii1max+1):
         try:
             print('FNORM: ', fnorm)
