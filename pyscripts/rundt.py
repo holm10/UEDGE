@@ -152,6 +152,17 @@ class RunData():
         group.create_dataset('ixpt2', data=self.ixpt2)
         group.create_dataset('iysptrx', data=self.iysptrx)
         group.create_dataset('equationkey', data=self.equationkey)
+        group.create_dataset('itermx', data=self.itermx)
+        group.create_dataset('incpset', data=self.incpset)
+        group.create_dataset('ii1max', data=self.ii1max)
+        group.create_dataset('ii2max', data=self.ii1max)
+        group.create_dataset('numrevjmax', data=self.numrevjmax)
+        group.create_dataset('numfwdjmax', data=self.numfwdjmax)
+        group.create_dataset('numtotjmax', data=self.numtotjmax)
+        group.create_dataset('rdtphidtr', data=self.rdtphidtr)
+        group.create_dataset('deldt_min', data=self.deldt_min)
+        group.create_dataset('rlx', data=self.rlx)
+
 
         for var in self.classvars:
             group.create_dataset(var, data=self.__getattribute__(var))
@@ -305,9 +316,9 @@ class RunData():
 
 
 
-    def converge(self, dtreal=1e-9, ii1max=500, ii2max=5, itermx=7, ftol=1e-5,
+    def converge(self, dtreal=1e-9, ii1max=2000, ii2max=5, itermx=7, ftol=1e-5,
         dt_kill=1e-14, t_stop=100, dt_max=100, ftol_min = 1e-9, incpset=7,
-        n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, numtotjmax=None, 
+        n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, numtotjmax=0, 
         tstor=(1e-3, 4e-2), ismfnkauto=True, dtmfnk3=5e-4, mult_dt=3.4, 
         reset=True, initjac=False, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9,
         tsnapshot=None, savedir='../solutions'):
@@ -395,7 +406,22 @@ class RunData():
         bbb.itermx = itermx
         bbb.dtreal = dtreal
         bbb.ftol = ftol
-    
+
+        if numtotjmax == 0:
+            numtotjmax = numrevjmax + numfwdjmax
+
+
+        self.itermx = itermx
+        self.incpset = incpset
+        self.ii1max = ii1max
+        self.ii2max = ii2max
+        self.numrevjmax = numrevjmax
+        self.numfwdjmax = numfwdjmax
+        self.numtotjmax = numtotjmax
+        self.rdtphidtr = rdtphidtr
+        self.deldt_min = deldt_min
+        self.rlx = rlx
+
 # TODO: Add variable to control reduciton factor?
 # TODO: Should dtreal = min(x, t_stop) actually be t_stop or dt_max?
 
@@ -532,8 +558,6 @@ class RunData():
         scale_timestep(1/(3*(irev == 0) + mult_dt*(irev != 0)))
 #        scale_timestep(1/(3*(irev is False) + mult_dt*(irev is True)))
 
-        if numtotjmax is None:
-            numtotjmax = numrevjmax + numfwdjmax
 
         ''' OUTER LOOP - MODIFY TIME-STEP SIZE'''
         for ii1 in range(ii1max):
