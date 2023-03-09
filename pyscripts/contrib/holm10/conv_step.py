@@ -24,6 +24,7 @@ def conv_ncore_step(d, name, t_stop=100,ii1max=100,nstop=1.5e20,dtreal=1e-9):
     while True:    
         bbb.dtreal=dtreal # Small step size to ensure convergence
         bbb.ncore[0]+=d # Increase step size
+        label[0] = '{}_{:.3e}'.format(name, bbb.ncore[0])
         print('===================================')
         print('Solving for ncore[0]={:.2E}'.format(bbb.ncore[0]))
         print('===================================')

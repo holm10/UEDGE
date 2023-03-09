@@ -116,7 +116,7 @@ def ue_interpolate(val,interp=1):
 
 def heatmap(Z,s=None,ax=False,zrange=False,cbar=True,cmap="magma",zoom="div",plotvessel=["sep","outline"],maintainaspect=True,
     xlabel=None,ylabel=None,title=None,units=None,zaxis="lin",showgrid=True,rm=None,zm=None,ixpt1=None,ixpt2=None,
-    iysptrx=None,mhdgeo=None,nx=None,ny=None):
+    iysptrx=None,mhdgeo=None,nx=None,ny=None, flip=False):
     """Creates a heatmap of requested variable using polygons.
     heatmap(var,**keys)
 
@@ -191,18 +191,38 @@ def heatmap(Z,s=None,ax=False,zrange=False,cbar=True,cmap="magma",zoom="div",plo
         try: mhdgeo=bbb.mhdgeo
         except: mhdgeo=1
 
-    # Set zoom location
-    if zoom=="ot":
-        xlim = [rm[ixpt1-2,0,0]*0.99,rm[-1,-1,0]*1.01]
-        ylim = [zm.min()*0.99,zm[ixpt1,iysptrx+1,0]*1.01]
-    elif zoom=="it":
-        xlim = [rm[0,-1,0]*0.99,rm[ixpt2+4,0,0]*1.01]
-        ylim = [zm.min()*0.99,zm[0,-1,0]*1.01]
-    elif zoom=="div":
-        xlim = [rm[0,-1,0].min()*0.99,rm[-1,-1,0].max()*1.01]
-        ylim = [zm.min()*0.99,zm[ixpt1,iysptrx+1,0]*1.01]
-    elif zoom=="device":
-        xlim,ylim= [rm.min(),rm.max()],[zm.min(),zm.max()]
+    if (com.geometry[0].strip().lower().decode('UTF-8') == 'uppersn') \
+        and flip:
+        zm=-zm
+        if com.rmagx + com.zmagx == 0:
+            zm -= zm.min()
+        else:
+            zm += 2*com.zmagx
+        # Set zoom location
+        if zoom=="ot":
+            xlim = [rm[ixpt1-2,0,0]*0.99,rm[-1,-1,0]*1.01]
+            ylim = [zm[ixpt1,iysptrx+1,0]*1.01,zm.max()*0.99]
+        elif zoom=="it":
+            xlim = [rm[0,-1,0]*0.99,rm[ixpt2+4,0,0]*1.01]
+            ylim = [zm[0,-1,0]*1.01, zm.max()*0.99]
+        elif zoom=="div":
+            xlim = [rm[0,-1,0].min()*0.99,rm[-1,-1,0].max()*1.01]
+            ylim = [zm[ixpt1,iysptrx+1,0]*1.01, zm.max()*0.99]
+        elif zoom=="device":
+            xlim,ylim= [rm.min(),rm.max()],[zm.min(),zm.max()]
+    else:
+        # Set zoom location
+        if zoom=="ot":
+            xlim = [rm[ixpt1-2,0,0]*0.99,rm[-1,-1,0]*1.01]
+            ylim = [zm.min()*0.99,zm[ixpt1,iysptrx+1,0]*1.01]
+        elif zoom=="it":
+            xlim = [rm[0,-1,0]*0.99,rm[ixpt2+4,0,0]*1.01]
+            ylim = [zm.min()*0.99,zm[0,-1,0]*1.01]
+        elif zoom=="div":
+            xlim = [rm[0,-1,0].min()*0.99,rm[-1,-1,0].max()*1.01]
+            ylim = [zm.min()*0.99,zm[ixpt1,iysptrx+1,0]*1.01]
+        elif zoom=="device":
+            xlim,ylim= [rm.min(),rm.max()],[zm.min(),zm.max()]
 
 
     # Slab exception
@@ -272,6 +292,7 @@ def heatmap(Z,s=None,ax=False,zrange=False,cbar=True,cmap="magma",zoom="div",plo
             vesselparams["plotsep"]=False
         if "vessel" not in plotvessel:
             vesselparams["plotves"]=False
+    vesselparams['flip'] = flip
     if plotvessel is not False:
         pltves(ax,**vesselparams)
 
@@ -337,7 +358,7 @@ def heatmap(Z,s=None,ax=False,zrange=False,cbar=True,cmap="magma",zoom="div",plo
 
     
 
-def pltves(ax=False,plotoutline=True,plotves=True,plotsep=True):
+def pltves(ax=False,plotoutline=True,plotves=True,plotsep=True, flip=False):
     """ Creates the UEDGE grid and vessel on the supplied axis.
 
     Keyword arguments:
@@ -356,61 +377,74 @@ def pltves(ax=False,plotoutline=True,plotves=True,plotsep=True):
         ret=figure()
         ax=ret.add_subplot(111)
 
+    
+
+    if (com.geometry[0].strip().lower().decode('UTF-8') == 'uppersn') \
+        and flip:
+        zm=-com.zm
+        if com.rmagx + com.zmagx == 0:
+            zm -= zm.min()
+        else:
+            zm += 2*com.zmagx
+    else: 
+        zm = com.zm
+
+
     if plotsep:
         sepx,sepy=[],[]
         for i in range(com.nx):  # Add each poloidal sep position
             sepx.append(com.rm[i,com.iysptrx,3])
-            sepy.append(com.zm[i,com.iysptrx,3])
+            sepy.append(zm[i,com.iysptrx,3])
         # Complete RH Bound
         sepx.append(com.rm[-1,com.iysptrx,4])
-        sepy.append(com.zm[-1,com.iysptrx,4])
+        sepy.append(zm[-1,com.iysptrx,4])
                 
         ax.plot(sepx,sepy,"k-",linewidth=0.5)
     if plotoutline:
         lplatex,lplatey,rplatex,rplatey,oboundx,oboundy,pfrboundx,pfrboundy,coreboundx,coreboundy=[],[],[],[],[],[],[],[],[],[]
         for i in range(com.nx):  # Add each poloidal sep position
             oboundx.append(com.rm[i,-1,3])
-            oboundy.append(com.zm[i,-1,3])
+            oboundy.append(zm[i,-1,3])
         # Complete RH Bound
         oboundx.append(com.rm[-1,-1,4])
-        oboundy.append(com.zm[-1,-1,4])
+        oboundy.append(zm[-1,-1,4])
         ax.plot(oboundx,oboundy,"k-",linewidth=0.5)
 
         for i in range(com.ixpt1[0]+1):  # Add each poloidal sep position
             pfrboundx.append(com.rm[i,0,1])
-            pfrboundy.append(com.zm[i,0,1])
+            pfrboundy.append(zm[i,0,1])
         pfrboundx.append(com.rm[com.ixpt1[0],0,2])
-        pfrboundy.append(com.zm[com.ixpt1[0],0,2])
+        pfrboundy.append(zm[com.ixpt1[0],0,2])
         for i in range(com.ixpt2[0]+1,com.nx):  # Add each poloidal sep position
             pfrboundx.append(com.rm[i,0,1])
-            pfrboundy.append(com.zm[i,0,1])
+            pfrboundy.append(zm[i,0,1])
         # Complete RH Bound
         pfrboundx.append(com.rm[-1,0,2])
-        pfrboundy.append(com.zm[-1,0,2])
+        pfrboundy.append(zm[-1,0,2])
         ax.plot(pfrboundx,pfrboundy,"k-",linewidth=0.5)
         
         for i in range(com.ixpt1[0]+1,com.ixpt2[0]+1):  # Add each poloidal sep position
             coreboundx.append(com.rm[i,0,1])
-            coreboundy.append(com.zm[i,0,1])
+            coreboundy.append(zm[i,0,1])
         # Complete RH Bound
         coreboundx.append(com.rm[com.ixpt2[0],0,2])
-        coreboundy.append(com.zm[com.ixpt2[0],0,2])
+        coreboundy.append(zm[com.ixpt2[0],0,2])
         ax.plot(coreboundx,coreboundy,"k-",linewidth=0.5)
         
         for j in range(com.ny+1):  # Add each poloidal sep position
             lplatex.append(com.rm[0,j,1])
-            lplatey.append(com.zm[0,j,1])
+            lplatey.append(zm[0,j,1])
         # Complete RH Bound
         lplatex.append(com.rm[0,-1,3])
-        lplatey.append(com.zm[0,-1,3])
+        lplatey.append(zm[0,-1,3])
         ax.plot(lplatex,lplatey,"k-",linewidth=0.5)
 
         for j in range(com.ny+1):  # Add each poloidal sep position
             rplatex.append(com.rm[-1,j,1])
-            rplatey.append(com.zm[-1,j,1])
+            rplatey.append(zm[-1,j,1])
         # Complete RH Bound
         rplatex.append(com.rm[-1,-1,3])
-        rplatey.append(com.zm[-1,-1,3])
+        rplatey.append(zm[-1,-1,3])
         ax.plot(rplatex,rplatey,"k-",linewidth=0.5)
 
 
