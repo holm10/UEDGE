@@ -185,7 +185,7 @@ class RunData():
         try:
             file = File('{}/{}'.format(savedir, savefname), 'r')
         except:
-            print('File {}/{} not found. Abprting!'.format(savedir, 
+            print('File {}/{} not found. Aborting!'.format(savedir, 
                 savefname))
             return
         data = file['convergence']
@@ -504,10 +504,7 @@ class RunData():
 
         ''' TIME-STEP INITIALIZATION '''
         bbb.rlx = rlx
-        bbb.incpset = incpset
-        bbb.itermx = itermx
         bbb.dtreal = dtreal
-        bbb.ftol = ftol
         bbb.ftol = ftol
         if (bbb.iterm == 1) and (bbb.ijactot > 0):
             message('Initial successful time-step exists', separator='')
@@ -522,10 +519,12 @@ class RunData():
             # Increase time
             # Verify time-step was successful
             if (bbb.iterm != 1):
+                restorevalues(self)
                 message('Error: converge an initial time-step first; then ' + \
                     'retry rdcontdt', seppad='*')
                 return
-
+        bbb.incpset = incpset
+        bbb.itermx = itermx
         deldt_0 = deepcopy(bbb.deldt)
         isdtsf_sav = deepcopy(bbb.isdtsfscal)
 # TODO: Replace with some more useful information?
