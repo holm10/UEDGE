@@ -35,7 +35,7 @@ class RunData():
             'ii2fail', 'dtrealfail', 'itrouble', 'troubleeq', 'troubleindex',
             'ylfail', 'isteon', 'istion', 'isupon', 'isphion', 'isupgon',
             'isngon', 'istgon', 'ishymol', 'nisp', 'ngsp', 'nhsp', 'nhgsp', 
-            'nzsp']
+            'nzsp', 'b0', 'ncore', 'pcoree', 'pcorei']
 
         # Intiialize all variables to empty lists in class
         for var in self.classvars:
@@ -395,7 +395,7 @@ class RunData():
         self.orig['rlx'] = deepcopy(bbb.rlx)
         self.orig['deldt'] = deepcopy(bbb.deldt)
         self.orig['isdtsfscal'] = deepcopy(bbb.isdtsfscal)
-        self.orig['incpset'] = deepcopy(bbb.isdtsfscal)
+        self.orig['incpset'] = deepcopy(bbb.incpset)
 
         if numtotjmax == 0:
             numtotjmax = numrevjmax + numfwdjmax
@@ -521,7 +521,7 @@ class RunData():
             if (bbb.iterm != 1):
                 restorevalues(self)
                 message('Error: converge an initial time-step first; then ' + \
-                    'retry rdcontdt', seppad='*')
+                    're-execute command', seppad='*')
                 return
         bbb.incpset = incpset
         bbb.itermx = itermx

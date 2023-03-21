@@ -1,20 +1,23 @@
 # Holm10 Sep 10 2019, created from scratch
 
 
-def conv_ncore_step(d, name, t_stop=100,ii1max=100,nstop=1.5e20,dtreal=1e-9):
+def conv_ncore_step(increment, name, var='ncore', ivar=0, stop=None, dtreal=1e-9, **kwargs):
     """ Simple function to incrementally change the density of a converged solution """
     from uedge import bbb
     from uedge.rundt import rundt
     from uedge.hdf5 import hdf5_save
+    from copy import deepcopy
     
-    isbcwdt=bbb.isbcwdt
 
-    # Check if we are increasing or decreasing!
-    if d>0:
-        increasing=True
-    else:
-        increasing=False
-
+    if stop is None:
+        try:
+            stop = deepcopy(bbb.__getattribute__(var)[ivar])
+        except:
+            stop = deepcopy(bbb.__getattribute__(var))
+        if increment < 0:
+            stop /= 5
+        else:
+            stop *= 5
 
 
     # Setup dt-run
@@ -23,8 +26,13 @@ def conv_ncore_step(d, name, t_stop=100,ii1max=100,nstop=1.5e20,dtreal=1e-9):
 
     while True:    
         bbb.dtreal=dtreal # Small step size to ensure convergence
-        bbb.ncore[0]+=d # Increase step size
-        label[0] = '{}_{:.3e}'.format(name, bbb.ncore[0])
+        try:
+            bbb.__getattribute__(var)[ivar] += increment
+        except:
+            bbb.__getattribute(var) += increment 
+       
+#        bbb.ncore[0]+=increment # Increase step size
+        bbb.label[0] = '{}_{}={:.3e}'.format(name, var, bbb.ncore[0])
         print('===================================')
         print('Solving for ncore[0]={:.2E}'.format(bbb.ncore[0]))
         print('===================================')
@@ -50,34 +58,40 @@ def conv_ncore_step(d, name, t_stop=100,ii1max=100,nstop=1.5e20,dtreal=1e-9):
         else:
             rundt(bbb.dtreal)
         '''
-        rundt(bbb.dtreal)
+        bbb.dtreal = dtreal
+        bbb.issfon=1
+        bbb.ftol=1e-5
+        bbb.exmain()
+        rundt(dtreal=bbb.dtreal, **kwargs)
         # If run with BC relaxation, ensure convergence without relaxation
-        if bbb.isbcwdt==1:
-            bbb.isbcwdt=0
-            rundt(1e-6)
-
         
         # We should now have a steady-state solution: ensure this!
-        bbb.dtreal=1e20
-        bbb.itermx=30
-        bbb.icntnunk=0
-        bbb.ftol=1e-8
-        bbb.exmain()
+#        bbb.dtreal=1e20
+#        bbb.itermx=30
+#        bbb.icntnunk=0
+#        bbb.issfon=0
+#        bbb.ftol=1e-8
+#        bbb.exmain()
         # Check if SS or not
-        if bbb.iterm==1:   # SS solution
-            # Save to solutions with appropriate name
-            hdf5_save("../solutions/{}_{:.3E}_ss.hdf5".format(name,bbb.ncore[0]))
-        else:
-            hdf5_save("../solutions/{}_{:.2E}_failed.hdf5".format(name,bbb.ncore[0]))
-            print("Ramp did not converge for variable: {:.2E}. Aborting...".format(bbb.ncore[0]))
+        if bbb.iterm != 1:
             break
-        if increasing:
-            if bbb.ncore[0]>nstop:
+#        if bbb.iterm==1:   # SS solution
+#            # Save to solutions with appropriate name
+#            hdf5_save("../solutions/{}_{:.3E}_ss.hdf5".format(name,bbb.ncore[0]))
+#        else:
+#            hdf5_save("../solutions/{}_{:.2E}_failed.hdf5".format(name,bbb.ncore[0]))
+#            print("Ramp did not converge for variable: {:.2E}. Aborting...".format(bbb.ncore[0]))
+#            break
+        try:
+            currvar = deepcopy(bbb.__getattribute__(var)[ivar])
+        except:
+            currvar = deepcopy(bbb.__getattribute__(var))
+        if increment > 0:
+            if currvar > stop:
                 break
         else:
-            if bbb.ncore[0]<nstop:
+            if currvar < stop:
                 break
-        bbb.isbcwdt=isbcwdt
 
 
 
@@ -135,11 +149,11 @@ def conv_ivolcur_step(  d, name, t_stop=100,ii1max=100,ivolcurstop=100,
         else:
             rundt(bbb.dtreal)
         '''
-        rundt(bbb.dtreal)
+        rundt(dtreal=bbb.dtreal)
         # If run with BC relaxation, ensure convergence without relaxation
         if bbb.isbcwdt==1:
             bbb.isbcwdt=0
-            rundt(1e-6)
+            rundt(dtreal=1e-6)
 
         
         # We should now have a steady-state solution: ensure this!
