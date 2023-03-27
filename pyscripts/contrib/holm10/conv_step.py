@@ -29,7 +29,8 @@ def conv_ncore_step(increment, name, var='ncore', ivar=0, stop=None, dtreal=1e-9
         try:
             bbb.__getattribute__(var)[ivar] += increment
         except:
-            bbb.__getattribute(var) += increment 
+            _var = bbb.__getattribute__(var) 
+            bbb.__setattr__(var, _var+increment)
        
 #        bbb.ncore[0]+=increment # Increase step size
         bbb.label[0] = '{}_{}={:.3e}'.format(name, var, bbb.ncore[0])
