@@ -318,7 +318,7 @@ class UeRun():
         n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, numtotjmax=0, 
         tstor=(1e-3, 4e-2), ismfnkauto=True, dtmfnk3=5e-4, mult_dt=3.4, 
         reset=True, initjac=False, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9,
-        tsnapshot=None, savedir='../solutions'):
+        tsnapshot=None, savedir='../solutions', ii2increase=1.5):
         ''' Converges the case by increasing dt 
         dtreal : float [1e-9]
             Original time-step size
@@ -337,6 +337,8 @@ class UeRun():
         savedir : str ['../solutions']
 
         numtotjmax : int [None]
+
+        ii2increase : float [1.5]
             
         ftol_min : float [1e-9]
             Value of fnrm where time-advance will stop
@@ -550,6 +552,8 @@ class UeRun():
         ''' OUTER LOOP - MODIFY TIME-STEP SIZE'''
         # TODO: Add logic to always go back to last successful ii2 to 
         # precondition the Jacobian, to avoid downwards cascades?
+        # NOTE: experomental functionality
+        successivesuccesses = 0
         for ii1 in range(ii1max):
             setmfnksol(ismfnkauto, dtmfnk3)
             # adjust the time-step
@@ -596,14 +600,20 @@ class UeRun():
                     return
                 if issuccess(self, t_stop, ftol_min):
                     return
-            bbb.icntnunk = 1
+            bbb.icntnunk = 2
             bbb.isdtsfscal = 0
+            # NOTE: experomental functionality
+            bbb.ii2max = ii2max + round(ii2increase*successivesuccesses)
+
             # Take ii2max time-steps at current time-step size while 
             # time-steps converge: if not, drop through
             for ii2 in range(bbb.ii2max): 
                 if (bbb.iterm == 1):
                     bbb.ftol = max(min(ftol, 0.01*self.fnrm_old),ftol_min)
                     # Take timestep and see if abort requested
+
+                    message("Inner iteration #{}".format(ii2+1), nseparator=0, 
+                        separator='')
                     if exmain_isaborted(self):
                         return
                     if issuccess(self, t_stop, ftol_min):
@@ -622,7 +632,11 @@ class UeRun():
                         self.store_timeslice()
             irev -= 1
             # Output and store troublemaker info
+            # NOTE: experomental functionality
+            successivesuccesses += 1
             if (bbb.iterm != 1):	
+                # NOTE: experomental functionality
+                successivesuccesses = 0
                 self.itroub()
                 ''' ISFAIL '''
                 if isfail(dt_kill):

@@ -685,7 +685,7 @@ def gridue(fname='gridue', path='.',linewidth=0.1, color='k', ax=None, dispz=0, 
     from matplotlib.pyplot import subplots
     
     if ax is None:
-        fig, ax = subplots(figsize=(8,12))
+        fig, ax = subplots(figsize=(5,8))
 
     with open('{}/{}'.format(path, fname)) as f:
         lines = [line.strip().split() for line in f]
@@ -711,9 +711,9 @@ def gridue(fname='gridue', path='.',linewidth=0.1, color='k', ax=None, dispz=0, 
                 y.append(zm[iz,iy,ix])
             ax.plot(x,y,'-', linewidth=linewidth, color=color)#rm[1:,iy,ix], zm[1:,iy,ix], 'k.-') 
 
-    if zoom == 'divertor':
-        ax.set_ylim((0.2, 1))
-        ax.set_xlim((1,1.9))
+#    if zoom == 'divertor':
+#        ax.set_ylim((0.2, 1))
+#        ax.set_xlim((1,1.9))
 #        ax.set_ylim(    (min(rm[:,1:-1,:ixpt1+1].min(), rm[:,1:-1,ixpt2+1:].min()),
 #                        max(rm[:,1:-1,:ixpt1+1].max(), rm[:,1:-1,ixpt2+1:].max())))
         
