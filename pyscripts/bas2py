@@ -18,24 +18,29 @@ infile = None
 outfile = None
 
 
-try:
-  from argparse import ArgumentParser
-  parser = ArgumentParser(description='Convert scripts from Basis to Python')
-  parser.add_argument('basis_filename',type=str,nargs='?',
-        help='Path to input Basis script to convert')
-  parser.add_argument('python_filename',type=str,nargs='?',
-        help='Path to output converted Python script')
-  parser.add_argument('-l','--loglevel',type=str,
-        choices=['DEBUG','INFO','WARNING'],
-        default='WARNING',help='Set the logging level')
-  args = parser.parse_args()
-  logger.setLevel(args.loglevel)
-  from tkinter.filedialog import askopenfilename,asksaveasfilename
-  if args.basis_filename == None:
-     infile = askopenfilename(title="Select input basis file",filetypes=[("allfiles","*"),("bas","*.bas")])
-  else:
-     infile = args.basis_filename
-  logger.debug('Input file %s' % (infile,))
+
+if __name__ == "__main__":
+   try:
+      from argparse import ArgumentParser
+      parser = ArgumentParser(description='Convert scripts from Basis to Python')
+      parser.add_argument('basis_filename',type=str,nargs='?',
+            help='Path to input Basis script to convert')
+      parser.add_argument('python_filename',type=str,nargs='?',
+            help='Path to output converted Python script')
+      parser.add_argument('-l','--loglevel',type=str,
+            choices=['DEBUG','INFO','WARNING'],
+            default='WARNING',help='Set the logging level')
+      args = parser.parse_args()
+      logger.setLevel(args.loglevel)
+      try:
+         from tkFileDialog import askopenfilename,asksaveasfilename
+      except:
+         from tkinter.filedialog import askopenfilename,asksaveasfilename
+      if args.basis_filename == None:
+         infile = askopenfilename(title="Select input basis file",filetypes=[("allfiles","*"),("bas","*.bas")])
+      else:
+         infile = args.basis_filename
+      logger.debug('Input file %s' % (infile,))
 
   if infile == None or infile == ():
      logger.error("Input file must be selected or specify stdin with -")
