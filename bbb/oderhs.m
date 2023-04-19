@@ -686,6 +686,7 @@ cnxg      data igs/1/
       real radmc, svdiss, vyiy0, vyiym1, v2ix0, v2ixm1, sv_crumpet
       external rsa, rra, rqa, rcx, emissbs, erl1, erl2, radneq, radimpmc
       external radmc, svdiss, sv_crumpet
+      real tgupyface, ngupyface, n1upyface, ng2upyface
       real tick,tock
       external tick,tock
 	  
