@@ -10387,7 +10387,7 @@ cc            ptjdote = ptjdote + jdote(ix,iy)
      .                  ccoldsor*ng(ix,iy,1)*(1.5*ti(ix,iy)-eion*ev)*
      .                                          nucx(ix,iy,1)*vol(ix,iy) )
          enddo
-
+        enddo
       enddo
       pradht = pradiz + pradrc
    
