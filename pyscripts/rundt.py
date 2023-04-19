@@ -313,7 +313,7 @@ class UeRun():
 
 
 
-    def converge(self, dtreal=1e-9, ii1max=5000, ii2max=5, itermx=7, ftol=1e-5,
+    def converge(self, dtreal=2e-9, ii1max=5000, ii2max=5, itermx=7, ftol=1e-5,
         dt_kill=1e-14, t_stop=100, dt_max=100, ftol_min = 1e-9, incpset=7,
         n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, numtotjmax=0, 
         tstor=(1e-3, 4e-2), ismfnkauto=True, dtmfnk3=5e-4, mult_dt=3.4, 
@@ -388,8 +388,15 @@ class UeRun():
         from numpy import linspace, logspace, log10, append
         from copy import deepcopy
         from uedge import bbb
+        from os.path import exists
 
-        # TODO: count number of jacobian evals
+
+        # Check if requested save-directory exists: if not, write to cwd
+        if not exists(savedir):
+            print('Requested save-path {} not found, writing to cwd!'.format(\
+                savedir))
+            savedir = '.'        
+
 
         self.orig = {}
         self.orig['itermx'] = deepcopy(bbb.itermx)

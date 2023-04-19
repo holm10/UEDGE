@@ -1959,7 +1959,6 @@ w0(0:nx+1,0:ny+1)       _real
 w1(0:nx+1,0:ny+1)       _real
 w2(0:nx+1,0:ny+1)       _real
 w3(0:nx+1,0:ny+1)       _real
-wvh(0:nx+1,0:ny+1,1:nusp)  _real	#species dependent viscous heating
 
 
 ***** Locflux:
