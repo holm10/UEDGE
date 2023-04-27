@@ -2,6 +2,11 @@ from matplotlib.pyplot import ion
 from uedge import bbb, com
 ion()
 
+def natsort(l): 
+    from re import split
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)
 
 def nesepfrac():
     # Accounting for cell sizes
@@ -27,7 +32,7 @@ def plot_nfit(ix=None, ishift=1):
         ix = com.ixpt2[0]
 
     n = bbb.ne
-    return plot_fit(n, ix, 1)
+    return plot_fit(n, ix, ishift)
 
 
 def plot_qfit(ix=None):
@@ -217,8 +222,8 @@ def analyze_folder(path='../solutions', I=1.3, a=0.7, ncol=5, fontsize=10):
     nGW = 10**20 * I / pi / a**2
     f, ax = subplots(2,2, figsize=(12,8))
 
-    colors = ['k', 'r', 'b', 'c', 'm','y']
-    marker = ['o', 's', 'v', 'P', 'X', 'p']
+    colors = ['k', 'r', 'b', 'c', 'm', 'y', 'g']
+    marker = ['o', 's', 'v', 'P', 'X', 'p', '*','^']
 
     markers = []
     for m in product(colors, marker):
@@ -229,6 +234,7 @@ def analyze_folder(path='../solutions', I=1.3, a=0.7, ncol=5, fontsize=10):
     for (path, dirs, files) in walk(path):
         saves.extend(files)
 
+    saves = natsort(saves)
     casename = []
     te = []
     nefrac = []

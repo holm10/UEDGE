@@ -28,7 +28,7 @@ def interpolate(oldgrid, newgrid, savefile, geometry='snull'):
         com.aeqdskfname=gridpath+"aeqdsk"
         com.geqdskfname=gridpath+"neqdsk" 
         com.nhsp=2
-        carbon_forcebalance(apipath='/Users/holm10/Documents/fusion/uedge/runs/d3d/186841/rates/api')
+        carbon_forcebalance(apipath='/Users/holm10/Documents/fusion/uedge/rates/api')
 
         # Recreate old grid
         issfon_o = deepcopy(bbb.issfon)
