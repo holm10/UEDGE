@@ -655,7 +655,7 @@ class UeRun():
                 bbb.dtphi = rdtphidtr*bbb.dtreal
                 bbb.deldt *=  1/(3*mult_dt) 
                 setmfnksol(ismfnkauto, dtmfnk3)
-                bbb.iterm = 1
+#                bbb.iterm = 1
 #        bbb.iterm = -1 # Ensure subsequent repetitions work as intended
 
 

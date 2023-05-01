@@ -253,6 +253,7 @@ def gendnull(aeqdskfile, neqdskfile,psi0min1=0.970, psi0max_outer=1.04,
     from Forthon import gallot, gchange
     from numpy import array, pi
     from copy import deepcopy
+#    from uedge.gridue import write_gridue
     from uedge import com, bbb, flx, grd
     # This script implements the procedure for generating a full up/down
     # asymmetric double-null mesh.
@@ -557,7 +558,10 @@ def gendnull(aeqdskfile, neqdskfile,psi0min1=0.970, psi0max_outer=1.04,
     #########################################
 
     # write out gridue file
-    grd.writednf("gridue", '')
+    if (com.isgriduehdf5 == 1):
+        write_gridue()
+    else:
+        grd.writednf("gridue", '')
 
 
 def halfmesh(upper=True, nxleg=[9,11], nxcore=[8,10], slpxt=1.2, nxxpt=1, 
@@ -676,6 +680,7 @@ def halfmesh(upper=True, nxleg=[9,11], nxcore=[8,10], slpxt=1.2, nxxpt=1,
     com.xlim = _xlim
     com.ylim = _ylim
 
+    print(grd.rstrike, grd.zstrike)
     grd.grdrun()
 
     f = plot_flx()
