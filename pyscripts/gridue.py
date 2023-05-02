@@ -36,6 +36,14 @@ def read_gridpars(fname=None):
         com.iysptrx2[0] = com.iysptrx1[0]
         com.ixlb[0] = 0
         com.ixrb[0] = com.nxm
+    try:
+        com.simagxs = _com['simagxs'][()]
+    except:
+        pass
+    try:
+        com.sibdrys = _com['sibdrys'][()]
+    except:
+        pass
     gridue.close()
         
     

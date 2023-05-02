@@ -390,7 +390,6 @@ class UeRun():
 
 
 
-
     def converge(self, dtreal=2e-9, ii1max=5000, ii2max=5, itermx=7, ftol=1e-5,
         dt_kill=1e-14, t_stop=100, dt_max=100, ftol_min = 1e-9, incpset=7,
         n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, numtotjmax=0, 
@@ -399,7 +398,6 @@ class UeRun():
 
         tsnapshot=None, savedir='../solutions', ii2increase=0, savefname=None,
         message=None):
-
 
         ''' Converges the case by increasing dt 
         dtreal : float [1e-9]
@@ -716,6 +714,7 @@ class UeRun():
                     if message is not None:
                         print(message)
                     if self.exmain_isaborted():
+
                         return
                     if bbb.iterm == 1:
                         self.classvars['ii1'].append(ii1)
