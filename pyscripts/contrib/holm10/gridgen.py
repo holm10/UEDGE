@@ -558,9 +558,12 @@ def gendnull(aeqdskfile, neqdskfile,psi0min1=0.970, psi0max_outer=1.04,
     #########################################
 
     # write out gridue file
-    if (com.isgriduehdf5 == 1):
-        write_gridue()
-    else:
+    try:
+        if (com.isgriduehdf5 == 1):
+            write_gridue()
+        else:
+            grd.writednf("gridue", '')
+    except:
         grd.writednf("gridue", '')
 
 
