@@ -133,7 +133,7 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
                  if (isngcore(1) .eq. 0) then
                    t0 = max(tg(ix,0,1),temin*ev)
                    vyn = sqrt( 0.5*t0/(pi*mi(ifld)) )
-                    # AH NOTE: One nharmave remaining in the master?
+                    # AH NOTE: Some nharmaves remaining in the master?
                    nharmave = 2.*(ni(ix,0,ifld)*ni(ix,1,ifld)) /
      .                           (ni(ix,0,ifld)+ni(ix,1,ifld))
                    fng_alb = (1-albedoc(1))*
@@ -172,6 +172,7 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
                      fng_chem= fng_chem + chemsputi(1,ii)*flx_incid*
      .                                                        sy(ix,0)
                   enddo
+                    # AH NOTE: Some nharmaves remaining in the master?
                   nharmave = 2.*(ni(ix,0,ifld)*ni(ix,1,ifld)) /
      .                          (ni(ix,0,ifld)+ni(ix,1,ifld))
                   fng_alb = (1-albedoi(ix,1))*nharmave*vyn*sy(ix,0)
@@ -191,6 +192,7 @@ c...   Caution: the wall source models assume gas species 1 only is inertial
                     elseif (recycwit(ix,1,1) < -1) then
                       yldot(iv1)=nurlxg*(ngbackg(1)-ni(ix,0,ifld))/n0(ifld)
                     elseif (recycwit(ix,1,1) .le. 0.) then  # treat recycwit as albedo
+                    # AH NOTE: Some nharmaves remaining in the master?
                       nharmave = 2.*(ni(ix,0,ifld)*ni(ix,1,ifld)) /
      .                              (ni(ix,0,ifld)+ni(ix,1,ifld))
                       yldot(iv1) = -nurlxg*( fniy(ix,0,ifld) +
@@ -651,6 +653,7 @@ c ... prepare impurity ion flux for possible recycling
 c ... Set core BC
             if (isixcore(ix)==1) then   # ix is part of the core boundary:
                if (isngcore(igsp) .eq. 0) then
+                    # AH NOTE: Some nharmaves remaining in the master?
                  nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
      .                         (ng(ix,0,igsp)+ng(ix,1,igsp))
                  fng_alb = (1-albedoc(igsp))*
@@ -722,6 +725,7 @@ c ... Include gas BC from sputtering by ions
                endif
 
  
+                    # AH NOTE: Some nharmaves remaining in the master?
                nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
      .                       (ng(ix,0,igsp)+ng(ix,1,igsp))
                fng_alb = (1-albedoi(ix,igsp))*nharmave*vyn*sy(ix,0) 
@@ -750,6 +754,7 @@ c ... Include gas BC from sputtering by ions
                    yldot(iv)=nurlxg*(ngbackg(igsp)-ng(ix,0,igsp))/
      .                                                          n0g(igsp)
                 elseif (recycwit(ix,igsp,1) .le. 0.) then # treat recycwit as albedo
+                    # AH NOTE: Some nharmaves remaining in the master?
                    nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
      .                           (ng(ix,0,igsp)+ng(ix,1,igsp))
                    yldot(iv) = -nurlxg*( fngy(ix,0,igsp) +
@@ -1107,6 +1112,7 @@ c ---  typically hydrogen only, so DIVIMP chem sputt not used here
                    fng_chem = fng_chem + chemsputo(1,ii)*flx_incid*
      .                                                        sy(ix,ny)
                 enddo
+                    # AH NOTE: Some nharmaves remaining in the master?
                 nharmave = 2.*(ni(ix,ny,ifld)*ni(ix,ny+1,ifld)) /
      ,                        (ni(ix,ny,ifld)+ni(ix,ny+1,ifld))
                 fng_alb = (1-albedoo(ix,1))*nharmave*vyn*sy(ix,ny)
@@ -1375,6 +1381,7 @@ c ... add ion sputtering to gas BC
                 enddo
               endif
             endif
+                    # AH NOTE: Some nharmaves remaining in the master?
             nharmave = 2.*(ng(ix,ny,igsp)*ng(ix,ny+1,igsp)) /
      .                    (ng(ix,ny,igsp)+ng(ix,ny+1,igsp))
             fng_alb = (1-albedoo(ix,igsp))*nharmave*vyn*sy(ix,ny)
@@ -1406,6 +1413,7 @@ ccc
                 yldot(iv)=nurlxg*(ngbackg(igsp)-ng(ix,ny+1,igsp))/
      .                                                        n0g(igsp)
              elseif (recycwot(ix,igsp) .le. 0.) then # treat recycw as albedo
+                    # AH NOTE: Some nharmaves remaining in the master?
                 nharmave = 2.*(ng(ix,ny,igsp)*ng(ix,ny+1,igsp)) /
      .                        (ng(ix,ny,igsp)+ng(ix,ny+1,igsp))              
                 yldot(iv) = nurlxg*( fngy(ix,ny,igsp) -
