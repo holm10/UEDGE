@@ -190,7 +190,7 @@ def carbon_forcebalance(    apipath='.', isnicore=3, ncore=4e15, curcore=0, isup
                                 #=2: adds H+ chemical sputtering
                                 #=3: adds H0 carbon sputtering
     bbb.crmb=bbb.minu[0]  # Mass of incident sputtering particles
-    bbb.cizb=bbb.ziin[0]  # Max plasma charge state
+    bbb.cizb=int(bbb.ziin[0])  # Max plasma charge state
 
     bbb.fphysylb=   fphysylb   # Factor multiplying physical sputtering gas yield; Left plate  
     bbb.fphysyrb=   fphysyrb   # Factor multiplying physical sputtering gas yield; Right plate

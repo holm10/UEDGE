@@ -56,22 +56,25 @@ class UeRun():
 
         # Find the fortran index of the troublemaking equation
         self.neq = bbb.neq
-        self.itrouble.append(deepcopy(argmax(abs(bbb.yldot[:self.neq]))+1))
-        print("** Fortran index of trouble making equation is:\n{}".format(self.itrouble[-1]))
+        self.itrouble.append(deepcopy(argmax(abs(bbb.yldot*\
+            bbb.sfscal)[:bbb.neq])+1))
+        print("** Fortran index of trouble making equation is:\n{}".format(\
+            self.itrouble[-1]))
         # Print equation information
-        print("** Number of equations solved per cell:\n    numvar = {}\n".format(self.numvar))
+        print("** Number of equations solved per cell:\n    numvar = {}\n"\
+            .format(self.numvar))
 
         # TODO: add or subtract one??
-        self.troubleeq.append([abs(x-self.itrouble[-1]).min() for x in self.equations].index(0))
-#        self.troubleeq.append(ideepcopy(mod(self.itrouble[-1]-1,bbb.numvar) + 1)) # Use basis indexing for equation number
+        self.troubleeq.append(mod(self.itrouble[-1], bbb.numvar))
 
         species = ''
         if self.equations[self.troubleeq[-1]].ndim == 3:
             species = ' of species {}'.format(where(self.equations[\
                 self.troubleeq[-1]]-self.itrouble[-1]==0)[-1][0])
 
-        print('** Troublemaker equation is:\n{} equation{}: iv_t={}\n'.format(\
-            equationsdescription[self.troubleeq[-1]], species, self.troubleeq[-1]+1))
+        print('** Troublemaker equation is:\n{} equation{}: iv_t={}\n'\
+            .format(equationsdescription[self.troubleeq[-1]], species, 
+            self.troubleeq[-1]+1))
 
         # Display additional information about troublemaker cell
         self.troubleindex.append(deepcopy(bbb.igyl[self.itrouble[-1]-1,]))
@@ -81,7 +84,7 @@ class UeRun():
             '{}\n'.format(self.troubleindex[-1]))
         print('** Timestep for troublemaker equation:\n' + \
             '{:.4e}\n'.format(self.dtrealfail[-1]))
-        print('** yl for troublemaker equation:\n' + \
+        print('** yl*sfscal for troublemaker equation:\n' + \
             '{:.4e}\n'.format(self.ylfail[-1]))
     
     def savesuccess(self, ii1, ii2, savedir, savename, fnrm=None):
@@ -102,6 +105,10 @@ class UeRun():
         self.ii1.append(ii1)
         self.ii2.append(ii2)
         self.neq = bbb.neq
+        try:
+            self.save('{}_UeCase.hdf5'.format(savefname.split('.')[0]))
+        except:
+            pass
 
         self.save_intermediate(savedir, savename)
 
@@ -129,12 +136,18 @@ class UeRun():
         for var in [ 'nisp', 'ngsp', 'nhsp', 'nhgsp', 'nzsp']:
             self.__setattr__(var, com.__getattribute__(var))
 
-        hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,savename))
         try:
             hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,savename))
         except:
-            print('Folder {} not found, saving output to cwd...'.format(savedir))
+            print('Folder {} not found, saving output to cwd...'\
+                .format(savedir))
             hdf5_save('{}_last_ii2.hdf5'.format(savename))
+
+        # Try to store ready-made Case-file, if possible
+        try:
+            self.save('{}/{}_last_ii2_Case.hdf5'.format(savedir,savename))
+        except:
+            pass
 
         try:
             file = File('{}/{}_last_ii2.hdf5'.format(savedir, savename), 'r+')
@@ -212,12 +225,15 @@ class UeRun():
             
         if logx is True:
             ax[0].loglog(x, data['fnorm'][()], '-', color=color, label=label)
-            ax[1].loglog(data['dt_tot'][()], data['fnorm'][()], '-', color=color, label=label)
+            ax[1].loglog(data['dt_tot'][()], data['fnorm'][()], '-', 
+                color=color, label=label)
             ax[2].loglog(x, data['dtreal'][()], '-', color=color, label=label)
         else:
             ax[0].semilogy(x, data['fnorm'][()], '-', color=color, label=label)
-            ax[1].semilogy(data['dt_tot'][()], data['fnorm'][()], '-', color=color, label=label)
-            ax[2].semilogy(x, data['dtreal'][()], '-', color=color, label=label)
+            ax[1].semilogy(data['dt_tot'][()], data['fnorm'][()], '-', 
+                color=color, label=label)
+            ax[2].semilogy(x, data['dtreal'][()], '-', color=color, 
+                label=label)
 
         ax[0].set_xlabel(xlabel)
         ax[1].set_xlabel('Accumulated plasma simualtion time [s]')
@@ -261,12 +277,15 @@ class UeRun():
             return
 
         if equation is not None:
-            iequation = [x.decode('UTF-8') for x in data['equationkey']].index(equation)
+            iequation = [x.decode('UTF-8') for x in data['equationkey']]\
+                .index(equation)
         # Bin the equation errors
-        counts, bins = histogram(data['troubleeq'][()], bins=7, range=(-0.5,6.5))
+        counts, bins = histogram(data['troubleeq'][()], bins=7, 
+            range=(-0.5,6.5))
         ax[0].hist(bins[:-1], bins, weights=counts)
         ax[0].set_xticks(range(7))
-        ax[0].set_xticklabels([x.decode('UTF-8') for x in data['equationkey'][()]])
+        ax[0].set_xticklabels([x.decode('UTF-8') for x in \
+            data['equationkey'][()]])
         ax[0].grid(linestyle=':', linewidth=0.5, axis='y')
 
 
@@ -276,14 +295,17 @@ class UeRun():
         ixpt1 = data['ixpt1'][()]
         ixpt2 = data['ixpt2'][()]
         iysptrx = data['iysptrx'][()]
-        frequency = zeros((nx, ny))
+        frequency = zeros((nx+2, ny+2))
 
         cells = []
-        for i in range(nx):
-            for j in range(ny):
-                cells.append([[i+0.5, j+0.5], [i+1.5, j+0.5], 
-                    [i+1.5, j+1.5], [i+0.5, j+1.5]])
-        polys = PolyCollection(cells, edgecolors='k', linewidth=0.5, linestyle=':')
+        for i in range(nx+2):
+            for j in range(ny+2):
+                cells.append([[i-.5, j-.5], [i+.5, j-.5], 
+                    [i+.5, j+.5], [i-.5, j+.5]])
+
+
+        polys = PolyCollection(cells, edgecolors='k', linewidth=0.5, 
+            linestyle=':')
             
 
 
@@ -295,18 +317,24 @@ class UeRun():
                 frequency[coord[0]-1, coord[1]-1] += 1
 
         polys.set_cmap('Reds')
-        polys.set_array(frequency.reshape((nx*ny,)))
+        polys.set_array(frequency.reshape(((nx+2)*(ny+2),)))
 
         cbar = f.colorbar(polys, ax=ax[1])
         cbar.ax.set_ylabel('N trouble'+' for {}'.format(equation)*\
             (equation is not None), va='bottom', labelpad=20)
 
+        ax[1].plot([.5, nx+.5, nx+.5, .5, .5], [.5, .5, ny+.5, ny+.5, .5], 
+            'k-', linewidth=1)
+
         ax[1].set_xlabel('Poloidal index')
         ax[1].set_ylabel('Radial index')
         ax[1].add_collection(polys)
-        ax[1].plot([0.5, nx+0.5],[iysptrx+0.5, iysptrx+0.5], 'k-', linewidth=2)
-        ax[1].plot([ixpt1+0.5, ixpt1+0.5], [0.5, iysptrx+0.5], 'k-', linewidth=2)
-        ax[1].plot([ixpt2+0.5, ixpt2+0.5], [0.5, iysptrx+0.5], 'k-', linewidth=2)
+        ax[1].plot([.5, nx+.5],[iysptrx+.5, iysptrx+.5], 'k-', 
+            linewidth=1)
+        ax[1].plot([ixpt1+.5, ixpt1+.5], [.5, iysptrx+.5], 'k-', 
+            linewidth=1)
+        ax[1].plot([ixpt2+.5, ixpt2+.5], [.5, iysptrx+.5], 'k-', 
+            linewidth=1)
 
         file.close()
         return f
@@ -373,16 +401,17 @@ class UeRun():
         mult_dt : float [3.4]
             Time-step size increase factor after successful inner loop
         rdtphidtr : float [1e20]
-            Ratio of potential-equation time-step to plasma equaiton time-step 
+            Ratio of potential-equation time-step to plasma equaiton time-step
             size: dtphi/dtreal
         deldt_min : float [0.04]
             Minimum relative change allowed for model_dt>0
         rlx : float [0.9]
             Maximum change in variable at each internal linear iteration
         tsnapshot : list [None]
-            If None, uses linear/logarithmic interpolation according to storedist
-            in the interval tstor. Snapshot times can be defined in a list and 
-            supplied. Then, the tnsaphsot list defines the time-slices
+            If None, uses linear/logarithmic interpolation according to 
+            storedist in the interval tstor. Snapshot times can be defined in 
+            a list and supplied. Then, the tnsaphsot list defines the 
+            time-slices
          
         '''
         from numpy import linspace, logspace, log10, append
@@ -466,12 +495,14 @@ class UeRun():
                 bbb.ylodt = bbb.yl
                 bbb.dt_tot += bbb.dtreal
                 bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
-                self.fnrm_old = sum((bbb.yldot[:bbb.neq-1]*bbb.sfscal[:bbb.neq-1])**2)**0.5
+                self.fnrm_old = sum((bbb.yldot[:bbb.neq-1]*\
+                    bbb.sfscal[:bbb.neq-1])**2)**0.5
                 self.savesuccess(ii1, ii2, savedir, bbb.label[0].strip(\
                     ).decode('UTF-8'), self.fnrm_old)
                 if (bbb.dt_tot>=t_stop  or  self.fnrm_old<ftol_min):
                     print('')
-                    message('SUCCESS: ' + 'fnrm < bbb.ftol'*(self.fnrm_old<ftol_min) +
+                    message('SUCCESS: ' + 'fnrm < bbb.ftol'\
+                        *(self.fnrm_old<ftol_min) + \
                         'dt_tot >= t_stop'*(bbb.dt_tot >= t_stop), pad='**', 
                         separator='*')
                     print('Total runtime: {}'.format(timedelta(
@@ -540,8 +571,10 @@ class UeRun():
         deldt_0 = deepcopy(bbb.deldt)
         isdtsf_sav = deepcopy(bbb.isdtsfscal)
 # TODO: Replace with some more useful information?
-#        if (bbb.ipt==1 and bbb.isteon==1): 	# set ipt to te(nx,iysptrx+1) if no user value
-#           ipt = bbb.idxte[nx-1,com.iysptrx]  #note: ipt is local, bbb.ipt global
+#        if (bbb.ipt==1 and bbb.isteon==1): # set ipt to te(nx,iysptrx+1) 
+#           #if no user value
+#           ipt = bbb.idxte[nx-1,com.iysptrx] #note: ipt is local, 
+#               # bbb.ipt global
         bbb.dtphi = rdtphidtr*bbb.dtreal
         svrpkg=bbb.svrpkg.tostring().strip()
         bbb.ylodt = bbb.yl
@@ -565,8 +598,9 @@ class UeRun():
         for ii1 in range(ii1max):
             setmfnksol(ismfnkauto, dtmfnk3)
             # adjust the time-step
-            # dtmult=3 only used after a dt reduc. success. completes loop ii2 for fixed dt
-            # either increase or decrease dtreal; depends on mult_dt
+            # dtmult=3 only used after a dt reduc. success. completes loop ii2
+            # for fixed dt either increase or decrease dtreal; depends 
+            # on mult_dt
             scale_timestep(3*(irev == 0) + mult_dt*(irev != 0))
             bbb.dtreal = min([bbb.dtreal, dt_max]) 
             bbb.dtphi = rdtphidtr*bbb.dtreal
@@ -583,9 +617,9 @@ class UeRun():
                         numrfcum < numtotjmax): #dont recom bbb.jac
                         bbb.icntnunk = 1	
                         numrfcum += 1
-                    else:                          # force bbb.jac calc, reset numrev
+                    else:               # force bbb.jac calc, reset numrev
                         bbb.icntnunk = 0
-                        numrev = -1		      # yields api.zero in next statement
+                        numrev = -1		# yields api.zero in next statement
                         numrfcum = 0
                     numrev += 1
                     numfwd = 0
@@ -595,7 +629,7 @@ class UeRun():
                         bbb.icntnunk = 1
                         numrfcum += 1
                     else:
-                        bbb.icntnunk = 0			#recompute jacobian for increase dt
+                        bbb.icntnunk = 0 # recompute jacobian for increase dt
                         numfwd = -1
                         numrfcum = 0
                     numfwd += 1
@@ -618,7 +652,7 @@ class UeRun():
                 if (bbb.iterm == 1):
                     bbb.ftol = max(min(ftol, 0.01*self.fnrm_old),ftol_min)
                     # Take timestep and see if abort requested
-                    message("Inner iteration #{}".format(ii2+1), nseparator=0, 
+                    message("Inner iteration #{}".format(ii2+1), nseparator=0,
                         separator='')
                     if exmain_isaborted(self):
                         return
@@ -628,7 +662,8 @@ class UeRun():
                         bbb.dt_tot-bbb.dtreal,bbb.dtreal), nseparator=0, 
                         separator='')
 # TODO: replace with more useful information
-#                       print("variable index ipt = ",ipt, " bbb.yl[ipt] = ",bbb.yl[ipt])
+#                       print("variable index ipt = ",ipt, " bbb.yl[ipt] = ", 
+#                            bbb.yl[ipt])
                     # Store variable if threshold has been passed
                     if (bbb.dt_tot >= dt_stor[0]):
                         # Remove storing time-points smaller than current 
@@ -646,10 +681,11 @@ class UeRun():
                 self.itroub()
                 ''' ISFAIL '''
                 if isfail(dt_kill):
-                    self.save_intermediate(savedir, bbb.label[0].strip().decode('UTF-8'))
+                    self.save_intermediate(savedir, bbb.label[0].strip()\
+                        .decode('UTF-8'))
                     break
                 irev = 1
-                message('Converg. fails for bbb.dtreal; reduce time-step by ' + \
+                message('Converg. fails for bbb.dtreal; reduce time-step by '+\
                     '3, try again', pad = '***', nseparator=0)
                 scale_timestep(1/(3*mult_dt))
                 bbb.dtphi = rdtphidtr*bbb.dtreal

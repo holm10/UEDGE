@@ -291,9 +291,9 @@ class Chord():
             f, ax = subplots()
             ret = True
 
-        if yaxis is 'lin':
+        if yaxis == 'lin':
             pl = ax.plot
-        elif yaxis is 'log':
+        elif yaxis == 'log':
             pl = ax.semilogy
         
     

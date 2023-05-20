@@ -185,14 +185,38 @@ def kappae(lnl=15, zeff=1.6):
 
 
 
+def solve_teosp(Psol, lambdaq, ne=None, alpha=0.3, kappa=None):
+    from scipy.optimize import minimize
+    
+    def solve(Te, Psol, lambdaq, ne, alpha, kappa):
+        from numpy import pi
+        L = sum((((com.b/com.bpol)[:,:,0])/com.gx)[bbb.ixmp:,com.iysptrx+1])
+        BpBpol = (com.b/com.bpol)[bbb.ixmp,com.iysptrx+1,0]
+        R = com.rm[bbb.ixmp, com.iysptrx+1, 0]
+        qpara = (Psol/(8*pi*R*lambdaq))*BpBpol
+        if kappa is None:
+            kappa = kappae()
+        if ne is None:
+            ne = bbb.ne[bbb.ixmp, com.iysptrx+1]
+        qSp = (2*kappa*Te**(7/2))/(7*L)
+        qfl = alpha*ne*1.602e-19*Te*(1.602e-19*Te/9.11e-31)**0.5
+        qSpfl = 1/(1/qSp+1/qfl)
+        return abs(qpara-qSpfl)
+    
+    return  minimize(solve, 100, args=(Psol, lambdaq, ne, alpha, kappa),
+            method = 'Nelder-Mead')
 
-
-def teosp_powerbalance(Psol, lambdaq, R):
+def teosp_powerbalance(Psol, lambdaq, kappa=None):
+    ''' Calculates Te from Psol [W] and lamda_q [m]'''
     from numpy import pi
     L = sum((((com.b/com.bpol)[:,:,0])/com.gx)[bbb.ixmp:,com.iysptrx+1])
     BpBpol = (com.b/com.bpol)[bbb.ixmp,com.iysptrx+1,0]
-    print(7*Psol* L* BpBpol)
-    return ((7*Psol*L*BpBpol)/(16*pi*R*lambdaq*kappae()))**(2/7)
+    R = com.rm[bbb.ixmp, com.iysptrx+1, 0]
+    if kappa is None:
+        kappa = kappae()
+    print('qpara', (Psol/(8*pi*R*lambdaq))*BpBpol)
+    print('qSp', 2*kappa/(7*L))
+    return ((7*Psol*L*BpBpol)/(16*pi*R*lambdaq*kappa))**(2/7)
 
 
 def restore():

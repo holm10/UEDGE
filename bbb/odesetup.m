@@ -6532,7 +6532,7 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
            ifexmain = 1
            call allocate
            ifexmain = 0
-	   if (icall == 0) write(*,*) 'UEDGE ',uedge_ver
+#	   if (icall == 0) write(*,*) 'UEDGE ',uedge_ver
            icall = 1
          elseif (ismpion.eq.1 .and. icall==0) then
            call init_pll

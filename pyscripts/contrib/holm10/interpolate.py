@@ -24,7 +24,7 @@ def interpolate(oldgrid, newgrid, savefile, geometry='snull'):
         com.nysol[0] = nyo - iysptrxo
         # Create grid
         # TODO: figure out how to do this
-        gridpath = '/Users/holm10/Documents/fusion/uedge/runs/d3d/160299/2240/uegen/grid/'
+        gridpath = '/Users/holm10/Documents/fusion/uedge/runs/d3d/160299/2240/uegen/v8.0/grid/'
         com.aeqdskfname=gridpath+"aeqdsk"
         com.geqdskfname=gridpath+"neqdsk" 
         com.nhsp=2
