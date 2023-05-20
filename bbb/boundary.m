@@ -2284,7 +2284,7 @@ c...  now do the gas and temperatures
                   yldot(iv) = -nurlxg * ( fngx(nx,iy,igsp) +
      .                                            fngxrb_use(iy,igsp,1) -
      .                      fngxsrb(iy,igsp,1) + recyrb(iy,igsp,1)*flux_inc -
-     .                  (1-albrb(iy,igsp,nxpt))*ng(ixt1,iy,igsp)*vxn*sx(nx,iy) ) 
+     .                  (1-albrb(iy,igsp,nxpt))*ng(nx,iy,igsp)*vxn*sx(nx,iy) ) 
      .                                     / (vpnorm*n0g(igsp)*sx(nx,iy))
                endif
             endif
