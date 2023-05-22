@@ -29,7 +29,8 @@ class UeRun():
         self.ixpt1 = com.ixpt1[0]
         self.ixpt2 = com.ixpt2[0]
         self.iysptrx = com.iysptrx
-        self.equationkey = array([b'te', b'ti', b'phi', b'up', b'ni', b'ng', b'tg'])
+        self.equationkey = array([b'te', b'ti', b'phi', b'up', b'ni', b'ng', 
+            b'tg'])
 
         self.classvars = ['slice_ni', 'slice_ng', 'slice_up', 'slice_te', 
             'slice_ti', 'slice_tg', 'slice_phi', 'slice_dttot', 'time', 
@@ -37,7 +38,8 @@ class UeRun():
             'ii2fail', 'dtrealfail', 'itrouble', 'troubleeq', 'troubleindex',
             'ylfail', 'isteon', 'istion', 'isupon', 'isphion', 'isupgon',
             'isngon', 'istgon', 'ishymol', 'nisp', 'ngsp', 'nhsp', 'nhgsp', 
-            'nzsp', 'b0', 'ncore', 'pcoree', 'pcorei']
+            'nzsp', 'b0', 'ncore', 'pcoree', 'pcorei', 'internaleq',
+            'internalspecies', 'yldotsfscalfail']
 
         # Intiialize all variables to empty lists in class
         for var in self.classvars:
@@ -45,7 +47,7 @@ class UeRun():
 
     def itroub(self):
         ''' Function that displays information on the problematic equation '''
-        from numpy import mod, argmax, where
+        from numpy import mod, argmax, where, array, argmin
         from uedge import bbb
         from copy import deepcopy
 
@@ -64,28 +66,38 @@ class UeRun():
         print("** Number of equations solved per cell:\n    numvar = {}\n"\
             .format(self.numvar))
 
-        # TODO: add or subtract one??
-        self.troubleeq.append(mod(self.itrouble[-1], bbb.numvar))
+        self.troubleeq.append(mod(self.itrouble[-1]-1, bbb.numvar)+1)
 
         species = ''
-        if self.equations[self.troubleeq[-1]].ndim == 3:
-            species = ' of species {}'.format(where(self.equations[\
-                self.troubleeq[-1]]-self.itrouble[-1]==0)[-1][0])
+        self.internaleq.append([abs(x - self.itrouble[-1]).min() for x in \
+            self.equations].index(0))
+        if self.equations[self.internaleq[-1]].ndim == 3:
+            self.internalspecies.append( where(\
+                self.equations[self.internaleq[-1]] == self.itrouble[-1])\
+                [-1][0] + 1)
+            species = ' of species {}'.format(self.internalspecies[-1])
+        else:
+            self.internalspecies.append(0)
+
 
         print('** Troublemaker equation is:\n{} equation{}: iv_t={}\n'\
-            .format(equationsdescription[self.troubleeq[-1]], species, 
-            self.troubleeq[-1]+1))
+            .format(equationsdescription[self.internaleq[-1]], species, 
+            self.troubleeq[-1]))
 
         # Display additional information about troublemaker cell
         self.troubleindex.append(deepcopy(bbb.igyl[self.itrouble[-1]-1,]))
         self.dtrealfail.append(deepcopy(bbb.dtreal))
         self.ylfail.append(deepcopy(bbb.yl[self.itrouble[-1]-1]))
+        self.yldotsfscalfail.append(deepcopy((bbb.yldot*bbb.sfscal)\
+            [self.itrouble[-1]-1]))
         print('** Troublemaker cell (ix,iy) is:\n' + \
             '{}\n'.format(self.troubleindex[-1]))
         print('** Timestep for troublemaker equation:\n' + \
             '{:.4e}\n'.format(self.dtrealfail[-1]))
-        print('** yl*sfscal for troublemaker equation:\n' + \
+        print('** yl for troublemaker equation:\n' + \
             '{:.4e}\n'.format(self.ylfail[-1]))
+        print('** yl*sfscal for troublemaker equation:\n' + \
+            '{:.4e}\n'.format(self.yldotsfscalfail[-1]))
     
     def savesuccess(self, ii1, ii2, savedir, savename, fnrm=None):
         from time import time
@@ -268,7 +280,6 @@ class UeRun():
         except:
             print('File {}/{} not found. Aborting!'.format(savedir, 
                 savefname))
-        data = file['convergence']
         try:
             data = file['convergence']
         except:
@@ -280,14 +291,26 @@ class UeRun():
             iequation = [x.decode('UTF-8') for x in data['equationkey']]\
                 .index(equation)
         # Bin the equation errors
-        counts, bins = histogram(data['troubleeq'][()], bins=7, 
+        nspecies = 1/(data['nisp'][()] + 1)
+        nbins = 7*data['nisp'][()]
+        counts, bins = histogram((data['internaleq'][()]+\
+            data['internalspecies']*nspecies)-0.5, bins=nbins, 
             range=(-0.5,6.5))
-        ax[0].hist(bins[:-1], bins, weights=counts)
+        h, e = histogram(data['internaleq'][()] - 0.5, bins=6, 
+            range=(-0.5,6.5))
+        ax[0].bar([x for x in range(1,7)], h, width=1, edgecolor='k',
+            color=(0, 87/255, 183/255))
+        ax[0].hist(bins[3*data['nisp'][()]:-1], bins[3*data['nisp'][()]:], 
+            weights=counts[3*data['nisp'][()]:], edgecolor='k', 
+            color=(255/255, 215/255, 0))
         ax[0].set_xticks(range(7))
         ax[0].set_xticklabels([x.decode('UTF-8') for x in \
             data['equationkey'][()]])
         ax[0].grid(linestyle=':', linewidth=0.5, axis='y')
-
+        ax[0].set_xlim((-0.5,6.5))
+        ax[0].set_ylabel('Counts')
+        for i in range(7):
+            ax[0].axvline(i-0.5, linewidth=1, color='k')
 
         # Visualize error locations
         nx = data['nx'][()]        
@@ -303,12 +326,9 @@ class UeRun():
                 cells.append([[i-.5, j-.5], [i+.5, j-.5], 
                     [i+.5, j+.5], [i-.5, j+.5]])
 
-
         polys = PolyCollection(cells, edgecolors='k', linewidth=0.5, 
             linestyle=':')
             
-
-
         for i in range(len(data['itrouble'])):
             coord = data['troubleindex'][()][i]
             if equation is None:
@@ -346,7 +366,7 @@ class UeRun():
         n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, numtotjmax=0, 
         tstor=(1e-3, 4e-2), ismfnkauto=True, dtmfnk3=5e-4, mult_dt=3.4, 
         reset=True, initjac=False, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9,
-        tsnapshot=None, savedir='../solutions', ii2increase=1.5):
+        tsnapshot=None, savedir='../solutions', ii2increase=0):
 
         ''' Converges the case by increasing dt 
         dtreal : float [1e-9]

@@ -1,10 +1,15 @@
 # Interpolates grid 
 
-def interpolate(oldgrid, newgrid, savefile, geometry='snull'):
+def interpolate(oldgrid, newgrid, savefile, geometry='snull', diffuse=None):
     from uedge import bbb, com, api, aph
     from uedge.hdf5 import hdf5_restore, hdf5_save
+    from h5py import File
     from uedge.contrib.input.impurities import carbon_forcebalance
     from copy import deepcopy
+    try:
+        from uetools import Case
+    except:
+        pass
     # set iprint
     if geometry in ['snull', 'uppersn']:
         bbb.mhdgeo=1
@@ -36,10 +41,17 @@ def interpolate(oldgrid, newgrid, savefile, geometry='snull'):
         bbb.issfon=0
         bbb.ftol=1e20
         bbb.exmain()
+
     
         # Restore data to interpolate
         hdf5_restore(savefile)
         bbb.restart=1
+        if diffuse is not None:
+            f=File(diffuse)
+            bbb.dif_use = f['diffusivities']['bbb']['dif_use'][()]
+            bbb.kye_use = f['diffusivities']['bbb']['kye_use'][()]
+            bbb.kyi_use = f['diffusivities']['bbb']['kyi_use'][()]
+            bbb.tray_use = f['diffusivities']['bbb']['tray_use'][()]
 
         # Switch to new grid dimentions
         com.nxleg[0] = [ixpt1n, nxn - ixpt2n]
@@ -59,5 +71,11 @@ def interpolate(oldgrid, newgrid, savefile, geometry='snull'):
         savefile = savefile.split('/')[-1]
         newname = savefile[:-5] + '_interp{}x{}'.format(nxn,nyn) + savefile[-5:]
         hdf5_save(newname)
+        if diffuse is not None:
+            difffile = diffuse.split('/')[-1]
+            newdiff = '{}_interp{}x{}.hdf5'.format(difffile.split('.hdf5')[0], nxn, nyn)
+            c=Case()
+            c.savediffusivities(newdiff)            
+
         print('Wrote interpolated solution "{}"'.format(newname))
         

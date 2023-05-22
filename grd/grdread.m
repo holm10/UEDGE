@@ -160,7 +160,7 @@ c     Read mesh parameters from a UEDGE code grid data file
       simagxs_tmp=0
       sibdrys_tmp=0
       call freeus (nuno)
-      write(*,*) 'Reading grid from file:',trim(fname)
+c      write(*,*) 'Reading grid from file:',trim(fname)
       open (nuno, file=trim(fname), form='formatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
@@ -213,7 +213,7 @@ c     Read a UEDGE code grid data file
       simagxs_tmp=0
       sibdrys_tmp=0
       call freeus (nuno)
-      write(*,*) 'Reading grid from file:',trim(fname)
+c      write(*,*) 'Reading grid from file:',trim(fname)
       open (nuno, file=trim(fname), form='formatted', iostat=ios,
      &      status='old')
       if (ios .ne. 0) then
