@@ -9,6 +9,7 @@
 #   `      procedures
 # 230327 - Removed old routine, created wrapper function rundt for 
 #          object. Renamed Object to UeRun.
+# 230522 - Fixed bug associated with itroub, improved itroub visualization
 
 from matplotlib.pyplot import ion
 ion()
