@@ -2230,7 +2230,6 @@ c           a possible problem with multiple intersections (MER 95/09/05)
      &                    xcp,ycp,kcp,icp,fuzzm,ierr)
          if (ierr .ne. 0) then
             write (STDOUT,888) j
-            write(*,*) 'GRDCOMP1697'
  888        format ("no new plate intersection for x,ycurveg on j=",i3)
             write (STDOUT,889)
  889        format ("*** You may have to extend the plate end points")
