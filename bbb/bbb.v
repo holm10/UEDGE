@@ -3113,6 +3113,10 @@ ifexmain           integer /0/  #scalar to indicate if subroutine allocate
                                 #=0 means it is not.
 exmain_aborted logical /.false./ # Set to .true. in Python version on control-C abort
 iallcall	   integer /0/  #flag to signal first call to allocate
+session_id  integer /0/ # Identifier for use with uetools
+max_session_id  integer /0/ # Identifier for max allocated runs, use with uetools
+exmain_evals  integer /0/ # Number of successfull exmain evaluations
+rundt_success integer /0/ # Flag indicating whether the rundt execution is a success
 
 ***** RZ_cell_info:
 # RZ grid-cell center and face locations
@@ -3837,9 +3841,7 @@ yielz(imx+1,lnst+1)    _real
 ***** Ident_vars:
 uedge_ver  character*80 /'$Name:  $'/
 uedge_date character*80 /'Version date in README_Uedge_vers in dir uedge'/
-session_id  integer /0/ # Identifier for use with uetools
-max_session_id  integer /0/ # Identifier for max allocated runs, use with uetools
-exmain_evals  integer /0/ # Number of successfull exmain evaluations
+
 
 ***** Last_group_ex_sav_var:
 # Last group in bbb where new variables from read save files get stored

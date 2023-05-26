@@ -533,6 +533,7 @@ class UeRun():
                     print('Total runtime: {}'.format(timedelta(
                         seconds=round(time()-self.tstart))))
                     restorevalues(self)
+                    bbb.rundt_success = 1
                     return True
     
         def isfail(dt_kill):
@@ -574,7 +575,7 @@ class UeRun():
         bbb.rlx = rlx
         bbb.dtreal = dtreal
         bbb.ftol = ftol
-        if (bbb.iterm == 1) and (bbb.ijactot > 0):
+        if ((bbb.iterm == 1) and (bbb.ijactot > 0)) and (bbb.rundt_success != 1):
             message('Initial successful time-step exists', separator='')
         else:
             message('Need to take initial step with Jacobian; ' + \
@@ -591,6 +592,8 @@ class UeRun():
                 message('Error: converge an initial time-step first; then ' + \
                     're-execute command', seppad='*')
                 return
+
+        bbb.rundt_success = 0
         bbb.incpset = incpset
         bbb.itermx = itermx
         deldt_0 = deepcopy(bbb.deldt)
