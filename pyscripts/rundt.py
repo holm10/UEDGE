@@ -142,6 +142,7 @@ class UeRun():
         from uedge.hdf5 import hdf5_save
         from uedge import bbb, com
         from h5py import File
+        from os.path import exists
 
         for var in [ 'isteon', 'istion', 'isupon', 'isphion', 'isupgon',
             'isngon', 'istgon', 'ishymol']:
@@ -149,18 +150,16 @@ class UeRun():
         for var in [ 'nisp', 'ngsp', 'nhsp', 'nhgsp', 'nzsp']:
             self.__setattr__(var, com.__getattribute__(var))
 
-        try:
-            hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,savename))
-        except:
+        if not exists(savedir):
             print('Folder {} not found, saving output to cwd...'\
                 .format(savedir))
-            hdf5_save('{}_last_ii2.hdf5'.format(savename))
-
-        # Try to store ready-made Case-file, if possible
+            savedir = '.'
+            
+        # TODO: Figure out how to be able to write to Case object
         try:
-            self.save('{}/{}_last_ii2_Case.hdf5'.format(savedir,savename))
+            self.save('{}/{}_last_ii2.hdf5'.format(savedir,savename))
         except:
-            pass
+            hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,savename))
 
         try:
             file = File('{}/{}_last_ii2.hdf5'.format(savedir, savename), 'r+')
@@ -269,7 +268,7 @@ class UeRun():
         return f
 
 
-    def failureanalysis(savefname, savedir='../solutions', equation=None):
+    def failureanalysis(savefname, savedir='../solutions', equation=None, N=None):
         from h5py import File
         from matplotlib.pyplot import subplots
         from numpy import histogram, zeros
@@ -297,9 +296,9 @@ class UeRun():
         counts, bins = histogram((data['internaleq'][()]+\
             data['internalspecies']*nspecies)-0.5, bins=nbins, 
             range=(-0.5,6.5))
-        h, e = histogram(data['internaleq'][()] - 0.5, bins=6, 
+        h, e = histogram(data['internaleq'][()] - 0.5, bins=7, 
             range=(-0.5,6.5))
-        ax[0].bar([x for x in range(1,7)], h, width=1, edgecolor='k',
+        ax[0].bar([x for x in range(7)], h, width=1, edgecolor='k',
             color=(0, 87/255, 183/255))
         ax[0].hist(bins[3*data['nisp'][()]:-1], bins[3*data['nisp'][()]:], 
             weights=counts[3*data['nisp'][()]:], edgecolor='k', 
@@ -330,14 +329,15 @@ class UeRun():
         polys = PolyCollection(cells, edgecolors='k', linewidth=0.5, 
             linestyle=':')
             
-        for i in range(len(data['itrouble'])):
+        print(len(data['itrouble'][:N]))
+        for i in range(len(data['itrouble'][:N])):
             coord = data['troubleindex'][()][i]
             if equation is None:
-                frequency[coord[0]-1, coord[1]-1] += 1
-            elif iequation == data['troubleeq'][()][i]:
-                frequency[coord[0]-1, coord[1]-1] += 1
+                frequency[coord[0], coord[1]] += 1
+            elif iequation == data['internaleq'][()][i]:
+                frequency[coord[0], coord[1]] += 1
 
-        polys.set_cmap('Reds')
+        polys.set_cmap('binary')
         polys.set_array(frequency.reshape(((nx+2)*(ny+2),)))
 
         cbar = f.colorbar(polys, ax=ax[1])
@@ -367,7 +367,7 @@ class UeRun():
         n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, numtotjmax=0, 
         tstor=(1e-3, 4e-2), ismfnkauto=True, dtmfnk3=5e-4, mult_dt=3.4, 
         reset=True, initjac=False, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9,
-        tsnapshot=None, savedir='../solutions', ii2increase=0):
+        tsnapshot=None, savedir='../solutions', ii2increase=0, casename=None):
 
         ''' Converges the case by increasing dt 
         dtreal : float [1e-9]
@@ -474,6 +474,10 @@ class UeRun():
         self.deldt_min = deldt_min
         self.rlx = rlx
 
+        if casename is None:
+            self.casename = bbb.label[0].decode('UTF-8').strip()
+        self.casename = casename
+
 # TODO: Add variable to control reduciton factor?
 # TODO: Should dtreal = min(x, t_stop) actually be t_stop or dt_max?
 
@@ -518,8 +522,8 @@ class UeRun():
                 bbb.pandf1 (-1, -1, 0, bbb.neq, 1., bbb.yl, bbb.yldot)
                 self.fnrm_old = sum((bbb.yldot[:bbb.neq-1]*\
                     bbb.sfscal[:bbb.neq-1])**2)**0.5
-                self.savesuccess(ii1, ii2, savedir, bbb.label[0].strip(\
-                    ).decode('UTF-8'), self.fnrm_old)
+                self.savesuccess(ii1, ii2, savedir, self.casename, 
+                    self.fnrm_old)
                 if (bbb.dt_tot>=t_stop  or  self.fnrm_old<ftol_min):
                     print('')
                     message('SUCCESS: ' + 'fnrm < bbb.ftol'\
@@ -702,8 +706,7 @@ class UeRun():
                 self.itroub()
                 ''' ISFAIL '''
                 if isfail(dt_kill):
-                    self.save_intermediate(savedir, bbb.label[0].strip()\
-                        .decode('UTF-8'))
+                    self.save_intermediate(savedir, self.casename.strip())
                     break
                 irev = 1
                 message('Converg. fails for bbb.dtreal; reduce time-step by '+\
