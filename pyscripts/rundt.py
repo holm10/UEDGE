@@ -142,7 +142,7 @@ class UeRun():
         from uedge.hdf5 import hdf5_save
         from uedge import bbb, com
         from h5py import File
-        from os.path import exists
+        from os.path import exists, abspath
 
         for var in [ 'isteon', 'istion', 'isupon', 'isphion', 'isupgon',
             'isngon', 'istgon', 'ishymol']:
@@ -155,16 +155,16 @@ class UeRun():
                 .format(savedir))
             savedir = '.'
             
-        # TODO: Figure out how to be able to write to Case object
         try:
             self.save('{}/{}_last_ii2.hdf5'.format(savedir,savename))
         except:
             hdf5_save('{}/{}_last_ii2.hdf5'.format(savedir,savename))
 
-        try:
-            file = File('{}/{}_last_ii2.hdf5'.format(savedir, savename), 'r+')
-        except:
-            file = File('{}_last_ii2.hdf5'.format(savename), 'r+')
+        file = File('{}/{}_last_ii2.hdf5'.format(savedir, savename), 'r+')
+#        try:
+#            file = File('{}/{}_last_ii2.hdf5'.format(savedir, savename), 'r+')
+#        except:
+#            file = File('{}_last_ii2.hdf5'.format(savename), 'r+')
 
         file.require_group('convergence')
         group = file['convergence']
@@ -187,6 +187,8 @@ class UeRun():
         group.create_dataset('rdtphidtr', data=self.rdtphidtr)
         group.create_dataset('deldt_min', data=self.deldt_min)
         group.create_dataset('rlx', data=self.rlx)
+        print('Intermediate save file written to {}/{}_last_ii2.hdf5'.format(
+            savedir, savename))
 
         for var in self.classvars:
             group.create_dataset(var, data=self.__getattribute__(var))
@@ -201,6 +203,7 @@ class UeRun():
         from datetime import timedelta
         from matplotlib.ticker import FuncFormatter
         from numpy import cumsum, ones
+        from os.path import exists
         if fig is None:
             f, ax = subplots(1, 3, figsize=(15, 5))
         else:
@@ -209,6 +212,10 @@ class UeRun():
                 print('Three subplots required for plots! Aborting...')
                 return
             f = fig
+
+        if not exists(savedir):
+            savedir = '.'
+
         try:
             file = File('{}/{}'.format(savedir, savefname), 'r')
         except:
@@ -273,6 +280,10 @@ class UeRun():
         from matplotlib.pyplot import subplots
         from numpy import histogram, zeros
         from matplotlib.collections import PolyCollection
+        from os.path import exists
+
+        if not exists(savedir):
+            savedir = '.'
         
         f, ax = subplots(2,1, figsize=(10, 7))
         try:
@@ -293,10 +304,10 @@ class UeRun():
         # Bin the equation errors
         nspecies = 1/(data['nisp'][()] + 1)
         nbins = 7*data['nisp'][()]
-        counts, bins = histogram((data['internaleq'][()]+\
-            data['internalspecies']*nspecies)-0.5, bins=nbins, 
+        counts, bins = histogram((data['internaleq'][:N]+\
+            data['internalspecies'][:N]*nspecies)-0.5, bins=nbins, 
             range=(-0.5,6.5))
-        h, e = histogram(data['internaleq'][()] - 0.5, bins=7, 
+        h, e = histogram(data['internaleq'][:N] - 0.5, bins=7, 
             range=(-0.5,6.5))
         ax[0].bar([x for x in range(7)], h, width=1, edgecolor='k',
             color=(0, 87/255, 183/255))
@@ -329,7 +340,6 @@ class UeRun():
         polys = PolyCollection(cells, edgecolors='k', linewidth=0.5, 
             linestyle=':')
             
-        print(len(data['itrouble'][:N]))
         for i in range(len(data['itrouble'][:N])):
             coord = data['troubleindex'][()][i]
             if equation is None:
@@ -439,7 +449,14 @@ class UeRun():
         from copy import deepcopy
         from uedge import bbb
         from os.path import exists
-
+        from Forthon import packageobject
+        # TODO: add verbose output
+        # On success:
+        #   - save location
+        #   - peak target ne, te
+        #   - peak ne,te, location
+        # On failure
+        #   - Variable values in offending and neighboring cells in matrix
 
         # Check if requested save-directory exists: if not, write to cwd
         if not exists(savedir):
@@ -462,6 +479,19 @@ class UeRun():
         if numtotjmax == 0:
             numtotjmax = numrevjmax + numfwdjmax
 
+        for var in ['slice_ni', 'slice_ng', 'slice_up', 'slice_te', 
+            'slice_ti', 'slice_tg', 'slice_phi', 'slice_dttot', 'time', 
+            'fnorm', 'nfe', 'dt_tot', 'dtreal', 'ii1', 'ii2', 'ii1fail', 
+            'ii2fail', 'dtrealfail', 'itrouble', 'troubleeq', 'troubleindex',
+            'ylfail', 'internaleq', 'internalspecies', 'yldotsfscalfail']:
+            self.__setattr__(var, [])
+
+        for bbbvar in ['isteon', 'istion', 'isupon', 'isphion', 'isupgon',
+            'isngon', 'istgon', 'ishymol', 'b0', 'ncore', 'pcoree', 'pcorei']:
+            self.__setattr__(bbbvar, packageobject('bbb').getpyobject(bbbvar))
+
+        for comvar in ['nisp', 'ngsp', 'nhsp', 'nhgsp', 'nzsp']:
+            self.__setattr__(comvar, packageobject('com').getpyobject(comvar))
 
         self.itermx = itermx
         self.incpset = incpset

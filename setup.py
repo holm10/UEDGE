@@ -167,7 +167,7 @@ setup(name="uedge",
       maintainer_email='meyer8@llnl.gov',
       description="2D Fluid simulation of plasma and neutrals in magnetic fusion devices",
       platforms="Unix, Windows (cygwin), Mac OSX",
-      packages=['uedge','uedge.contrib.holm10','uedge.contrib.input'],
+      packages=['uedge'],
     
       package_dir={'uedge': 'pyscripts'},
       # include_package_data=True,
