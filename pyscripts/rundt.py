@@ -166,6 +166,7 @@ class UeRun():
 #        except:
 #            file = File('{}_last_ii2.hdf5'.format(savename), 'r+')
 
+
         file.require_group('convergence')
         group = file['convergence']
         group.create_dataset('t_start', data=self.tstart)
@@ -378,6 +379,7 @@ class UeRun():
         tstor=(1e-3, 4e-2), ismfnkauto=True, dtmfnk3=5e-4, mult_dt=3.4, 
         reset=True, initjac=False, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9,
         tsnapshot=None, savedir='../solutions', ii2increase=0, casename=None):
+
 
         ''' Converges the case by increasing dt 
         dtreal : float [1e-9]
@@ -755,5 +757,3 @@ class UeRun():
 def rundt(**kwargs):
     runcase=UeRun()
     runcase.converge(**kwargs)
-
-
