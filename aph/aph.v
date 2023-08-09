@@ -10,15 +10,15 @@ issgvcxc integer       /0/    #=1 fixes sig-v_cx; =2 fixes sig=sfvcxc
 sgvcxc   real [m^2/s] /2.e-14/# const. value of sigv_cx for issgvcxc=1; 
                               # const. sig for issgvcxc=2, sig-v=sig*sqrt(T/mi)
 			      # with units now [m^2]
-isaphdir integer       /1/    #=1 uses aphdir; =0 uses explicit rate file names
-aphfname character*120 /"ehr2.dat"/ # Name of ehr-file to load
-crmnfname character*120 /"crumpet_nrates.dat"/ # Name of CRM rate data file
-crmefname character*120 /"crumpet_Erates.dat"/ # Name of CRM E-sink data file
-aphdir	character*120 # name of directory containing data files
-data_directory	character*120 # another dirname containing data files. This is to be be passed in
+isaphdir integer       /1/    +input #=1 uses aphdir; =0 uses explicit rate file names
+aphfname character*120 /"ehr2.dat"/ +input # Name of ehr-file to load
+crmnfname character*120 /"crumpet_nrates.dat"/ +input # Name of CRM rate data file
+crmefname character*120 /"crumpet_Erates.dat"/ +input # Name of CRM E-sink data file
+aphdir	character*120 +input # name of directory containing data files
+data_directory	character*120 +input # another dirname containing data files. This is to be be passed in
 
 ***** Ionization_energy:
-erad	real [eV] /25./ # tot elec engy loss/ioniz (rad+binding) if istabon=0
+erad	real [eV] /25./ +input # tot elec engy loss/ioniz (rad+binding) if istabon=0
 
 ***** Rtdata:
 # hydrogenic rate table data from ADPAK via Braams' rate code
