@@ -58,8 +58,6 @@ cc      Use(Rccoef)
 * --  local variables
       integer lda, lenk, ngspon, nispon, nuspon, ntgspon, ifld, isor, id
       character*60 runid
-      integer iprt_tfcx_warn
-      data iprt_tfcx_warn/1/
       #Former Aux module variables
       integer igsp
 
