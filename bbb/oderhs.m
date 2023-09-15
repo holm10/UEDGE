@@ -8641,6 +8641,9 @@ c ... Convert Jacobian from compressed sparse column to compressed
 c     sparse row format.
       call csrcsc (neq, 1, 1, rcsc, icsc, jcsc, jac, ja, ia)
 
+c ... Count Jacobian evaluations, both for total and for this case
+      ijactot = ijactot + 1   #note: ijactot set 0 in exmain if icntnunk=0
+
 c ... Accumulate cpu time spent here.
       if (istimingon .eq. 1) ttjstor = ttjstor + gettime(sec4) - tsjstor
       return
