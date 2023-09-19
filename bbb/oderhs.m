@@ -8485,8 +8485,6 @@ c ... Get initial value of system cpu timer.
 c ... Pause from BASIS if a ctrl_c is typed
       call ruthere
 
-c ... Count Jacobian evaluations, both for total and for this case
-      ijactot = ijactot + 1   #note: ijactot set 0 in exmain if icntnunk=0
       ijac(ig) = ijac(ig) + 1
 
       if (svrpkg.eq.'nksol') write(*,*) ' Updating Jacobian, npe =  ', 
@@ -8635,6 +8633,9 @@ c##############################################################
 c##############################################################
 
       jcsc(neq+1) = nnz
+
+c ... Count Jacobian evaluations, both for total and for this case
+      ijactot = ijactot + 1   #note: ijactot set 0 in exmain if icntnunk=0
 
 c ... Convert Jacobian from compressed sparse column to compressed
 c     sparse row format.
