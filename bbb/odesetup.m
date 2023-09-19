@@ -1027,6 +1027,8 @@ c ... Initialize Multicharge rate table dimensions
       rtnsd=0
 c ... Set up tables for hydrogenic atomic-physics processes.
       if (newaph == 1) call aphread
+c ... Set up CRM data for molecules
+      call crumpetread
 c ... Set up tables for impurity atomic-physics processes.
       if (isimpon .eq. 1) then		# obsolete option
          call xerrab ('ueinit -- option isimpon=1 is obsolete; use 2')
@@ -6516,7 +6518,7 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
            ifexmain = 1
            call allocate
            ifexmain = 0
-	   if (icall == 0) write(*,*) 'UEDGE ',uedge_ver
+#	   if (icall == 0) write(*,*) 'UEDGE ',uedge_ver
            icall = 1
          elseif (ismpion.eq.1 .and. icall==0) then
            call init_pll
@@ -6538,7 +6540,7 @@ c_mpi         call MPI_BARRIER(uedgeComm, myfoo)
 
 *     -- For the continuation mode (icntnunk=1), be sure a Jacobian was
 *     -- calculated on the previous step, i.e., ijac > 0
-         if (icntnunk==1 .and. ijactot<=1 .and. svrpkg=='nksol') then
+         if (icntnunk==1 .and. ijactot<1 .and. svrpkg=='nksol') then
             call xerrab('**Error: need initial Jacobian-pair for icntnunk=1')
          endif
 
@@ -6582,7 +6584,7 @@ c ...    If a parallel run, send and gather data to PE0 first
                   call comp_vertex_vals  # gen plasma/neut values at rm,zm(,,4)
                endif
             endif
-         write(6,*) "Interpolants created; mype =", mype
+         if (iprint .ge. 1) write(6,*) "Interpolants created; mype =", mype
          endif
 
   100 continue

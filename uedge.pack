@@ -1,5 +1,5 @@
 codename = "UEDGE"
-cprompt = "UEDGE> "
+#cprompt = "UEDGE> "
 paths = ($UEDGE_SCRIPTS)
 startups = (.aph_dir .uedge_path .init.bas .uedge)
 #objs = "glbtmdat.o"

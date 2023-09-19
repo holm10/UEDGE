@@ -168,6 +168,7 @@ setup(name="uedge",
       description="2D Fluid simulation of plasma and neutrals in magnetic fusion devices",
       platforms="Unix, Windows (cygwin), Mac OSX",
       packages=['uedge'],
+    
       package_dir={'uedge': 'pyscripts'},
       # include_package_data=True,
       scripts=['pyscripts/pdb2hdf5', 'pyscripts/bas2py', 'pyscripts/hdf52pdb'],

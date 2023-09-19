@@ -94,10 +94,27 @@ def read_gridue(fname=None):
         grd.zplate2 = _grd['zplate2'][()]
     except:
         pass
+    try:
+        com.rmagx = _com['rmagx'][()]
+    except:
+        pass
+    try:
+        com.zmagx = _com['zmagx'][()]
+    except:
+        pass
+    try:
+        com.simagxs = _com['simagxs'][()]
+    except:
+        pass
+    try:
+        com.sibdrys = _com['sibdrys'][()]
+    except:
+        pass
     gridue.close()
     if bbb.iprint != 0:
         print(' Grid data read successfully:')
-        print('     file name:   {}.hdf5'.format(fname))
+        print('     file name:   {}{}'.format(fname, 
+            '.hdf5'*('.hdf5' not in fname)))
         print('     run-ID:      {}'.format(com.runid[0].decode('UTF-8')))
 
 def write_gridue(fname=None, runid=None):
@@ -107,9 +124,10 @@ def write_gridue(fname=None, runid=None):
         fname = bbb.GridFileName[0].decode('UTF-8').strip()
     if runid is None:
         runid = com.runid[0].decode('UTF-8').strip()
-    if 'hdf5' not in fname.lower():
-        fname = fname + '.hdf5'
-    gridue = File(fname, 'w')
+    if 'hdf5' in fname.lower():
+        gridue = File(fname, 'w')
+    else:
+        gridue = File('{}.hdf5'.format(fname), 'w')
     gridue.require_group('grid')
     gue = gridue['grid']
     gue.require_group('com')
@@ -144,6 +162,14 @@ def write_gridue(fname=None, runid=None):
         
     
     # Store extra data, such as limiter and plate data
+    try:
+        _com.create_dataset('rmagx', data=com.simagxs)
+    except:
+        pass
+    try:
+        _com.create_dataset('zmagx', data=com.simagxs)
+    except:
+        pass
     try:
         _com.create_dataset('simagxs', data=com.simagxs)
     except:

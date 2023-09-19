@@ -71,7 +71,8 @@ c...  local scalars
      .     yld_chm, t0p, zflux_chm, fqytotc, flux_inc,
      .     totfnex, totfnix, fqpsate, qpfac, aq, expkmx, arglgphi, faceel,
      .     faceel2, csfac, lambdae, uztotc, uztotc1, uztotc2,
-     .     fngytotc, fmiytotc, sytotc, f_cgpld, vparn, sfeeytotc, sfeiytotc
+     .     fngytotc, fmiytotc, sytotc, f_cgpld, vparn, sfeeytotc, sfeiytotc,
+     .     vxa, ta0, flxa
       integer ii,isphion2, nzsp_rt, jz
       real hflux, zflux
       integer ifld, ihyd, iimp, ix_fl_bc, ixc1, igsp2
@@ -132,6 +133,7 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
                  if (isngcore(1) .eq. 0) then
                    t0 = max(tg(ix,0,1),temin*ev)
                    vyn = sqrt( 0.5*t0/(pi*mi(ifld)) )
+                    # AH NOTE: Some nharmaves remaining in the master?
                    nharmave = 2.*(ni(ix,0,ifld)*ni(ix,1,ifld)) /
      .                           (ni(ix,0,ifld)+ni(ix,1,ifld))
                    fng_alb = (1-albedoc(1))*
@@ -170,6 +172,7 @@ c ---  Below, isupon(1) & ngbackg(1) used, so implies hydrogen
                      fng_chem= fng_chem + chemsputi(1,ii)*flx_incid*
      .                                                        sy(ix,0)
                   enddo
+                    # AH NOTE: Some nharmaves remaining in the master?
                   nharmave = 2.*(ni(ix,0,ifld)*ni(ix,1,ifld)) /
      .                          (ni(ix,0,ifld)+ni(ix,1,ifld))
                   fng_alb = (1-albedoi(ix,1))*nharmave*vyn*sy(ix,0)
@@ -189,6 +192,7 @@ c...   Caution: the wall source models assume gas species 1 only is inertial
                     elseif (recycwit(ix,1,1) < -1) then
                       yldot(iv1)=nurlxg*(ngbackg(1)-ni(ix,0,ifld))/n0(ifld)
                     elseif (recycwit(ix,1,1) .le. 0.) then  # treat recycwit as albedo
+                    # AH NOTE: Some nharmaves remaining in the master?
                       nharmave = 2.*(ni(ix,0,ifld)*ni(ix,1,ifld)) /
      .                              (ni(ix,0,ifld)+ni(ix,1,ifld))
                       yldot(iv1) = -nurlxg*( fniy(ix,0,ifld) +
@@ -649,6 +653,7 @@ c ... prepare impurity ion flux for possible recycling
 c ... Set core BC
             if (isixcore(ix)==1) then   # ix is part of the core boundary:
                if (isngcore(igsp) .eq. 0) then
+                    # AH NOTE: Some nharmaves remaining in the master?
                  nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
      .                         (ng(ix,0,igsp)+ng(ix,1,igsp))
                  fng_alb = (1-albedoc(igsp))*
@@ -720,6 +725,7 @@ c ... Include gas BC from sputtering by ions
                endif
 
  
+                    # AH NOTE: Some nharmaves remaining in the master?
                nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
      .                       (ng(ix,0,igsp)+ng(ix,1,igsp))
                fng_alb = (1-albedoi(ix,igsp))*nharmave*vyn*sy(ix,0) 
@@ -748,6 +754,7 @@ c ... Include gas BC from sputtering by ions
                    yldot(iv)=nurlxg*(ngbackg(igsp)-ng(ix,0,igsp))/
      .                                                          n0g(igsp)
                 elseif (recycwit(ix,igsp,1) .le. 0.) then # treat recycwit as albedo
+                    # AH NOTE: Some nharmaves remaining in the master?
                    nharmave = 2.*(ng(ix,0,igsp)*ng(ix,1,igsp)) /
      .                           (ng(ix,0,igsp)+ng(ix,1,igsp))
                    yldot(iv) = -nurlxg*( fngy(ix,0,igsp) +
@@ -1105,6 +1112,7 @@ c ---  typically hydrogen only, so DIVIMP chem sputt not used here
                    fng_chem = fng_chem + chemsputo(1,ii)*flx_incid*
      .                                                        sy(ix,ny)
                 enddo
+                    # AH NOTE: Some nharmaves remaining in the master?
                 nharmave = 2.*(ni(ix,ny,ifld)*ni(ix,ny+1,ifld)) /
      ,                        (ni(ix,ny,ifld)+ni(ix,ny+1,ifld))
                 fng_alb = (1-albedoo(ix,1))*nharmave*vyn*sy(ix,ny)
@@ -1373,6 +1381,7 @@ c ... add ion sputtering to gas BC
                 enddo
               endif
             endif
+                    # AH NOTE: Some nharmaves remaining in the master?
             nharmave = 2.*(ng(ix,ny,igsp)*ng(ix,ny+1,igsp)) /
      .                    (ng(ix,ny,igsp)+ng(ix,ny+1,igsp))
             fng_alb = (1-albedoo(ix,igsp))*nharmave*vyn*sy(ix,ny)
@@ -1404,6 +1413,7 @@ ccc
                 yldot(iv)=nurlxg*(ngbackg(igsp)-ng(ix,ny+1,igsp))/
      .                                                        n0g(igsp)
              elseif (recycwot(ix,igsp) .le. 0.) then # treat recycw as albedo
+                    # AH NOTE: Some nharmaves remaining in the master?
                 nharmave = 2.*(ng(ix,ny,igsp)*ng(ix,ny+1,igsp)) /
      .                        (ng(ix,ny,igsp)+ng(ix,ny+1,igsp))              
                 yldot(iv) = nurlxg*( fngy(ix,ny,igsp) -
@@ -1645,10 +1655,14 @@ c...  now do the gas and temperatures
                   vxn = 0.25 * sqrt( 8*t1/(pi*mg(igsp)) )
                   flux_inc = fac2sp*fnix(0,iy,1)
                   if (ishymol.eq.1 .and. igsp.eq.2) then
+                    ta0 = engbsr * max(tg(1,iy,1),temin*ev)
+                    vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
+                    flxa = (1-alblb(iy,1,1))*ng(1,iy,1)*vxa*sx(0,iy)
+
                     if (isupgon(1) .eq. 1) then  # two atoms per molecule
-                      flux_inc = 0.5*( fnix(0,iy,1) + fnix(0,iy,2) )
+                      flux_inc = 0.5*( fnix(0,iy,1) + fnix(0,iy,2) + flxa)
                     else
-                      flux_inc = 0.5*( fnix(0,iy,1) + fngx(0,iy,1) ) 
+                      flux_inc = 0.5*( fnix(0,iy,1) + fngx(0,iy,1) + flxa) 
                     endif
                   endif
                   yldot(iv) = -nurlxg * ( fngx(0,iy,igsp) -
@@ -1987,10 +2001,14 @@ c       Do hydrogenic gas equations --
              if (recylb(iy,igsp,jx) .gt. 0.) then  # normal recycling
                flux_inc = fac2sp*fnix(ixt,iy,1)
                if (ishymol.eq.1 .and. igsp.eq.2) then
+                 ta0 = max(tg(ixt1,iy,1), temin*ev)
+                 vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
+                 flxa = (1-alblb(iy,1,jx))*ng(ixt1,iy,1)*vxa*sx(ixt,iy)
+
                  if (isupgon(1) .eq. 1) then  # two atoms for one molecule
-                   flux_inc = 0.5*( fnix(ixt,iy,1) + fnix(ixt,iy,2) ) 
+                   flux_inc = 0.5*( fnix(ixt,iy,1) + fnix(ixt,iy,2) +flxa) 
                  else
-                   flux_inc = 0.5*( fnix(ixt,iy,1) + fngx(ixt,iy,1) ) 
+                   flux_inc = 0.5*( fnix(ixt,iy,1) + fngx(ixt,iy,1) +flxa) 
                  endif
                endif
                t0 = max(tg(ixt1,iy,igsp), temin*ev)
@@ -2262,10 +2280,13 @@ c...  now do the gas and temperatures
                   vxn = 0.25 * sqrt( 8*t1/(pi*mg(igsp)) )
                   flux_inc = fac2sp*fnix(nx,iy,1)
                   if (ishymol.eq.1 .and. igsp.eq.2) then
+                    ta0 = engbsr * max(tg(nx,iy,1),temin*ev)
+                    vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
+                    flxa=(1-albrb(iy,1,nxpt))*ng(nx,iy,1)*vxa*sx(nx,iy)
                     if (isupgon(1) .eq. 1) then  # two atoms for one molecule
-                      flux_inc = 0.5*( fnix(nx,iy,1) + fnix(nx,iy,2) ) 
+                      flux_inc = 0.5*( fnix(nx,iy,1) + fnix(nx,iy,2) -flxa) 
                     else
-                      flux_inc = 0.5*( fnix(nx,iy,1) + fngx(nx,iy,1) ) 
+                      flux_inc = 0.5*( fnix(nx,iy,1) + fngx(nx,iy,1) -flxa) 
                     endif
                   endif
                   yldot(iv) = -nurlxg * ( fngx(nx,iy,igsp) +
@@ -2624,10 +2645,14 @@ c       Next, the hydrogenic gas equations --
              if (recyrb(iy,igsp,jx) .gt. 0.) then  # normal recycling
                flux_inc = fac2sp*fnix(ixt1,iy,1)
                if (ishymol.eq.1 .and. igsp.eq.2) then
+                ta0 = max(tg(ixt1,iy,1), temin*ev)
+                vxa = 0.25 * sqrt( 8*ta0/(pi*mg(1)) )
+                flxa=(1-albrb(iy,1,jx))*ng(ixt1,iy,1)*vxa*sx(ixt1,iy)
+
                  if (isupgon(1) .eq. 1) then  # two atoms for one molecule
-                   flux_inc = 0.5*( fnix(ixt1,iy,1) + fnix(ixt1,iy,2) ) 
+                   flux_inc = 0.5*( fnix(ixt1,iy,1) +fnix(ixt1,iy,2)-flxa) 
                  else
-                   flux_inc = 0.5*( fnix(ixt1,iy,1) + fngx(ixt1,iy,1) ) 
+                   flux_inc = 0.5*( fnix(ixt1,iy,1) +fngx(ixt1,iy,1)-flxa) 
                  endif
                endif
                t0 = max(tg(ixt1,iy,igsp), temin*ev)

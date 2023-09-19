@@ -252,6 +252,7 @@ isnupdot1sd               integer /0/   +input
 isphicore0		  integer /0/  +input #=1 sets phi=phi_mp in core if isphion=1
 is_z0_imp_const           integer /0/  +input #=0 use hydr Keilhacker;=1 z0_imp_const
 z0_imp_const              real    /1./ +input #z0 in therm force if is_z0_imp_const=1
+ismolcrm                  real  /0/ +input # =1 uses CRUMPET rates, =0 uses old model
 					
 ***** Model_choice restart:
 #Flags for choosing one or another calculation of a part of the model
@@ -262,12 +263,16 @@ iondenseqn	character*8	/"llnl"/	# ion continuity equation
 cnfx      real      /1./    +input #X-flux coef for conv. in n-eq.
 cnfy      real      /1./    +input #Y-flux coef for conv. in n-eq.
 cnsor     real      /1./    +input #Coef for particle src. in n-eq.
+cmesori   real      /1./    +input #Coef for mol. diss. e source in ion eng eq
+cmesore   real      /1./    +input #Coef for mol. diss. e source in electron eng eq
 cfneut    real      /1./    +input #Coef for fluid neutrals contrib's to resid's
 cfnidh    real      /1./    +input #Coef for neutral-ion drift heating
 cfupcx    real      /1./    +input #Coef for nucx*(up_ion - up_gas) momentum coupling
 cfticx    real      /1./    +input #Coef for nucx*(up_ion-up_gas)**2 heating in Ti Eq
 cfupimpg  real      /0./    +input #Coef for impur up Cx/elast drag on up=0 imp gas
 cftiimpg  real      /0./    +input #Coef for Ti cooling CX/elast loss to cold imp gas
+cfcrmi    real      /1/     +input #Coef for ion source due to molecular crm diss.
+cfcrma    real      /1/     +input #Coef for atom source due to molecular crm diss.
 cmneut    real      /0./    +input #Coef for Monte Carlo neutrals contrib's to resid's
 cnflux(ngspmx) real /ngspmx*1./ +input #coef for particle flux in n-eq. (resco)
 chradi    real      /1./    +input #Coef for hyd. ioniz. rad. loss in elec. eng. eq.
@@ -1632,6 +1637,11 @@ fracvgpgp             real        /1./      #frac of vgp in vgradp eng terms
 fetx(0:nx+1,0:ny+1)   _real [W]  #total energy flow through a poloidal cell face
 fety(0:nx+1,0:ny+1)   _real [W]  #total energy flow through a radial cell face
 pdrift(0:nx+1,0:ny+1) _real [W/m^3] #power in bringing new ion to flow velocity
+pmrada(0:nx+1,0:ny+1) _real [W]     #total atom radiated power due to mol. processes
+pmradm(0:nx+1,0:ny+1) _real [W]     #total mol. radiated power due to mol. processes
+pmpot(0:nx+1,0:ny+1)  _real [W]     #tot. pot E (bind e) due to mol. processes
+pmloss(0:nx+1,0:ny+1) _real [W]     #total power lost by electrons and ions due
+                                    #to molecular processes
 peirad(0:nx+1,0:ny+1) _real [W]     #tot. power lost by electrons and ions in
                                     #rad., ion. and dissoc.
 png2ni(0:nx+1,0:ny+1) _real [W]     #power exchange bwt. neutral and ion
@@ -1980,6 +1990,7 @@ w1(0:nx+1,0:ny+1)       _real
 w2(0:nx+1,0:ny+1)       _real
 w3(0:nx+1,0:ny+1)       _real
 
+
 ***** Locflux:
 #Local arrays for the calculation of the fluxes and other quantities.
 flox(0:nx+1,0:ny+1)     _real
@@ -2055,7 +2066,7 @@ feiyosn_use(0:nx+1,0:ny+1)  _real  [J/s m**2]    +input #user-set Ti energy flux
 vy_cft(0:nx+1,0:ny+1,1:nisp) _real [m/s]  #calc vy from fniyos_use (fix flux)
 vyte_cft(0:nx+1,0:ny+1)     _real  [m/s]  #calc vyte from feeyos_use (fix flux)
 vyti_cft(0:nx+1,0:ny+1)     _real  [m/s]  #calc vyte from feiyos_use (fix flux)
-nuiz(0:nx+1,0:ny+1,ngsp)    _real  [1/s]  #ionization rate (=ne*sigma*v)
+nuiz(0:nx+1,0:ny+1,ngsp)    _real  [1/s]  #gas depl rate (=ne*sigma*v)
 nucx(0:nx+1,0:ny+1,ngsp)    _real  [1/s]  #charge-exchg rate for neut(sigv*ni)
 nucxi(0:nx+1,0:ny+1,nisp)   _real  [1/s]  #charge-exchg rate for ion (sigv*ng)
 nueli(0:nx+1,0:ny+1,nisp)   _real  [1/s]  #elast scatt rate for ion (sigv*ng)
@@ -2105,17 +2116,21 @@ psort(0:nx+1,0:ny+1,1:nisp)   _real  [part/s]  # ioniz. source for plasma (>0)
 psorxrc(0:nx+1,0:ny+1,1:nisp) _real  [part/s]  # cell ctr cx &recomb. for ions (<0)
 psorxr(0:nx+1,0:ny+1,1:nisp)  _real  [part/s]  # cell ave cx &recomb. for ions (<0)
 psor_tmpov(0:nx+1,0:ny+1)     _real  [part/s]  # work array for psor,etc for ave
-psorgc(0:nx+1,0:ny+1,1:ngsp)  _real  [part/s]  # cell ctr ioniz. sor neutral (<0)
-psorg(0:nx+1,0:ny+1,1:ngsp)   _real  [part/s]  # cell ave ioniz. sor neutral (<0)
+psorgc(0:nx+1,0:ny+1,1:ngsp)  _real  [part/s]  # cell ctr part sor neutral (<0)
+psorg(0:nx+1,0:ny+1,1:ngsp)   _real  [part/s]  # cell ave part sor neutral (<0)
 psorrgc(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # cell ctr recomb. source for neutrals
 psorrg(0:nx+1,0:ny+1,1:ngsp)  _real  [part/s]  # cell ave recomb. source for neutrals
 psorcxgc(0:nx+1,0:ny+1,1:ngsp) _real [part/s]  # cell ctr cx source for neutrals
 psorcxg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # cell ave cx source for neutrals
 psori(0:nx+1,0:ny+1,1:nisp)   _real  [part/s]  # impurity gas source
-psordis(0:nx+1,0:ny+1)        _real  [part/s]  # diss. source of hydrogen
+psordis(0:nx+1,0:ny+1,1:nisp) _real  [part/s]  # hyd. ion part source/sink from H2
+psordisg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # gas part source/sink from H2
 psorbgg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # diag artific neut backg source
 psorbgz(0:nx+1,0:ny+1)        _real  [part/s]  # diag artific impur backg source
 erliz(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for ioniz'n
+edisse(0:nx+1,0:ny+1)         _real  [J/s]     # Elec E loss due to mol interactions
+emolia(0:nx+1,0:ny+1)         _real  [J/s]     # i/a E change due to mol interactions
+eiamoldiss(0:nx+1,0:ny+1)     _real  [J/s]     # i/a enegy density incr, mol diss
 erlrc(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for recom'n
 vsoreec(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ctr tot elec vol eng source
 vsoree(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ave tot elec vol eng source
@@ -2132,6 +2147,7 @@ msorxr(0:nx+1,0:ny+1,1:nisp)  _real [kg-m/s**2]# cx&recomb. mom. sink for ions
 seec(0:nx+1,0:ny+1)           _real
 seev(0:nx+1,0:ny+1)           _real
 seic(0:nx+1,0:ny+1)           _real
+sed0c(0:nx+1,0:ny+1,1:ngsp)   _real  #..zml seperate temperatures for D+ and D0
 seiv(0:nx+1,0:ny+1)           _real
 segc(0:nx+1,0:ny+1,1:ngsp)    _real [J/(sm**3)]#v_grad_P for neutral eng. eqn
 resco(0:nx+1,0:ny+1,1:nisp)   _real
@@ -2143,7 +2159,7 @@ resei(0:nx+1,0:ny+1)          _real
 resphi(0:nx+1,0:ny+1)         _real
 
 ***** MCN_dim:
-# array bounds used in connection with Monte Carlo Neutrals
+# array bounds used in connection with Monte Carlo Neutrals/
 nstra		integer		/2/
 # number of 'strata' or 'source groups' in Monte-Carlo-Neutrals model;
 # i.e., a surface or volume element where neutrals originate;
@@ -3130,6 +3146,10 @@ ifexmain           integer /0/  #scalar to indicate if subroutine allocate
                                 #=0 means it is not.
 exmain_aborted logical /.false./ # Set to .true. in Python version on control-C abort
 iallcall	   integer /0/  #flag to signal first call to allocate
+session_id  integer /0/ # Identifier for use with uetools
+max_session_id  integer /0/ # Identifier for max allocated runs, use with uetools
+exmain_evals  integer /0/ # Number of successfull exmain evaluations
+rundt_success integer /0/ # Flag indicating whether the rundt execution is a success
 
 ***** RZ_cell_info:
 # RZ grid-cell center and face locations
@@ -3854,9 +3874,7 @@ yielz(imx+1,lnst+1)    _real
 ***** Ident_vars:
 uedge_ver  character*80 /'$Name: 8.0.4.0$'/
 uedge_date character*80 /'Version date in README_Uedge_vers in dir uedge'/
-session_id  integer /0/ # Identifier for use with uetools
-max_session_id  integer /0/ # Identifier for max allocated runs, use with uetools
-exmain_evals  integer /0/ # Number of successfull exmain evaluations
+
 
 ***** Last_group_ex_sav_var:
 # Last group in bbb where new variables from read save files get stored
