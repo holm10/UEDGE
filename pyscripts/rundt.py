@@ -22,6 +22,19 @@ class UeRun():
         # TODO: Add restore/recover from timeslice
         # TODO: Add plot timeslice directly
         # NOTE: No -> Utilize direct I/O from file instead
+        self.tstart = time()
+        self.numvar = bbb.numvar
+        try:
+            self.nx
+        except:
+            self.nx = com.nx
+        try:
+            self.ny
+        except:
+            self.ny = com.ny
+        self.ixpt1 = com.ixpt1[0]
+        self.ixpt2 = com.ixpt2[0]
+        self.iysptrx = com.iysptrx
         self.equationkey = array([b'te', b'ti', b'phi', b'up', b'ni', b'ng', 
             b'tg'])
 
