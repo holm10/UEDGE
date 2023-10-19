@@ -1121,8 +1121,6 @@ c...  rescale magnetic field quantities with b0
       else if (s2min(nx+1, ny+2, sx, 1, nx+2) .le. 0 .or.
      .      s2min(nx+2, ny+1, sy, 1, nx+2) .le. 0) then
          call xerrab ('ueinit -- error in sign sx, sy')
-      else if (s2min(nx+2, ny+2, rr, 1, nx+2) .le. 0) then
-         call xerrab ('ueinit -- error in sign rr')
       end if
 
 c ... Compute field-line length on the SOL flux surface that is
