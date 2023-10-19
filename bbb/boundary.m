@@ -1808,7 +1808,7 @@ c       Next, the momentum equations --
               if (isbohmms==0) then          # simple Bohm condition
                 yldot(iv2) = nurlxu * (-cs-ueb-up(ixt,iy,ifld))/vpnorm
               endif
-              if(isupss(ifld)==1 .and. up(ixt1,iy,ifld)+ueb .lt. -cs)
+              if(isupss(ifld)==1 .and. abs(up(ixt1,iy,ifld)+ueb) .gt. abs(cs))
                                              # dup/dx=0 if supersonic
      .          yldot(iv2) = nurlxu*(up(ixt1,iy,ifld)-up(ixt,iy,ifld))/
      .                                                           vpnorm
@@ -2433,7 +2433,7 @@ cc     .                             exp(-up(ixt,iy,ifld)/vgmomp)) )
               if (isbohmms==0) then          # simple Bohm condition
                 yldot(iv2) = nurlxu * (cs-ueb-up(ixt1,iy,ifld))/vpnorm
               endif
-              if(isupss(ifld)==1 .and. up(ixt2,iy,ifld)+ueb .gt. cs)
+              if(isupss(ifld)==1 .and. abs(up(ixt2,iy,ifld)+ueb) .gt. abs(cs))
                                              # dup/dx=0 if supersonic
      .          yldot(iv2) = nurlxu*(up(ixt2,iy,ifld)-up(ixt1,iy,ifld))/
      .                                                           vpnorm
