@@ -3896,7 +3896,7 @@ c  -- it is included in frici from mombal or mombalni
      .                isflxlde*csh /(1 + abs(qsh/qfl)**flgam)**(1/flgam)
             floxe(ix,iy) = floxe(ix,iy) + (sign(qr*qr,qsh)/(1 + qr)**2)
      .                  *flalfea(ix) * sx(ix,iy) * ( ne(ix,iy)*
-     .                   rr(ix,iy)*vt0 + ne(ix2,iy)*rr(ix2,iy)*vt1 ) / 2
+     .                   abs(rr(ix,iy))*vt0 + ne(ix2,iy)*abs(rr(ix2,iy))*vt1 ) / 2
 c.... Now do the ions (hcxi is flux-limited previously when it is built)
           if (isflxldi .ne. 2) then    # Else flux limit done on hcxij
             t0 = max (ti(ix,iy), temin*ev)
