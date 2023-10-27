@@ -1844,7 +1844,7 @@ cc           enddo
            kincorlb(iy,jx) = 1./(1 + cfkincor*(lambdae/lcone(ixt,iy))*
      .                                       abs(ev*phi(ixt,iy)/te(ixt,iy)))
            fqpsate = qe*ne(ixt,iy)*sqrt(te(ixt,iy)/(2*pi*me))*
-     .                                    kincorlb(iy,jx)*sx(ixt,iy)*abs(rrv(ixt,iy))
+     .                                    kincorlb(iy,jx)*sx(ixt,iy)*rrv(ixt,iy)
 c          NOTE: by definition, fqpsate is always > 0
            if (ikapmod==0) then
 cc              if (fqp(ixt,iy) < 0.) then #limit to saturation current
@@ -2474,7 +2474,7 @@ cc           enddo
            kincorrb(iy,jx) = 1./(1 + cfkincor*(lambdae/lcone(ixt,iy))*
      .                                       abs(ev*phi(ixt,iy)/te(ixt,iy)))
            fqpsate = qe*ne(ixt,iy)*sqrt(te(ixt,iy)/(2*pi*me))*
-     .                               kincorrb(iy,jx)*sx(ixt1,iy)*abs(rrv(ixt1,iy))
+     .                               kincorrb(iy,jx)*sx(ixt1,iy)*rrv(ixt1,iy)
 c          NOTE: by definition, fqpsate is always > 0
            if (ikapmod==0) then
 cc           if (fqp(ixt1,iy) > 0.) then #limit to saturation current

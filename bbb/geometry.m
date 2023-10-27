@@ -1723,7 +1723,7 @@ ccc  Computation of lconi & lcone for old (~2005) attempt at kinetics;
          lcon_wk2 = 0.         # Place-holder work var for PF only
 	 if(iy > iyso) then    # SOL, so only 1 region; lcon flux func
             do ix = 1, nx
-	      lcon_wk1 = lcon_wk1 + 1/(abs(rr(ix,iy))*gx(ix,iy))
+	      lcon_wk1 = lcon_wk1 + 1/(rr(ix,iy)*gx(ix,iy))
             enddo
 	    do ix = 0, nx+1
 	      lcon(ix,iy) = lcon_wk1   #might limit by dist to wall
@@ -1732,13 +1732,13 @@ ccc  Computation of lconi & lcone for old (~2005) attempt at kinetics;
             enddo
 	 else                  # Core and PF done together - carefully 
             do ix = 1, nx      # Do sum of core+SOL - then separate
-              lcon_wk1 = lcon_wk1 + 1/(abs(rr(ix,iy))*gx(ix,iy))
+              lcon_wk1 = lcon_wk1 + 1/(rr(ix,iy)*gx(ix,iy))
             enddo
             do ix = 1, ixpt1(1)  # Do PF only in next two wk2 loops
-              lcon_wk2 = lcon_wk2 + 1/(abs(rr(ix,iy))*gx(ix,iy))
+              lcon_wk2 = lcon_wk2 + 1/(rr(ix,iy)*gx(ix,iy))
             enddo
             do ix = max(1, ixpt2(1)+1), nx
-              lcon_wk2 = lcon_wk2 + 1/(abs(rr(ix,iy))*gx(ix,iy))
+              lcon_wk2 = lcon_wk2 + 1/(rr(ix,iy)*gx(ix,iy))
             enddo
             do ix = 0, nx+1    # Now separate into PF and core
               if (ix <= ixpt1(1) .or. ix > ixpt2(1)) then  # PF region
@@ -1755,7 +1755,7 @@ ccc  Computation of lconi & lcone for old (~2005) attempt at kinetics;
       enddo
 
 c...  Correct ion/elec connect lengths near separatrix - banana widths
-      omegcips = abs(qe*0.5*(bpol(ixmp,iysptrx,0) + bpol(ixmp,iysptrx+1,0)))
+      omegcips = (qe*0.5*(bpol(ixmp,iysptrx,0) + bpol(ixmp,iysptrx+1,0)))
       banwidi = sqrt(2*tibsep*ev/mi(1))/omegcips
       banwide = cfelecbwd*sqrt(2*tebsep*ev/me)/((mi(1)/me)*omegcips)
       iybwmni = 0
