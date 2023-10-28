@@ -6528,6 +6528,7 @@ c_mpi         call MPI_BARRIER(uedgeComm, ierr)
          endif
 
 
+
 c   Check model switches for UEDGE updates/bugs
       if (oldseec .gt. 0) then
             write(*,*) "        **** WARNING ****"
@@ -6556,8 +6557,6 @@ c   Check model switches for UEDGE updates/bugs
                 call xerrab("Error: jhswitch>0 used without override=1")
             endif
       endif
-
-
 c_mpi         call MPI_BARRIER(uedgeComm, myfoo)
 
          imeth = inewton(igrid)
