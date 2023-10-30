@@ -18,7 +18,7 @@ c-----------------------------------------------------------------------
       Use(Phyvar)
       Use(UEpar)    # isnewpot,r0slab,cslim,dcslim,csfaclb,csfacrb,csfacti,
                     # isnion,isupon,isteon,istion,isngon,isnionxy,isuponxy,
-                    # isteonxy,istionxy,isngonxy,isphionxy
+                    # isteonxy,istionxy,isngonxy,isphionxy, upbparadir
       Use(Aux)      # ixmp
       Use(Coefeq)   # fac2sp,cf2ef,exjbdry
       Use(Bcond)    # iflux,ncore,tcoree,tcorei,tbmin,nbmin,ngbmin,
@@ -1782,7 +1782,7 @@ c       Next, the momentum equations --
         do ifld = 1, nusp
           if (isuponxy(ixt,iy,ifld)==1) then
             iv2 = idxu(ixt,iy,ifld)
-            cs = csfaclb(ifld,jx)*sqrt( (te(ixt,iy)+
+            cs = upbparadir*csfaclb(ifld,jx)*sqrt( (te(ixt,iy)+
      .                                  csfacti*ti(ixt,iy))/mi(ifld) )
             if (isupgon(1)==1 .and. zi(ifld)==0.0) then  ## neutrals
               if (recycmlb(iy,1,jx) > -9.9) then  # backscatter with recycm
@@ -1808,7 +1808,7 @@ c       Next, the momentum equations --
               if (isbohmms==0) then          # simple Bohm condition
                 yldot(iv2) = nurlxu * (-cs-ueb-up(ixt,iy,ifld))/vpnorm
               endif
-              if(isupss(ifld)==1 .and. up(ixt1,iy,ifld)+ueb .lt. -cs)
+              if(isupss(ifld)==1 .and. abs(up(ixt1,iy,ifld)+ueb) .gt. abs(cs))
                                              # dup/dx=0 if supersonic
      .          yldot(iv2) = nurlxu*(up(ixt1,iy,ifld)-up(ixt,iy,ifld))/
      .                                                           vpnorm
@@ -2403,7 +2403,7 @@ c       Next, the momentum equations --
           if (isuponxy(ixt,iy,ifld)==1) then
             iv2 = idxu(ixt1,iy,ifld)  #ixt1 ~ nx
 	    iv = idxu(ixt,iy,ifld)    #ixt ~ nx+1
-            cs = csfacrb(ifld,jx)*sqrt( (te(ixt,iy)+
+            cs = upbparadir*csfacrb(ifld,jx)*sqrt( (te(ixt,iy)+
      .                                  csfacti*ti(ixt,iy))/mi(ifld) )
             if (isupgon(1)==1 .and. zi(ifld)==0.0) then  ## neutrals
               if (recycmrb(iy,1,jx) > -9.9) then  # backscatter with recycm
@@ -2433,7 +2433,7 @@ cc     .                             exp(-up(ixt,iy,ifld)/vgmomp)) )
               if (isbohmms==0) then          # simple Bohm condition
                 yldot(iv2) = nurlxu * (cs-ueb-up(ixt1,iy,ifld))/vpnorm
               endif
-              if(isupss(ifld)==1 .and. up(ixt2,iy,ifld)+ueb .gt. cs)
+              if(isupss(ifld)==1 .and. abs(up(ixt2,iy,ifld)+ueb) .gt. abs(cs))
                                              # dup/dx=0 if supersonic
      .          yldot(iv2) = nurlxu*(up(ixt2,iy,ifld)-up(ixt1,iy,ifld))/
      .                                                           vpnorm
