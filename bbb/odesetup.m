@@ -27,6 +27,7 @@ c-----------------------------------------------------------------------
       Use(Lsode)    # neq,jacflg,jpre,ipar,ismmaxuc,mmaxu
       Use(Solver_work_arrays)   # liw,lrw,iwork
       Use(Grid)     # inewton
+      Use(Comflxgrd) # cpasma
       Use(Interp)   # nxold,nyold
       Use(Decomp)   # ubw,lbw
       Use(Jacobian)     # neqp1,nnzmx
@@ -57,7 +58,10 @@ cc      Use(Rccoef)
 
 * --  local variables
       integer lda, lenk, ngspon, nispon, nuspon, ntgspon, ifld, isor, id
-      character*60 runid
+
+      character*60 runidint
+      integer iprt_tfcx_warn
+      data iprt_tfcx_warn/1/
       #Former Aux module variables
       integer igsp
 
@@ -170,12 +174,19 @@ c----------------------------------------------------------------------c
             endif
          endif
          call gchange("Xpoint_indices",0)
-         call readgridpars(trim(GridFileName),runid)  #define/redefine iysptrx1 etc
+         call readgridpars(trim(GridFileName),runidint)  #define/redefine iysptrx1 etc
          nx = nxm - abs(nxomit)
          ny = nym - nyomitmx
       endif	# end if-test on gengrid
       endif	# end if-test on newgeo
       endif	# end if-test on isallloc
+
+c     Check the direction of the toroidal current
+      if (cpasma .lt. 0) then
+        upbparadir = -1
+      else
+        upbparadir = 1
+      endif
 
 
 c ... Check that number neutral gas species is not larger than ngspmx

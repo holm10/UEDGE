@@ -247,15 +247,14 @@ fdttixy(0:nx+1,0:ny+1)      _real /0./ #user:=1 for ti eqn off; =0 for eqn on
 fdtngxy(0:nx+1,0:ny+1,ngsp) _real /0./ #user:=1 for ng eqn off; =0 for eqn on
 fdttgxy(0:nx+1,0:ny+1,ngsp) _real /0./ #user:=1 for tg eqn off; =0 for eqn on
 fdtphixy(0:nx+1,0:ny+1)     _real /0./ #user:=1 for phi eqn off; =0 for eqn on
-isugfm1side               integer /0/   +input 
-                                        #=0, use pol ave gas vels in par up eqn
-                                        #=1, use 1-sided vals for domain decomp
-isnupdot1sd               integer /0/   +input 
-                                        #=0, use 2-pt ndot for (n*up)_dot;
-                                        #=1, use 1-sided n_dot for (n*up)_dot
-isphicore0		  integer /0/  +input #=1 sets phi=phi_mp in core if isphion=1
-is_z0_imp_const           integer /0/  +input #=0 use hydr Keilhacker;=1 z0_imp_const
-z0_imp_const              real    /1./ +input #z0 in therm force if is_z0_imp_const=1
+isugfm1side               integer /0/  #=0, use pol ave gas vels in par up eqn
+                                       #=1, use 1-sided vals for domain decomp
+isnupdot1sd               integer /0/  #=0, use 2-pt ndot for (n*up)_dot;
+  				       #=1, use 1-sided n_dot for (n*up)_dot
+isphicore0		  integer /0/  #=1 sets phi=phi_mp in core if isphion=1
+is_z0_imp_const           integer /0/  #=0 use hydr Keilhacker;=1 z0_imp_const
+z0_imp_const              real    /1./ #z0 in therm force if is_z0_imp_const=1
+upbparadir                integer /0/ # Internal multiplicative switch for up equation
 					
 ***** Model_choice restart:
 #Flags for choosing one or another calculation of a part of the model
