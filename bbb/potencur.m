@@ -102,13 +102,13 @@ c-----------------------------------------------------------------------
                nbarx = (ne(ix1,iy)*gx(ix1,iy) + ne(ix,iy)*gx(ix,iy))/
      .                                      (gx(ix1,iy) + gx(ix,iy))
                sigbarx = zfac * cfsigm * sigma1 *
-     .                   (rr(ix1,iy)*t0**1.5*gx(ix1,iy)
+     .                   upbparadir*(rr(ix1,iy)*t0**1.5*gx(ix1,iy)
      .                   +rr(ix,iy)*t1**1.5*gx(ix,iy))
      .                   / ((gx(ix1,iy)+gx(ix,iy))*ev**1.5)
             else   # use simple average for fqp components
                zfac = 0.5*(zfac0 + zfac1)
                nbarx = 0.5*(ne(ix1,iy) + ne(ix,iy))
-               sigbarx = zfac * cfsigm * sigma1 * rrv(ix,iy) *
+               sigbarx = zfac * cfsigm * sigma1 * upbparadir*rrv(ix,iy) *
      .                                 ( 0.5*(t0+t1)/ev )**1.5
             endif
             netap(ix,iy) = nbarx/sigbarx   # used for frice in pandf
@@ -116,11 +116,11 @@ c           temp1 = (gpry(ix,iy) + gpry(ix,iy1) +
 c    .               gpry(ix1,iy) + gpry(ix3,iy1))
 c           if(isxptx(ix,iy).eq.0) temp1 =
 c    .              4.0*(prtv(ix,iy) - prtv(ix,iy1)) * gyc(ix,iy)
-            fqp(ix,iy) = (rrv(ix,iy)*sx(ix,iy)*sigbarx*gxf(ix,iy)/qe)*
+            fqp(ix,iy) = (upbparadir*rrv(ix,iy)*sx(ix,iy)*sigbarx*gxf(ix,iy)/qe)*
      .                       ( (pre(ix1,iy) - pre(ix,iy))/nbarx
      .                  - qe * (phi(ix1,iy) - phi(ix,iy))
      .                  + qe * (pondpot(ix1,iy) - pondpot(ix,iy))
-     .                  + pondomfpare_use(ix,iy)/(rrv(ix,iy)*nbarx)
+     .                  + pondomfpare_use(ix,iy)/(upbparadir*rrv(ix,iy)*nbarx)
      .               + cthe * ( te(ix1,iy) -  te(ix,iy)) )
 
 c           Special calculation for ix-boundary cells; able to retrieve
@@ -135,10 +135,10 @@ c           old case with frfqpn=0 ...
                if (ix==ixl .and. ixmnbcl==1) then  # at left boundary
                   fqp_old = fqp(ix,iy)
                   nbarx = ne(ixlp1,iy)
-                  sigbarx = zfac*cfsigm*sigma1*rrv(ixlp1,iy)*
+                  sigbarx = zfac*cfsigm*sigma1*upbparadir*rrv(ixlp1,iy)*
      .                                         (te(ixlp1,iy)/ev)**1.5
                   fqp(ix,iy) =
-     .                  (rrv(ixlp1,iy)*sx(ixlp1,iy)*sigbarx*gxf(ixlp1,iy)/qe)*
+     .                  (upbparadir*rrv(ixlp1,iy)*sx(ixlp1,iy)*sigbarx*gxf(ixlp1,iy)/qe)*
      .                       (  (pre(ixlp2,iy)-pre(ixlp1,iy))/nbarx -
      .               qe*(phi(ixlp1,iy)-phi(ixl,iy))*gxf(ixl,iy)/gxf(ixlp1,iy) +
      .                  cthe*(te(ixlp2,iy)- te(ixlp1,iy))  )
@@ -147,7 +147,7 @@ c           old case with frfqpn=0 ...
      .                         rbfbt(ixl,iy)*sx(ixl,iy) + fdiaxlb(iy,jx) )
                   do ifld = 1, nusp   # note fqp,fqpsat are poloidal proj. of || curr
                      fqpsatlb(iy,jx)=fqpsatlb(iy,jx)-qe*zi(ifld)*ni(ixl,iy,ifld)*
-     .                         up(ixl,iy,ifld)*sx(ixl,iy)*rrv(ixl,iy)
+     .                         up(ixl,iy,ifld)*sx(ixl,iy)*rrv(ixl,iy)*upbparadir
                   enddo
                   if (fqp(ixl,iy) < 0.) then #limit to saturation current
 		     fp1 = fqp(ixl,iy)
@@ -159,10 +159,10 @@ c           old case with frfqpn=0 ...
                elseif (ix==ixrm1 .and. ixmxbcl==1) then  # at right boundary
                   fqp_old = fqp(ix,iy)
                   nbarx = ne(ixrm1,iy)
-                  sigbarx = zfac*cfsigm*sigma1*rrv(ixrm2,iy)*
+                  sigbarx = zfac*cfsigm*sigma1*upbparadir*rrv(ixrm2,iy)*
      .                                         (te(ixrm1,iy)/ev)**1.5
                   fqp(ix,iy) =
-     .                  (rrv(ixrm2,iy)*sx(ixrm2,iy)*sigbarx*gxf(ixrm2,iy)/qe)*
+     .                  (upbparadir*rrv(ixrm2,iy)*sx(ixrm2,iy)*sigbarx*gxf(ixrm2,iy)/qe)*
      .                       (  (pre(ixrm1,iy)-pre(ixrm2,iy))/nbarx -
      .               qe*(phi(ixr,iy)-phi(ixrm1,iy))*gxf(ixrm1,iy)/gxf(ixrm2,iy) +
      .                  cthe*(te(ixrm1,iy)-te(ixrm2,iy))  )
@@ -171,7 +171,7 @@ c           old case with frfqpn=0 ...
      .                      rbfbt(ixr,iy)*sx(ixrm1,iy) + fdiaxrb(iy,jx) )
                   do ifld = 1, nusp   # note fqp,fqpsat are poloidal proj. of || curr
                      fqpsatrb(iy,jx)=fqpsatrb(iy,jx)+qe*zi(ifld)*ni(ixr,iy,ifld)*
-     .                        up(ixrm1,iy,ifld)*sx(ixrm1,iy)*rrv(ixrm1,iy)
+     .                        up(ixrm1,iy,ifld)*sx(ixrm1,iy)*rrv(ixrm1,iy)*upbparadir
                   enddo
                   if (fqp(ixrm1,iy) > 0.) then #limit to saturation current
 		     fp1 = fqp(ixrm1,iy)
@@ -186,7 +186,7 @@ c           old case with frfqpn=0 ...
             if(isudsym==1 .and. ix==nxc)  fqp(ix,iy) = 0.
 
             if (iy .eq. 1) then
-               dphi_iy1(ix) = -fqp(ix,iy)/(rrv(ix,iy)*sx(ix,iy)*
+               dphi_iy1(ix) = -fqp(ix,iy)/(upbparadir*rrv(ix,iy)*sx(ix,iy)*
      .                         sigbarx*gxf(ix,iy)) +
      .                         (pre(ix1,iy)-pre(ix,iy))/(qe*nbarx)
             endif
