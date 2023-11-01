@@ -1522,7 +1522,7 @@ c ... Calc friction forces from Braginskii; no individ chg-states;isimpon < 5.
      .                   lcone(ix,iy) )
                lmfpe = 2e16*(te(ix,iy)/ev)**2/ne(ix,iy)
                flxlimf = flalftf*ltmax/(flalftf*ltmax + lmfpe)
-               frice(ix,iy) = -cthe*flxlimf*nbarx*rrv(ix,iy)*gtex(ix,iy) +
+               frice(ix,iy) = -cthe*flxlimf*nbarx*upbparadir*rrv(ix,iy)*gtex(ix,iy) +
      .                  cfnetap*qe*netap(ix,iy)*fqp(ix,iy)/sx(ix,iy)
                frici(ix,iy,1) = - frice(ix,iy)
                if (fac2sp .gt. 1.1 .and. nusp .eq. 2) then
@@ -1559,7 +1559,7 @@ c     cfyef is included. Both isphiofft=0 or 1 cases included in one loop
      .                                     -( gpex(ix1,iy)/nexface +
      .                                cthe*flxlimf*gtex(ix1,iy) )/qe -
      .                                              gpondpotx(ix,iy) +
-     .                 pondomfpare_use(ix,iy)/(qe*rrv(ix,iy)*nexface) ) + 
+     .                 pondomfpare_use(ix,iy)/(qe*upbparadir*rrv(ix,iy)*nexface) ) + 
      .                      isphiofft * (
      .                            (phi(ix1,iy)-phi(ix2,iy))*gxf(ix1,iy) )
             enddo
@@ -1605,7 +1605,7 @@ c     saved here so they can be restored below.
                     endif  # end if-test on ix
                  enddo  # end do-loop over nxpt mesh regions
                endif
-               uup(ix1,iy,ifld) = rrv(ix1,iy)*upi(ix1,iy,ifld)
+               uup(ix1,iy,ifld) = upbparadir*rrv(ix1,iy)*upi(ix1,iy,ifld)
             enddo
          endif
          do ix = ixs1, min(ixf6, nx+1-ixmxbcl)
@@ -1637,7 +1637,7 @@ c     saved here so they can be restored below.
                     endif  # end if-test on ix
                  enddo  # end do-loop over nxpt mesh regions
                endif
-               uup(ix,iy,ifld) = rrv(ix,iy)*upi(ix,iy,ifld)
+               uup(ix,iy,ifld) = upbparadir*rrv(ix,iy)*upi(ix,iy,ifld)
             enddo
          enddo
       enddo
@@ -1658,10 +1658,10 @@ c     to those from parallel flow.
      .                         ni(ix,iy,ifld)/ni(ix1,iy,ifld)) -1)**2 ) *
      .                        (ni(ix,iy,ifld)-ni(ix1,iy,ifld))*gxf(ix1,iy)
      .                       /(ni(ix,iy,ifld)+ni(ix1,iy,ifld))
-               uz(ix1,iy,ifld) = -uup(ix1,iy,ifld)/rrv(ix1,iy)*
+               uz(ix1,iy,ifld) = -uup(ix1,iy,ifld)/(upbparadir*rrv(ix1,iy))*
      .          0.5*(rbfbt(ix,iy) + rbfbt(ix1,iy)) + sign(1.,b02d(ix,iy))*
      .               (cftef*v2ce(ix1,iy,ifld)+cftdd*v2cd(ix1,iy,ifld))*
-     .                                                       rrv(ix1,iy)
+     .                                              upbparadir*rrv(ix1,iy)
             endif
             do ix = i1, i6    #now the remainder of the uu(ix,,)
                ix2 = ixp1(ix,iy)
@@ -1673,10 +1673,10 @@ c     to those from parallel flow.
      .                         ni(ix2,iy,ifld)/ni(ix,iy,ifld)) -1)**2 ) *
      .                        (ni(ix2,iy,ifld)-ni(ix,iy,ifld))*gxf(ix,iy)
      .                       /(ni(ix2,iy,ifld)+ni(ix,iy,ifld))
-               uz(ix,iy,ifld) = -uup(ix,iy,ifld)/rrv(ix,iy)*
+               uz(ix,iy,ifld) = -uup(ix,iy,ifld)/(upbparadir*rrv(ix,iy))*
      .          0.5*(rbfbt(ix,iy) + rbfbt(ix2,iy)) + sign(1.,b02d(ix,iy))*
      .               (cftef*v2ce(ix,iy,ifld)+cftdd*v2cd(ix,iy,ifld))*
-     .                                                       rrv(ix,iy)
+     .                                              upbparadir*rrv(ix,iy)
             enddo
          enddo
       enddo
@@ -1693,20 +1693,20 @@ c...  uu(ixrb,,) & upi(ixrb,,) via generalized Bohm cond.
 	      do iy = j1, j6
 c ..          first left plate(s)
                 if(isfixlb(jx) == 0) then # set upi for left plate
-                  cs = csfacrb(ifld,jx)*sqrt( (te(ixt0,iy) +
-     .                            csfacti*ti(ixt0,iy))/mi(ifld) )
+                  cs = upbparadir*(csfacrb(ifld,jx)*sqrt( (te(ixt0,iy) +
+     .                            csfacti*ti(ixt0,iy))/mi(ifld) ))
                   ueb = cfueb*( cf2ef*v2ce(ixt0,iy,ifld)*rbfbt(ixt0,iy) -
-     .                            vytan(ixt0,iy,ifld) )/rrv(ixt0,iy)
-	          uu(ixt0,iy,ifld) = -rrv(ixt0,iy)*cs
+     .                            vytan(ixt0,iy,ifld) )/(upbparadir*rrv(ixt0,iy))
+	          uu(ixt0,iy,ifld) = -rrv(ixt0,iy)*cs*upbparadir
                   upi(ixt0,iy,ifld) = -(cs - ueb)
                 endif
 c ..          switch to right plate(s)
                 if(isfixrb(jx) == 0) then
-                  cs = csfacrb(ifld,jx)*sqrt( (te(ixt1,iy) +
-     .                            csfacti*ti(ixt1,iy))/mi(ifld) )
+                  cs = upbparadir*(csfacrb(ifld,jx)*sqrt( (te(ixt1,iy) +
+     .                            csfacti*ti(ixt1,iy))/mi(ifld) ))
                   ueb = cfueb*( cf2ef*v2ce(ixt1,iy,ifld)*rbfbt(ixt,iy) -
-     .                            vytan(ixt1,iy,ifld) )/rrv(ixt1,iy)
-	          uu(ixt1,iy,ifld) = rrv(ixt1,iy)*cs
+     .                            vytan(ixt1,iy,ifld) )/(upbparadir*rrv(ixt1,iy))
+	          uu(ixt1,iy,ifld) = rrv(ixt1,iy)*cs*upbparadir
 	          uu(ixt,iy,ifld) = uu(ixt1,iy,ifld)
                   upi(ixt1,iy,ifld) = cs - ueb
                   upi(ixt,iy,ifld) = upi(ixt1,iy,ifld)
@@ -1756,7 +1756,7 @@ ccc      if(isphion+isphiofft .eq. 1)  call calc_currents
          do ix = i1, i6
             ix1 = ixp1(ix,iy)
 	    upe(ix,iy) = (upe(ix,iy) -afqp*fqp(ix,iy)/
-     .                               (rrv(ix,iy)*sx(ix,iy)*qe))/
+     .                               (upbparadir*rrv(ix,iy)*sx(ix,iy)*qe))/
      .                             (0.5*( ne(ix,iy)+ne(ix1,iy) ))
          enddo
       enddo
@@ -1766,7 +1766,7 @@ ccc      if(isphion+isphiofft .eq. 1)  call calc_currents
       do 731 iy = j1, j6   # ExB same all species;if cf2dd=1, no imp yet
 	 do 730 ix = i1, i6
             ix1 = ixp1(ix,iy)
-            vex(ix,iy) = upe(ix,iy)*rrv(ix,iy) + 
+            vex(ix,iy) = upe(ix,iy)*upbparadir*rrv(ix,iy) + 
      .                   (cf2ef*v2ce(ix,iy,1) + cf2bf*ve2cb(ix,iy) + 
      .                         cf2dd*bfacxrozh(ix,iy)*ve2cd(ix,iy,1) ) *
      .                           0.5*(rbfbt(ix,iy) + rbfbt(ix1,iy)) -
@@ -2472,9 +2472,9 @@ c...  Force fluxes and gradients on cuts to be zero for half-space problems
             ix2 = ixp1(ix,iy)
             nexface = 0.5*(ne(ix2,iy)+ne(ix,iy))
             if (oldseec .gt. 0) then
-                t1 =.5*cvgp*(upe(ix,iy)*rrv(ix,iy)*
+                t1 =.5*cvgp*(upe(ix,iy)*upbparadir*rrv(ix,iy)*
      .                  ave(gx(ix,iy),gx(ix2,iy))*gpex(ix,iy)/gxf(ix,iy) +
-     .                  upe(ix1,iy)*rrv(ix1,iy)*
+     .                  upe(ix1,iy)*upbparadir*rrv(ix1,iy)*
      .                  ave(gx(ix,iy),gx(ix1,iy))*gpex(ix1,iy)/gxf(ix1,iy) )
                 t2 = 1.e-20* 0.25*(fqp(ix,iy)+fqp(ix1,iy))*
      .                  (ex(ix,iy)+ex(ix1,iy))/gx(ix,iy)
@@ -2494,7 +2494,7 @@ c...  Force fluxes and gradients on cuts to be zero for half-space problems
                 seec(ix,iy) = seec(ix,iy) + (t1+t2)*vol(ix,iy)
             endif
             if (nusp-isupgon(1).eq.1) smoc(ix,iy,1)=(( -cpgx*gpex(ix,iy)-
-     .                   qe*nexface*gpondpotx(ix,iy) )*rrv(ix,iy)  +
+     .                   qe*nexface*gpondpotx(ix,iy) )*upbparadir*rrv(ix,iy)  +
      .                     pondomfpare_use(ix,iy) )*sx(ix,iy)/gxf(ix,iy)
          enddo 
       enddo
@@ -2513,19 +2513,19 @@ c...  Force fluxes and gradients on cuts to be zero for half-space problems
                ix2 = ixp1(ix,iy)
                tv = gpix(ix ,iy,ifld)/gxf(ix,iy)
                t1 = gpix(ix1,iy,ifld)/gxf(ix1,iy)
-               t1 = .5*cvgp*( up(ix,iy,ifld)*rrv(ix,iy)*
+               t1 = .5*cvgp*( up(ix,iy,ifld)*upbparadir*rrv(ix,iy)*
      .                                 ave(gx(ix2,iy),gx(ix,iy))*tv
-     .                      + up(ix1,iy,ifld)*rrv(ix1,iy)*
+     .                      + up(ix1,iy,ifld)*upbparadir*rrv(ix1,iy)*
      .                                 ave(gx(ix,iy),gx(ix1,iy))*t1 )
                seic(ix,iy) = seic(ix,iy) + cfvgpx(ifld)*t1*vol(ix,iy)
-               t0 = - cpiup(ifld)*( gpix(ix,iy,ifld)*rrv(ix,iy) -
+               t0 = - cpiup(ifld)*( gpix(ix,iy,ifld)*upbparadir*rrv(ix,iy) -
      .                                  pondomfpari_use(ix,iy,ifld) )*
      .                                            sx(ix,iy)/gxf(ix,iy)
                if (nusp-isupgon(1) .eq. 1) then  # single ion mom. eq.
                   smoc(ix,iy,1) = smoc(ix,iy,1) + cpgx*t0
                else                # multiple mom. eq., so nusp=nisp
                   t0 = t0 +( qe*zi(ifld)*0.5*( ni(ix2,iy,ifld)+
-     .                       ni(ix,iy,ifld) )*ex(ix,iy)*rrv(ix,iy) +
+     .                       ni(ix,iy,ifld) )*ex(ix,iy)*upbparadir*rrv(ix,iy) +
      .                       frici(ix,iy,ifld) )* sx(ix,iy)/gxf(ix,iy)
                   if (ifld <= nusp) smoc(ix,iy,ifld) = 
      .                                      smoc(ix,iy,ifld) + cpgx*t0 
@@ -2603,9 +2603,9 @@ c ... Then "ion" species 2 (redundant as gas species 1) is hydr atom
                ix2 = ixp1(ix,iy)
                tv = gpix(ix ,iy,2)/gxf(ix,iy)
                t1 = gpix(ix1,iy,2)/gxf(ix1,iy)
-               t1 = .5*cvgp*( up(ix,iy,2)*rrv(ix,iy)*
+               t1 = .5*cvgp*( up(ix,iy,2)*upbparadir*rrv(ix,iy)*
      .                               ave(gx(ix2,iy),gx(ix,iy))*tv
-     .                    + up(ix1,iy,2)*rrv(ix1,iy)*
+     .                    + up(ix1,iy,2)*upbparadir*rrv(ix1,iy)*
      .                               ave(gx(ix,iy),gx(ix1,iy))*t1 )
                seic(ix,iy) = seic(ix,iy) + t1*vol(ix,iy)
             enddo
@@ -2760,7 +2760,7 @@ c...  visx(nx+1,iy) as they are meaningless when flux limited
                ix1 = ixm1(ix,iy)
                t0 = max (ti(ix,iy), temin*ev)
                vtn = sqrt(t0/mi(ifld))
-               mfl = flalfv * nm(ix,iy,ifld) * rr(ix,iy) *
+               mfl = flalfv * nm(ix,iy,ifld) * upbparadir*rr(ix,iy) *
      .               vol(ix,iy) * gx(ix,iy) * (t0/mi(ifld)) 
 ccc  Distance between veloc. cell centers:
                if (isgxvon .eq. 0) then     # dx(ix)=1/gx(ix)
@@ -2938,7 +2938,7 @@ c ... Flux limit individ. hcxij in poloidal direction if isflxldi=2
      .                      (ix==ixrb(jx).and.ixmxbcl==1) )
      .                    .and. (isplflxl==0) ) wallfac = flalfipl/flalfi
                   enddo
-                  qflx = wallfac*flalfi * rrv(ix,iy) *
+                  qflx = wallfac*flalfi * upbparadir*rrv(ix,iy) *
      .                                    sqrt(a/mi(ifld)) * niavex * a
                   cshx = hcxij(ix,iy,ifld)
 	          lxtic = 0.5*(ti(ix,iy)+ti(ix1,iy)) /
@@ -2952,7 +2952,7 @@ c ... Flux limit individ. hcxij in poloidal direction if isflxldi=2
      .                      1.5676*epsneo(ix,iy)**1.5/k2neo(ix,iy,ifld)
                hcyi(ix,iy) = hcyi(ix,iy) + hcyij(ix,iy,ifld)
                qipar(ix,iy,ifld) = hcxij(ix,iy,ifld)*gxf(ix,iy)*
-     .                                (ti(ix,iy)-ti(ix1,iy))/rrv(ix,iy)
+     .                                (ti(ix,iy)-ti(ix1,iy))/(rrv(ix,iy)*upbparadir)
             enddo
          enddo
  595  continue 
@@ -3182,7 +3182,7 @@ c ... Call routine to evaluate gas energy fluxes
          do 81 iy = j4, j8
             do 80 ix = i1, i5
               if ( zi(ifld).eq.0. .and. ineudif.ne.0 .and.
-     .                                   1.-rrv(ix,iy) > 1.e-4 ) then
+     .                                   1.-upbparadir*rrv(ix,iy) > 1.e-4 ) then
                  fnix(ix,iy,ifld) = fngx(ix,iy,1)
               else
                ix2 = ixp1(ix,iy)
@@ -3439,7 +3439,7 @@ ccc         if(isngon .eq. 1) call neudif
                ix1 = ixm1(ix,iy)
                if (isimpon.ge.5 .and. ifld.eq.1) then
                    #up(,,1) is total mass vel, whereas uu(,,i) for each ion
-                  uuv =0.5*( (up(ix1,iy,ifld)*rrv(ix1,iy)+
+                  uuv = 0.5*( upbparadir*(up(ix1,iy,ifld)*rrv(ix1,iy)+
      .                        up(ix,iy,ifld)*rrv(ix,iy)) +
      .                     (v2(ix1,iy,ifld)+v2(ix,iy,ifld))*rbfbt(ix,iy)-
      .                     (vytan(ix1,iy,ifld)+vytan(ix,iy,ifld)) )
@@ -3593,9 +3593,9 @@ c ...   First, the short mfp drag
             b_ctr = 0.5*(btot(ix,iy)+btot(ix2,iy)) 
                     # derviatives dbds_m and dbds_p are one-sided
             dbds_m = (btot(ix,iy) - btot(ix1,iy))*
-     .                                      gxf(ix1,iy)*rrv(ix1,iy)
+     .                                      gxf(ix1,iy)*upbparadir*rrv(ix1,iy)
             dbds_p = (btot(ix2,iy) - btot(ix,iy))*
-     .                                        gxf(ix,iy)*rrv(ix,iy)
+     .                                        gxf(ix,iy)*upbparadir*rrv(ix,iy)
             eta_h0 = visx(ix,iy,1)/b_ctr**2.5
             eta_hm = 0.5*(visx(ix,iy,1)+visx(ix1,iy,1))/
      .                                              btot(ix,iy)**2.5
@@ -3605,7 +3605,7 @@ c ...   First, the short mfp drag
      .                            (btot(ix2,iy)-btot(ix,iy))*
      .                                   (gxf(ix,iy)*rrv(ix,iy))**2
             drag_2 = up(ix,iy,1)*(eta_hp*dbds_p - eta_hm*dbds_m)*
-     .                                        gxf(ix,iy)*rrv(ix,iy)
+     .                                        gxf(ix,iy)*upbparadir*rrv(ix,iy)
 c ...   now for the trapped particle drag (sloppy)
             nu_ii = ni(ix,iy,1)*(2*mp/mi(1))**0.5/
      .                                   (3e12*(ti(ix,iy)*ev)**1.5)
@@ -3706,7 +3706,7 @@ cccMER erroneous multiplicative factor -1/2 (from original code) ???
                   resmo(ix,iy,ifld) = 
      .                  smoc(ix,iy,ifld)
      .                + smov(ix,iy,ifld) * up(ix,iy,ifld)
-     .                - cfneut * cfneutsor_mi * sx(ix,iy) * rrv(ix,iy) * dp1
+     .                - cfneut * cfneutsor_mi * sx(ix,iy) * upbparadir * rrv(ix,iy) * dp1
      .                - cfneut * cfneutsor_mi * cmwall(ifld)*0.5*(ng(ix,iy,1)+ng(ix2,iy,1))
      .                      * mi(ifld)*up(ix,iy,ifld)*0.5
      .                      *(nucx(ix,iy,1)+nucx(ix2,iy,1))*volv(ix,iy)
@@ -3752,7 +3752,7 @@ c     The main ions, momentum coupling:
 c     The neutral species, momentum coupling AND other source terms:
                       resmo(ix,iy,iigsp) =   # TR resmo(ix,iy,ifld) #IJ 2016
      .                    - cmneut * cmneutsor_mi * uesor_up(ix,iy,1) 
-     .                    -sx(ix,iy) * rrv(ix,iy) * 
+     .                    -sx(ix,iy) *upbparadir* rrv(ix,iy) * 
      .                         cpgx*( ni(ix2,iy,iigsp)*ti(ix2,iy)-
      .                                ni(ix,iy,iigsp)*ti(ix,iy) ) 
      .                    -cfupcx*0.25*volv(ix,iy)*
@@ -3930,7 +3930,7 @@ c.... Now do the ions (hcxi is flux-limited previously when it is built)
             lxtic = 0.5*(ti(ix,iy)+ti(ix2,iy)) /
      .             ( abs(ti(ix,iy)-ti(ix2,iy))*gxf(ix,iy) + 100.*cutlo)
 	    qsh = csh * (ti(ix,iy)-ti(ix2,iy)) * (1. + lxtic/lxtimax)
-            qipar(ix,iy,1) = qsh/(rrv(ix,iy)*sx(ix,iy))
+            qipar(ix,iy,1) = qsh/(upbparadir*rrv(ix,iy)*sx(ix,iy))
             qr = (1-isflxldi)*abs(qsh/qfl)
             conxi(ix,iy) = (1-isflxldi)*csh / (1 + qr)**2 +
      .                isflxldi*csh / (1 + abs(qsh/qfl)**flgam)**(1/flgam)
@@ -5104,8 +5104,8 @@ c     pressure and temperature, (hydrogenic) gas density, ionization rate
 c     of gas, and a few other (physically meaningless) quantities for which
 c     there are array locations.
       amu(1) = 5.45e-4
-      gradp(1,1) = flxlimf*rrv(ix,iy) * gpex(ix,iy)
-      gradt(1,1) = flxlimf*rrv(ix,iy) * gtex(ix,iy)
+      gradp(1,1) = flxlimf*upbparadir*rrv(ix,iy) * gpex(ix,iy)
+      gradt(1,1) = flxlimf*upbparadir*rrv(ix,iy) * gtex(ix,iy)
       den(2,0) = 0.5 * (ng(ix,iy,1) + ng(ix1,iy,1))
       nuion(2,0) = den(1,1) * (rsa(tempa(1), den(1,1), 0., 0)
      .                         + sigvi_floor)
@@ -5139,9 +5139,9 @@ c ...    Loop over charged states, storing ni and parallel gradients
 c        of pressure and Ti at poloidal density-cell faces.
          do nz = 1, natomic(misa)
             den(misa,nz) = 0.5 * (ni(ix,iy,ifld) + ni(ix1,iy,ifld))
-            gradp(misa,nz) = flxlimf*rrv(ix,iy) * gpix(ix,iy,ifld)
+            gradp(misa,nz) = flxlimf*upbparadir*rrv(ix,iy) * gpix(ix,iy,ifld)
             tempa(misa) = 0.5 * (ti(ix,iy) + ti(ix1,iy))
-            gradt(misa,nz) = flxlimf*rrv(ix,iy) * gtix(ix,iy) 
+            gradt(misa,nz) = flxlimf*upbparadir*rrv(ix,iy) * gtix(ix,iy) 
 c .......   Get ionization and recombination rates.
 c           Note that nuion has no meaning for the fully-stripped state,
 c           but space is available to store zero returned by imprates.
@@ -5171,7 +5171,7 @@ c           but space is available to store zero returned by imprates.
       enddo    # end of loop over isotopes with index misa
 
 c ... Set up other inputs for fmombal, including flow velocities.
- 50   epar = flxlimf*rrv(ix,iy) * ex(ix,iy)
+ 50   epar = flxlimf*upbparadir*rrv(ix,iy) * ex(ix,iy)
       umassni = 0.
       massni = 0.
       do ifld = 1, nusp
@@ -5195,7 +5195,7 @@ c ... Call Steve Hirshman reduced-ion momentum-balance routine.
 
 c ... Distribute results into arrays used in pandf.  Note that we do
 c     nothing with qcond.
-      fqp(ix,iy) = cfparcur*parcurrent * rrv(ix,iy)*sx(ix,iy)
+      fqp(ix,iy) = cfparcur*parcurrent * upbparadir*rrv(ix,iy)*sx(ix,iy)
       frice(ix,iy) = friction(1,1)
       upe(ix,iy) = ucond(1,1)
       ifld = 0
@@ -5284,8 +5284,8 @@ c ... Store electron density and temperature, gradients of electron
 c     pressure and temperature, (hydrogenic) gas density, ionization rate
 c     of gas, and a few other (physically meaningless) quantities for which
 c     there are array locations.
-      gradp(1,1) = rrv(ix,iy) * gpex(ix,iy)
-      gradt(1,1) = rrv(ix,iy) * gtex(ix,iy)
+      gradp(1,1) = upbparadir*rrv(ix,iy) * gpex(ix,iy)
+      gradt(1,1) = upbparadir*rrv(ix,iy) * gtex(ix,iy)
       frice(ix,iy) = -0.71*flxlimf*den(1,1)*gradt(1,1) +
      .                cfnetap*qe*netap(ix,iy)*fqp(ix,iy)/sx(ix,iy)
 
@@ -5308,7 +5308,7 @@ ccc   For arbitrary impurity concentration use the following frici:
       frici(ix,iy,1) = - frice(ix,iy) *
      .                   ni(ix,iy,1)*zi(1)**2/(ne(ix,iy)*zeff(ix,iy))
       upe(ix,iy) = up(ix,iy,1) - fupe_cur*fqp(ix,iy)/( sx(ix,iy)*qe*
-     .                         rrv(ix,iy)*0.5*(ne(ix,iy)+ne(ix1,iy)) )
+     .                         upbparadir*rrv(ix,iy)*0.5*(ne(ix,iy)+ne(ix1,iy)) )
       upi(ix,iy,1) = up(ix,iy,1)
       den(2,1) = 0.5 * (ni(ix,iy,1) + ni(ix1,iy,1))
            
@@ -5322,10 +5322,10 @@ c ... of pressure and Ti at poloidal density-cell faces.
             ifld = ifld + 1
             if (ziin(ifld) .lt. 1.e-10) ifld = ifld+1 #skip gas index
             den(misa,nz) = 0.5 * (ni(ix,iy,ifld) + ni(ix1,iy,ifld))
-            gradp(misa,nz) = rrv(ix,iy) * gpix(ix,iy,ifld) -
+            gradp(misa,nz) = upbparadir*rrv(ix,iy) * gpix(ix,iy,ifld) -
      .                                      pondomfpari_use(ix,iy,ifld)
             tempa(misa) = 0.5 * (ti(ix,iy) + ti(ix1,iy))
-            gradt(misa,nz) = rrv(ix,iy) * gtix(ix,iy) 
+            gradt(misa,nz) = upbparadir*rrv(ix,iy) * gtix(ix,iy) 
             zeffv = 0.5*(zeff(ix,iy)+zeff(ix1,iy))
             if (is_z0_imp_const == 0) then
               z0 = den(1,1)*zeffv/den(2,1) - 1.
@@ -5352,14 +5352,14 @@ c... NOTE:next coefficient 12*pi*sqrt(pi/2)*epsilon**2/e**4 = 5.624e54 in mks
      .                         - gradp(misa,nz)/den(misa,nz)
      .                         + alfe(ifld)*gradt(1,1) 
      .                         + betai(ifld)*gradt(misa,nz) 
-     .                         + qe*zi(ifld)*rrv(ix,iy)*ex(ix,iy) 
+     .                         + qe*zi(ifld)*upbparadir*rrv(ix,iy)*ex(ix,iy) 
      .                         + volmsor(ix,iy,ifld)/
      .                                       (den(misa,nz)*vol(ix,iy)) )
 c ...       For force balance, frici just balances E-field and pressure
 c ...       No flxlimf for 1st option; it only enhances (1/taudeff)
             if (nusp-isupgon(1) .eq. 1) then  #only frici(,,1) used here
               frici(ix,iy,ifld) =-qe*zi(ifld)*den(misa,nz)*
-     .                           rrv(ix,iy)*ex(ix,iy) + gradp(misa,nz)  
+     .                           upbparadir*rrv(ix,iy)*ex(ix,iy) + gradp(misa,nz)  
             else # multi ion mom eqns; drag calc elsewhere (w0) if isofric=1
               frici(ix,iy,ifld) =flxlimf*den(misa,nz)*( 
      .                                          alfe(ifld)*gradt(1,1) + 
@@ -5602,7 +5602,7 @@ c --- In the neutral momentum case we are after the 2-direction flux,
 c --- which has no non-orthogonal part.
             qtgf = qtgf - vygtan(ix,iy,igsp)*sx(ix,iy)
             if (isupgon(igsp) .eq. 1) then
-              qtgf = qtgf + rrv(ix,iy)*up(ix,iy,iigsp)*sx(ix,iy)
+              qtgf = qtgf + upbparadir*rrv(ix,iy)*up(ix,iy,iigsp)*sx(ix,iy)
             endif
             nconv = 2.0*(ng(ix,iy,igsp)*ng(ix2,iy,igsp)) /
      .                  (ng(ix,iy,igsp)+ng(ix2,iy,igsp))
@@ -5861,7 +5861,7 @@ c ... methn
       do iy = j1, j5
          do ix = i1,i5
             ix1 = ixp1(ix,iy)
-            if (1.-rrv(ix,iy) > 1.e-4) then #combine binormal & par components
+            if (1.-upbparadir*rrv(ix,iy) > 1.e-4) then #combine binormal & par components
               uug(ix,iy,igsp) = fngx(ix,iy,igsp) / (
      .                        0.5*(ng(ix,iy,igsp)+ng(ix1,iy,igsp))
      .                                                      *sx(ix,iy) )
@@ -6099,7 +6099,7 @@ c --- In the neutral momentum case we are after the 2-direction flux,
 c --- which has no non-orthogonal part.
             qtgf = qtgf - vygtan(ix,iy,igsp)*sx(ix,iy)
             if (isupgon(igsp) .eq. 1) then
-              qtgf = qtgf + rrv(ix,iy)*up(ix,iy,iigsp)*sx(ix,iy)
+              qtgf = qtgf + upbparadir*rrv(ix,iy)*up(ix,iy,iigsp)*sx(ix,iy)
             endif
             nconv = 2.0*(ng(ix,iy,igsp)*ng(ix2,iy,igsp)) /
      .                  (ng(ix,iy,igsp)+ng(ix2,iy,igsp))
@@ -6445,7 +6445,7 @@ c ... methn
       do iy = j1, j5
         do ix = i1,i5
           ix1 = ixp1(ix,iy)
-          if (1.-rrv(ix,iy) > 1.e-4 .or. isupgon(igsp)==0) then 
+          if (1.-upbparadir*rrv(ix,iy) > 1.e-4 .or. isupgon(igsp)==0) then 
                            #combine binormal/par comps or x only diffusive
              uug(ix,iy,igsp) = fngx(ix,iy,igsp) / (
      .                      0.5*(ng(ix,iy,igsp)+ng(ix1,iy,igsp))
@@ -6673,7 +6673,7 @@ c --- In the neutral momentum case we are after the 2-direction flux,
 c --- which has no non-orthogonal part.
             qtgf = qtgf - vygtan(ix,iy,igsp)*sx(ix,iy)
             if (isupgon(igsp) .eq. 1) then
-              qtgf = qtgf + rrv(ix,iy)*up(ix,iy,iigsp)*sx(ix,iy)
+              qtgf = qtgf + upbparadir*rrv(ix,iy)*up(ix,iy,iigsp)*sx(ix,iy)
             endif
             qsh = csh * (lng(ix,iy,igsp)-lng(ix2,iy,igsp)) + qtgf
             qr = abs(qsh/qfl)
@@ -7359,7 +7359,7 @@ c --- use (Bt/B)**2=1-rrv**2 instead.
          do 23 iy = j4, j6
             do 22 ix = i1, i6
                ix2 = ixp1(ix,iy)
-               uu(ix,iy,iigsp) = rrv(ix,iy)*up(ix,iy,iigsp) +
+               uu(ix,iy,iigsp) = upbparadir*rrv(ix,iy)*up(ix,iy,iigsp) +
      .              (1.-rrv(ix,iy)*rrv(ix,iy))*uug(ix,iy,igsp)
                if (isnonog .eq. 1) uu(ix,iy,iigsp) =
      .              uu(ix,iy,iigsp) - vygtan(ix,iy,igsp) -
@@ -10237,7 +10237,7 @@ cc            ptjdote = ptjdote + jdote(ix,iy)
             ptjdote = ptjdote + wjdote(ix,iy)
 
             if (isupgon(1) .eq. 0) then
-               pmomv(ix,iy)=cngmom(1)*up(ix,iy,1)*sx(ix,iy)*rrv(ix,iy)*
+               pmomv(ix,iy)=cngmom(1)*up(ix,iy,1)*sx(ix,iy)*upbparadir*rrv(ix,iy)*
      .                           ( ng(ix2,iy,1)*tg(ix2,iy,1)- 
      .                             ng(ix ,iy,1)*tg(ix ,iy,1) ) +
      .             cmwall(1)*0.125*mi(1)*(up(ix,iy,1)+up(ix1,iy,1))**2*
@@ -11087,7 +11087,7 @@ Use(Comgeo)         # vol,rr
          if (zi(ifld) .gt. 0) 
      .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,upi(0:nxd+1,0:nyd+1,ifld))
       enddo
-      call gfsub3 (nunit,nx,ny,nxd,nyd,1,rr(0:nxd+1,0:nyd+1))
+      call gfsub3 (nunit,nx,ny,nxd,nyd,1,upbparadir*rr(0:nxd+1,0:nyd+1))
       do ifld = 1, nisp
          if (zi(ifld) .gt. 0) 
      .      call gfsub3 (nunit,nx,ny,nxd,nyd,1,fnix(0:nxd+1,0:nyd+1,ifld))
@@ -11256,6 +11256,7 @@ Use(Xpoint_indices)  # ixlb,ixrb
 Use(RZ_grid_info)    # rm,zm,br,bz,bphi
 Use(Bfield)          # rbfbt
 Use(Comgeo)          # rr
+Use(UEpar)    # upbaradir
 Use(Compla)          # zi,ni,upi,uu,vy,v2,te,ti
 Use(Comflo)          # fnix
 Use(MCN_bkgd)        # various velocities
@@ -11276,10 +11277,10 @@ c compute UEDGE flow velocity at cell centers:
                vyc(ix,iy,ifld)=(vy(ix,iy-1,ifld)+vy(ix,iy,ifld))/2.
                upc(ix,iy,ifld)=(upi(ixm1(ix,iy),iy,ifld)+upi(ix,iy,ifld))/2.
                # from these we construct the poloidal and toroidal components:
-               uuc(ix,iy,ifld)=upc(ix,iy,ifld)*rr(ix,iy)
+               uuc(ix,iy,ifld)=upc(ix,iy,ifld)*upbparadir*rr(ix,iy)
      .                         +v2c(ix,iy,ifld)*rbfbt(ix,iy)
                utc(ix,iy,ifld)=upc(ix,iy,ifld)*rbfbt(ix,iy)
-     .                         -v2c(ix,iy,ifld)*rr(ix,iy)
+     .                         -v2c(ix,iy,ifld)*upbparadir*rr(ix,iy)
             enddo
          enddo
       enddo
@@ -11343,10 +11344,10 @@ c compute UEDGE flow velocity at left target plate:
             vytg1(iy,ifld)=(vy(ixt1,iy-1,ifld)+vy(ixt1,iy,ifld))/2. # <- NOTE
             uptg1(iy,ifld)=upi(ixt,iy,ifld)
             # from these we construct the poloidal and toroidal components:
-            uutg1(iy,ifld)=uptg1(iy,ifld)*rr(ixt,iy)
+            uutg1(iy,ifld)=uptg1(iy,ifld)*upbparadir*rr(ixt,iy)
      .                      +v2tg1(iy,ifld)*rbfbt(ixt,iy)
             uttg1(iy,ifld)=uptg1(iy,ifld)*rbfbt(ixt,iy)
-     .                      -v2tg1(iy,ifld)*rr(ixt,iy)
+     .                      -v2tg1(iy,ifld)*upbparadir*rr(ixt,iy)
          enddo
       enddo
       if (mhdgeo .eq. 1) then		# convert to cylindrical coordinates:
@@ -11408,10 +11409,10 @@ c compute UEDGE flow velocity at right target plate:
             vytg2(iy,ifld)=(vy(ixt1,iy-1,ifld)+vy(ixt1,iy,ifld))/2. # <- NOTE
             uptg2(iy,ifld)=upi(ixt1,iy,ifld)
             # from these we construct the poloidal and toroidal components:
-            uutg2(iy,ifld)=uptg2(iy,ifld)*rr(ixt,iy)
+            uutg2(iy,ifld)=uptg2(iy,ifld)*upbparadir*rr(ixt,iy)
      .                      +v2tg2(iy,ifld)*rbfbt(ixt,iy)
             uttg2(iy,ifld)=uptg2(iy,ifld)*rbfbt(ixt,iy)
-     .                      -v2tg2(iy,ifld)*rr(ixt,iy)
+     .                      -v2tg2(iy,ifld)*upbparadir*rr(ixt,iy)
          enddo
       enddo
       if (mhdgeo .eq. 1) then		# convert to cylindrical coordinates:
@@ -11971,6 +11972,7 @@ c ... neoclassical effects
       Use(RZ_grid_info)  # bpol,b12,b32,bsqr
       Use(Bfield)   #rbfbt
       Use(Share)    # nxpt,geometry,nxc,cutlo
+      Use(UEpar)    # upbaradir
       Use(Selec)    # i1,i2,i3,i4,i5,i6,i7,i8,xlinc,xrinc,ixs1,
                     # j1,j1p,j2,j2p,j3,j4,j5,j6,j5p,j6p,j7,j8,
       Use(Compla)   # ni,up,te,ti,ng,phi,v2cd,
@@ -11986,44 +11988,44 @@ c ... neoclassical effects
 c     First do the viscosity driven by particle flux            
             tempp = b12(ix1,iy)*( up(ix1,iy,ifld) + 
      .                (v2cd(ix1,iy,ifld)+v2ce(ix1,iy,ifld))*
-     .                                       rbfbt(ix1,iy)/rrv(ix1,iy) )
+     .                                       rbfbt(ix1,iy)/(upbparadir*rrv(ix1,iy)) )
             tempm = b12(ix,iy)*( up(ix,iy,ifld) + 
      .                (v2cd(ix,iy,ifld)+v2ce(ix,iy,ifld))*
-     .                                       rbfbt(ix,iy)/rrv(ix,iy) )
+     .                                       rbfbt(ix,iy)/(upbparadir*rrv(ix,iy)) )
             if(ix < nx) then
-              diffp = (visxneo(ix1,iy,ifld)/rr(ix1,iy))*(tempp-tempm)*
+              diffp = (visxneo(ix1,iy,ifld)/(upbparadir*rr(ix1,iy)))*(tempp-tempm)*
      .                                          gx(ix1,iy)/bsqr(ix1,iy)
             else
-              diffp = (visxneo(ix1,iy,ifld)/rr(ix1,iy))*(tempp-tempm)*
+              diffp = (visxneo(ix1,iy,ifld)/(upbparadir*rr(ix1,iy)))*(tempp-tempm)*
      .                                       2.*gx(nx,iy)/bsqr(ix1,iy)
             endif
             tempp = tempm
             tempm = b12(ix2,iy)*( up(ix2,iy,ifld) + 
      .               (v2cd(ix2,iy,ifld)+v2ce(ix2,iy,ifld))*
-     .                                       rbfbt(ix2,iy)/rrv(ix2,iy) )
-            diffm = (visxneo(ix,iy,ifld)/rr(ix,iy))*(tempp-tempm)*
+     .                                       rbfbt(ix2,iy)/(upbparadir*rrv(ix2,iy)) )
+            diffm = (visxneo(ix,iy,ifld)/(upbparadir*rr(ix,iy)))*(tempp-tempm)*
      .                                             gx(ix,iy)/bsqr(ix,iy)
-            visvol_v(ix,iy,ifld)=(4./3.)*rrv(ix,iy)*
+            visvol_v(ix,iy,ifld)=(4./3.)*upbparadir*rrv(ix,iy)*
      .                                 b32(ix,iy)*(diffp-diffm)*
      .                                   gxf(ix,iy)*volv(ix,iy)
 c     Now do the viscosity driven by heat flux            
             tempp = b12(ix1,iy)*( qipar(ix1,iy,ifld) + 
-     .                   q2cd(ix1,iy,ifld)*rbfbt(ix1,iy)/rrv(ix1,iy) )
+     .                   q2cd(ix1,iy,ifld)*rbfbt(ix1,iy)/(upbparadir*rrv(ix1,iy)) )
             tempm = b12(ix,iy)*( qipar(ix,iy,ifld) + 
-     .                   q2cd(ix,iy,ifld)*rbfbt(ix,iy)/rrv(ix,iy) )
+     .                   q2cd(ix,iy,ifld)*rbfbt(ix,iy)/(upbparadir*rrv(ix,iy)) )
             if(ix < nx) then
-              diffp = alfneo(ix1,iy,ifld)*rr(ix1,iy)*(tempp-tempm)*
+              diffp = alfneo(ix1,iy,ifld)*upbparadir*rr(ix1,iy)*(tempp-tempm)*
      .                  gx(ix1,iy) / (nuii(ix1,iy,ifld)*bsqr(ix1,iy))
             else
-              diffp = alfneo(ix1,iy,ifld)*rr(ix1,iy)*(tempp-tempm)*
+              diffp = alfneo(ix1,iy,ifld)*upbparadir*rr(ix1,iy)*(tempp-tempm)*
      .                 2.*gx(nx,iy) / (nuii(ix1,iy,ifld)*bsqr(ix1,iy))
             endif
             tempp = tempm
             tempm = b12(ix2,iy)*( qipar(ix2,iy,ifld) + 
-     .                   q2cd(ix2,iy,ifld)*rbfbt(ix2,iy)/rrv(ix2,iy) )
-            diffm = alfneo(ix,iy,ifld)*rr(ix,iy)*(tempp-tempm)*
+     .                   q2cd(ix2,iy,ifld)*rbfbt(ix2,iy)/(upbparadir*rrv(ix2,iy)) )
+            diffm = alfneo(ix,iy,ifld)*upbparadir*rr(ix,iy)*(tempp-tempm)*
      .                   gx(ix,iy) / (nuii(ix,iy,ifld)*bsqr(ix,iy))
-            visvol_q(ix,iy,ifld) = rrv(ix,iy)*b32(ix,iy)*
+            visvol_q(ix,iy,ifld) = upbparadir*rrv(ix,iy)*b32(ix,iy)*
      .                              (diffp-diffm)*gxf(ix,iy)*volv(ix,iy)
           enddo
         enddo
@@ -12048,6 +12050,7 @@ c ... neoclassical viscosity effects
       real tv,t0,t1,t2,a
       real tempp,tempm,temp0,diffp,diffm,gradx_vpiv,gradx_vpiq
 
+      Use(UEpar)    # upbaradir
       Use(Dim)      # nx,ny,nhsp,nisp,ngsp,nusp
       Use(Xpoint_indices)      # ixlb,ixpt1,ixpt2,ixrb,iysptrx1,iysptrx2
                                # iysptrx
@@ -12070,14 +12073,14 @@ c ... neoclassical viscosity effects
 c     First do the current driven by neoclassical particle flux            
             tempp = up(ix1,iy,ifld) + 
      .                        (v2cd(ix1,iy,ifld)+v2ce(ix1,iy,ifld))*
-     .                                     rbfbt(ix1,iy)/rrv(ix1,iy)
+     .                                     rbfbt(ix1,iy)/(upbparadir*rrv(ix1,iy))
             temp0 = up(ix,iy,ifld) + 
      .                        (v2cd(ix2,iy,ifld)+v2ce(ix2,iy,ifld))*
-     .                                     rbfbt(ix2,iy)/rrv(ix2,iy)
+     .                                     rbfbt(ix2,iy)/(upbparadir*rrv(ix2,iy))
             tempm = up(ix2,iy,ifld) + 
      .                        (v2cd(ix,iy,ifld)+v2ce(ix,iy,ifld))*
-     .                                     rbfbt(ix,iy)/rrv(ix,iy)
-            gradx_vpiv = (visxneo(ix,iy,ifld)*b12(ix,iy)*rrv(ix,iy)/3.)
+     .                                     rbfbt(ix,iy)/(upbparadir*rrv(ix,iy))
+            gradx_vpiv = (visxneo(ix,iy,ifld)*b12(ix,iy)*upbparadir*rrv(ix,iy)/3.)
      .                    *( (tempp+temp0)*b12ctr(ix1,iy)-
      .                       (temp0+tempm)*b12ctr(ix,iy) )*0.5*gxf(ix,iy)
             fq2pneo(ix,iy) = -gradx_vpiv*dbm2dy(ix1,iy)
@@ -12086,13 +12089,13 @@ c     First do the current driven by neoclassical particle flux
 
 c     Now do the current driven by neoclassical heat flux            
             tempp = qipar(ix1,iy,ifld) + 
-     .                   q2cd(ix1,iy,ifld)*rbfbt(ix1,iy)/rrv(ix1,iy)
+     .                   q2cd(ix1,iy,ifld)*rbfbt(ix1,iy)/(upbparadir*rrv(ix1,iy))
             temp0 = qipar(ix,iy,ifld) + 
-     .                   q2cd(ix,iy,ifld)*rbfbt(ix,iy)/rrv(ix,iy)
+     .                   q2cd(ix,iy,ifld)*rbfbt(ix,iy)/(upbparadir*rrv(ix,iy))
             tempm = qipar(ix2,iy,ifld) + 
-     .                   q2cd(ix2,iy,ifld)*rbfbt(ix2,iy)/rrv(ix2,iy)
+     .                   q2cd(ix2,iy,ifld)*rbfbt(ix2,iy)/(upbparadir*rrv(ix2,iy))
             gradx_vpiq =( alfneo(ix,iy,ifld)*0.24*
-     .                     b12(ix,iy)*rrv(ix,iy)/nuii(ix,iy,ifld) )*
+     .                     b12(ix,iy)*upbparadir*rrv(ix,iy)/nuii(ix,iy,ifld) )*
      .                     ( (tempp+temp0)*b12ctr(ix1,iy)-
      .                       (temp0+tempm)*b12ctr(ix,iy) )*0.5*gxf(ix,iy)
             fq2qneo(ix,iy) = -gradx_vpiq*dbm2dy(ix,iy)
