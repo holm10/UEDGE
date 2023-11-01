@@ -1053,7 +1053,7 @@ c  ... Special case rarely used
                  yldot(iv) = -nurlxp*( ey(ix,0) - gpiy(ix,0,1)/
      .                     (qe*zi(1)*niy0(ix,0,1)) )/(btot(ix,0)*vpnorm)
                  yldot(iv1) =nurlxp*(fqy(ix,1)-(fqx(ix,1)-fqx(ix3,1))) /
-     .                              (rrv(ix,0)*sy(ix,0)*vpnorm*ev*n0(1))
+     .                              (upbparadir*rrv(ix,0)*sy(ix,0)*vpnorm*ev*n0(1))
                endif
 
 c  ###################################################################
@@ -1772,7 +1772,7 @@ c     Now do the parallel velocity and other variables --
         sumb = 0.
         do ifld = 1, nfsp  # set up generalized Bohm condition
           ueb = cfueb*( cf2ef*v2ce(ixt,iy,ifld)*rbfbt(ixt,iy) -
-     .            vytan(ixt,iy,ifld) ) / rrv(ixt,iy) 
+     .            vytan(ixt,iy,ifld) ) / (upbparadir*rrv(ixt,iy))
           sumb = sumb + ni(ixt,iy,ifld)*zi(ifld)**2*te(ixt,iy) /
      .                (mi(ifld)*(upi(ixt,iy,ifld)+ueb)**2 - ti(ixt,iy))
         enddo # end do-loop on ifld for Bohm condition
@@ -1803,7 +1803,7 @@ c       Next, the momentum equations --
               endif
             else                                         ## ions
               ueb = cfueb*( cf2ef*v2ce(ixt,iy,ifld)*rbfbt(ixt,iy) -
-     .                vytan(ixt,iy,ifld) ) / rrv(ixt,iy) 
+     .                vytan(ixt,iy,ifld) ) / (upbparadir*rrv(ixt,iy))
               yldot(iv2) = -nurlxu*(sumb - 1.)  # multispecies Bohm
               if (isbohmms==0) then          # simple Bohm condition
                 yldot(iv2) = nurlxu * (-cs-ueb-up(ixt,iy,ifld))/vpnorm
@@ -1844,7 +1844,7 @@ cc           enddo
            kincorlb(iy,jx) = 1./(1 + cfkincor*(lambdae/lcone(ixt,iy))*
      .                                       abs(ev*phi(ixt,iy)/te(ixt,iy)))
            fqpsate = qe*ne(ixt,iy)*sqrt(te(ixt,iy)/(2*pi*me))*
-     .                                    kincorlb(iy,jx)*sx(ixt,iy)*rrv(ixt,iy)
+     .                              kincorlb(iy,jx)*sx(ixt,iy)*rrv(ixt,iy)
 c          NOTE: by definition, fqpsate is always > 0
            if (ikapmod==0) then
 cc              if (fqp(ixt,iy) < 0.) then #limit to saturation current
@@ -2392,7 +2392,7 @@ c     Now do the parallel velocity and other variables --
           upi(ixt,iy,ifld) = upi(ixt1,iy,ifld) # not set before; upi not var
           upi(ixt,iy,1   ) =  up(ixt ,iy,1   ) # need to keep up(,,1) as var
           ueb = cfueb*( cf2ef*v2ce(ixt1,iy,ifld)*rbfbt(ixt,iy) -
-     .            vytan(ixt1,iy,ifld) ) / rrv(ixt1,iy) 
+     .            vytan(ixt1,iy,ifld) ) / (upbparadir*rrv(ixt1,iy))
           sumb = sumb + ni(ixt,iy,ifld)*zi(ifld)**2*te(ixt,iy) /
      .                (mi(ifld)*(upi(ixt,iy,ifld)+ueb)**2 - ti(ixt,iy))
         enddo # end do-loop on ifld for Bohm condition
@@ -2428,7 +2428,7 @@ cc     .                             exp(-up(ixt,iy,ifld)/vgmomp)) )
               yldot(iv) =nurlxu*(up(ixt1,iy,ifld)-up(ixt,iy,ifld))/vpnorm
             else                                         ## ions
               ueb = cfueb*( cf2ef*v2ce(ixt1,iy,ifld)*rbfbt(ixt,iy) -
-     .                vytan(ixt1,iy,ifld) ) / rrv(ixt1,iy) 
+     .                vytan(ixt1,iy,ifld) ) / (upbparadir*rrv(ixt1,iy))
               yldot(iv2) = -nurlxu*(sumb - 1.)  # multispecies Bohm
               if (isbohmms==0) then          # simple Bohm condition
                 yldot(iv2) = nurlxu * (cs-ueb-up(ixt1,iy,ifld))/vpnorm
@@ -2447,7 +2447,7 @@ cc     .                             exp(-up(ixt,iy,ifld)/vgmomp)) )
                 yldot(iv2) = nurlxu*(vbound - up(ixt1,iy,ifld))/vpnorm
               elseif (isupss(ifld)==-3) then # modified Bohm condition
                 vbound = -ueb +2*cs*uu(ixt2,iy,ifld)/
-     .                             (uu(ixt2,iy,ifld)+rrv(ixt,iy)*cs)
+     .                             (uu(ixt2,iy,ifld)+upbparadir*rrv(ixt,iy)*cs)
                 vbound = max(vbound, -ueb)   # forces uu & fnix >= 0
                 yldot(iv2) = nurlxu * (vbound-up(ixt1,iy,ifld))/vpnorm
               endif # end if-test on isupss
