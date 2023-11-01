@@ -44,6 +44,10 @@ def read_gridpars(fname=None):
         com.sibdrys = _com['sibdrys'][()]
     except:
         pass
+    try:
+        com.cpasma = _com['cpasma'][()]
+    except:
+        pass
     gridue.close()
         
     
@@ -150,6 +154,10 @@ def write_gridue(fname=None, runid=None):
         pass
     try:
         _com.create_dataset('sibdrys', data=com.sibdrys)
+    except:
+        pass
+    try:
+        _com.create_dataset('cpasma', data=com.cpasma)
     except:
         pass
     try:
