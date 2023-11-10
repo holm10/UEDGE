@@ -183,9 +183,9 @@ c----------------------------------------------------------------------c
 
 c     Check the direction of the toroidal current
       if (cpasma .lt. 0) then
-        upbparadir = -1
+        curtordir = -1
       else
-        upbparadir = 1
+        curtordir = 1
       endif
 
 

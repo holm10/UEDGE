@@ -18,7 +18,7 @@ c-----------------------------------------------------------------------
       Use(Phyvar)
       Use(UEpar)    # isnewpot,r0slab,cslim,dcslim,csfaclb,csfacrb,csfacti,
                     # isnion,isupon,isteon,istion,isngon,isnionxy,isuponxy,
-                    # isteonxy,istionxy,isngonxy,isphionxy, upbparadir
+                    # isteonxy,istionxy,isngonxy,isphionxy, curtordir
       Use(Aux)      # ixmp
       Use(Coefeq)   # fac2sp,cf2ef,exjbdry
       Use(Bcond)    # iflux,ncore,tcoree,tcorei,tbmin,nbmin,ngbmin,
@@ -1053,7 +1053,7 @@ c  ... Special case rarely used
                  yldot(iv) = -nurlxp*( ey(ix,0) - gpiy(ix,0,1)/
      .                     (qe*zi(1)*niy0(ix,0,1)) )/(btot(ix,0)*vpnorm)
                  yldot(iv1) =nurlxp*(fqy(ix,1)-(fqx(ix,1)-fqx(ix3,1))) /
-     .                              (upbparadir*rrv(ix,0)*sy(ix,0)*vpnorm*ev*n0(1))
+     .                              (curtordir*rrv(ix,0)*sy(ix,0)*vpnorm*ev*n0(1))
                endif
 
 c  ###################################################################
@@ -1772,7 +1772,7 @@ c     Now do the parallel velocity and other variables --
         sumb = 0.
         do ifld = 1, nfsp  # set up generalized Bohm condition
           ueb = cfueb*( cf2ef*v2ce(ixt,iy,ifld)*rbfbt(ixt,iy) -
-     .            vytan(ixt,iy,ifld) ) / (upbparadir*rrv(ixt,iy))
+     .            vytan(ixt,iy,ifld) ) / (curtordir*rrv(ixt,iy))
           sumb = sumb + ni(ixt,iy,ifld)*zi(ifld)**2*te(ixt,iy) /
      .                (mi(ifld)*(upi(ixt,iy,ifld)+ueb)**2 - ti(ixt,iy))
         enddo # end do-loop on ifld for Bohm condition
@@ -1782,7 +1782,7 @@ c       Next, the momentum equations --
         do ifld = 1, nusp
           if (isuponxy(ixt,iy,ifld)==1) then
             iv2 = idxu(ixt,iy,ifld)
-            cs = upbparadir*csfaclb(ifld,jx)*sqrt( (te(ixt,iy)+
+            cs = curtordir*csfaclb(ifld,jx)*sqrt( (te(ixt,iy)+
      .                                  csfacti*ti(ixt,iy))/mi(ifld) )
             if (isupgon(1)==1 .and. zi(ifld)==0.0) then  ## neutrals
               if (recycmlb(iy,1,jx) > -9.9) then  # backscatter with recycm
@@ -1803,7 +1803,7 @@ c       Next, the momentum equations --
               endif
             else                                         ## ions
               ueb = cfueb*( cf2ef*v2ce(ixt,iy,ifld)*rbfbt(ixt,iy) -
-     .                vytan(ixt,iy,ifld) ) / (upbparadir*rrv(ixt,iy))
+     .                vytan(ixt,iy,ifld) ) / (curtordir*rrv(ixt,iy))
               yldot(iv2) = -nurlxu*(sumb - 1.)  # multispecies Bohm
               if (isbohmms==0) then          # simple Bohm condition
                 yldot(iv2) = nurlxu * (-cs-ueb-up(ixt,iy,ifld))/vpnorm
@@ -2392,7 +2392,7 @@ c     Now do the parallel velocity and other variables --
           upi(ixt,iy,ifld) = upi(ixt1,iy,ifld) # not set before; upi not var
           upi(ixt,iy,1   ) =  up(ixt ,iy,1   ) # need to keep up(,,1) as var
           ueb = cfueb*( cf2ef*v2ce(ixt1,iy,ifld)*rbfbt(ixt,iy) -
-     .            vytan(ixt1,iy,ifld) ) / (upbparadir*rrv(ixt1,iy))
+     .            vytan(ixt1,iy,ifld) ) / (curtordir*rrv(ixt1,iy))
           sumb = sumb + ni(ixt,iy,ifld)*zi(ifld)**2*te(ixt,iy) /
      .                (mi(ifld)*(upi(ixt,iy,ifld)+ueb)**2 - ti(ixt,iy))
         enddo # end do-loop on ifld for Bohm condition
@@ -2403,7 +2403,7 @@ c       Next, the momentum equations --
           if (isuponxy(ixt,iy,ifld)==1) then
             iv2 = idxu(ixt1,iy,ifld)  #ixt1 ~ nx
 	    iv = idxu(ixt,iy,ifld)    #ixt ~ nx+1
-            cs = upbparadir*csfacrb(ifld,jx)*sqrt( (te(ixt,iy)+
+            cs = curtordir*csfacrb(ifld,jx)*sqrt( (te(ixt,iy)+
      .                                  csfacti*ti(ixt,iy))/mi(ifld) )
             if (isupgon(1)==1 .and. zi(ifld)==0.0) then  ## neutrals
               if (recycmrb(iy,1,jx) > -9.9) then  # backscatter with recycm
@@ -2428,7 +2428,7 @@ cc     .                             exp(-up(ixt,iy,ifld)/vgmomp)) )
               yldot(iv) =nurlxu*(up(ixt1,iy,ifld)-up(ixt,iy,ifld))/vpnorm
             else                                         ## ions
               ueb = cfueb*( cf2ef*v2ce(ixt1,iy,ifld)*rbfbt(ixt,iy) -
-     .                vytan(ixt1,iy,ifld) ) / (upbparadir*rrv(ixt1,iy))
+     .                vytan(ixt1,iy,ifld) ) / (curtordir*rrv(ixt1,iy))
               yldot(iv2) = -nurlxu*(sumb - 1.)  # multispecies Bohm
               if (isbohmms==0) then          # simple Bohm condition
                 yldot(iv2) = nurlxu * (cs-ueb-up(ixt1,iy,ifld))/vpnorm
@@ -2447,7 +2447,7 @@ cc     .                             exp(-up(ixt,iy,ifld)/vgmomp)) )
                 yldot(iv2) = nurlxu*(vbound - up(ixt1,iy,ifld))/vpnorm
               elseif (isupss(ifld)==-3) then # modified Bohm condition
                 vbound = -ueb +2*cs*uu(ixt2,iy,ifld)/
-     .                             (uu(ixt2,iy,ifld)+upbparadir*rrv(ixt,iy)*cs)
+     .                             (uu(ixt2,iy,ifld)+curtordir*rrv(ixt,iy)*cs)
                 vbound = max(vbound, -ueb)   # forces uu & fnix >= 0
                 yldot(iv2) = nurlxu * (vbound-up(ixt1,iy,ifld))/vpnorm
               endif # end if-test on isupss
