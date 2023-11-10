@@ -1113,12 +1113,12 @@ c...  Calculate parallel connection length along B
 
 c...  rescale magnetic field quantities with b0
       call s2scal (nx+2, ny+2, abs(b0/b0old), btot, 1, nx+2)
-      call s2scal (nx+2, ny+2, sign(1.,upbparadir*b0/b0old), rbfbt, 1, nx+2)
-      call s2scal (nx+2, ny+2, upbparadir*b0old/b0, rbfbt2, 1, nx+2)
+      call s2scal (nx+2, ny+2, sign(1.,b0/b0old), rbfbt, 1, nx+2)
+      call s2scal (nx+2, ny+2, b0old/b0, rbfbt2, 1, nx+2)
       call s2scal (nx+2, ny+2, abs(b0/b0old), rbpol, 1, nx+2)
-      call s2scal (nx+2, ny+2, upbparadir*b0old/b0, curvrby, 1, nx+2)
+      call s2scal (nx+2, ny+2, b0old/b0, curvrby, 1, nx+2)
       call s2scal (nx+2, ny+2, abs(b0old/b0), curvrb2, 1, nx+2)
-      call s2scal (nx+2, ny+2, upbparadir*b0old/b0, gradby, 1, nx+2)
+      call s2scal (nx+2, ny+2, b0old/b0, gradby, 1, nx+2)
       call s2scal (nx+2, ny+2, abs(b0old/b0), gradb2, 1, nx+2)
          # v2cb sign change comes from rbfbt in forming uu
       b0old = b0
