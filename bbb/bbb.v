@@ -254,7 +254,8 @@ isnupdot1sd               integer /0/  #=0, use 2-pt ndot for (n*up)_dot;
 isphicore0		  integer /0/  #=1 sets phi=phi_mp in core if isphion=1
 is_z0_imp_const           integer /0/  #=0 use hydr Keilhacker;=1 z0_imp_const
 z0_imp_const              real    /1./ #z0 in therm force if is_z0_imp_const=1
-curtordir                 integer /0/ # Internal multiplicative switch for up equation
+torcurdir                 integer /0/ # Internal multiplicative switch for up equation
+usetorcurdir              integer /0/ # Switch whether to make up dependent on cpasma
 					
 ***** Model_choice restart:
 #Flags for choosing one or another calculation of a part of the model

@@ -182,10 +182,14 @@ c----------------------------------------------------------------------c
       endif	# end if-test on isallloc
 
 c     Check the direction of the toroidal current
-      if (cpasma .lt. 0) then
-        curtordir = -1
+      if (usetorcurdir .gt. 0) then
+          if (cpasma .lt. 0) then
+            torcurdir = -1
+          else
+            torcurdir = 1
+          endif
       else
-        curtordir = 1
+          torcurdir = 1
       endif
 
 
