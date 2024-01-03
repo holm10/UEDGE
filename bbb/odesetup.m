@@ -204,13 +204,6 @@ c ... Check that a gas source and albedo is not assigned to nonexistent gas sp
          endif
       enddo
 
-c ... Check attempt to use deprecated variables fchemywi and fchemywo 
-      if (fchemywi .ne. 1. .or. fchemywo .ne. 1.) then
-	call remark('**Input error: change fchemywi --> fchemygwi(igsp)
-     .               and fchemywo --> fchemygwo(igsp)')
-        call xerrab("")
-      endif
-
 c ... Check consistency of cngmom; should be zero if inertial neutrals
       if (isupgon(1).eq. 1 .and. cngmom(1).ne.0) then
          call remark('*** WARNING, likely Error: cngmom=1, isupgon=1')
@@ -264,11 +257,6 @@ c ... Check if yinc=2 for isphion=1
 	 call remark('*** Warning: yinc=2 recommended when isphion=1')
       endif
 
-c ... Check if tfcx or tfcy set in input file
-      if ((tfcx>1.e-10 .or. tfcy>1.e-10) .and. iprt_tfcx_warn==1) then
-        call remark('*** WARNING: tfcx,y not active; see tgas instead')
-        iprt_tfcx_warn = 0
-        endif
 c ... Check if isnfmiy=1 when geometry is snowflake > SF15
       if (geometry=="snowflake45" .or. geometry=="snowflake75" .or.
      .    geometry=="snowflake105" .or. geometry=="snowflake135" .or.
