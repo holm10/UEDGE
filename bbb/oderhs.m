@@ -2337,16 +2337,15 @@ c ... Set up nuiz & sources for hydrogen molecular gas
         do iy = iys1, iyf6
          do ix = ixs1, ixf6
 c ...      Calculate the dissociation frequency 
-           nuiz(ix,iy,2) = ne(ix,iy) * (  
+           nuiz(ix,iy,2) =  
 c ...           Old model of dissociation rate scaled by ismolcrm swithc
-     .          (1-ismolcrm)*(
+     .          (1-ismolcrm)*ne(ix,iy)*(
      .                svdiss( te(ix,iy) )
      .              + cfizmol*rsa(te(ix,iy),ne_sgvi,rtau(ix,iy),0)
      .              + sigvi_floor 
      .              )
 c ...           CRM rates behind ismolcrm switch 
      .          - ismolcrm*sv_crumpet( te(ix,iy), ne(ix,iy),10)
-     .     )
            massfac = 16*mi(1)/(3*(mg(2)+mi(1)))
            nuix(ix,iy,2)= fnuizx*nuiz(ix,iy,2) + 
      .                           massfac*( kelighi(2)*ni(ix,iy,1)+
