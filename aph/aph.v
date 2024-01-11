@@ -11,6 +11,9 @@ sgvcxc   real [m^2/s] /2.e-14/# const. value of sigv_cx for issgvcxc=1;
                               # const. sig for issgvcxc=2, sig-v=sig*sqrt(T/mi)
 			      # with units now [m^2]
 isaphdir integer       /1/    #=1 uses aphdir; =0 uses explicit rate file names
+aphfname character*120 /"ehr2.dat"/ +input # Name of ehr-file to load
+crmnfname character*120 /"crumpet_nrates.dat"/ +input # Name of CRM rate data file
+crmefname character*120 /"crumpet_Erates.dat"/ +input # Name of CRM E-sink data file
 aphdir	character*120 # name of directory containing data files
 data_directory	character*120 # another dirname containing data files. This is to be be passed in
 
@@ -37,6 +40,33 @@ htlcx(0:htnt,0:htnn,0:htns-1)	_real
 	# log(htcx) where htcx is ADPAK rate parameter data for charge exchange
 htlqa(0:htnt,0:htnn,0:htns-1)	_real	
 	# log(htqa) where htqa is ADPAK rate parameter data for energy loss
+
+***** Rtcrumpet:
+# data from CRUMPET rate tables
+cmpe	integer	/60/		# number of energy points for crm params
+cmpd	integer /15/		# number of density points for crm params
+crmdiss(cmpe,cmpd) _real [m**3/s] # Mol diss rate vs. temp and dens
+crmarate(cmpe,cmpd) _real [m**3/s] # a-create rate from mol vs tem, dens
+crmselm(cmpe,cmpd) _real [W m**3] # el e-change due to mol diss vs temp, dens
+crmsiam(cmpe,cmpd) _real [W m**3] # ia e-change due to mol diss vs temp, dens
+crmspotm(cmpe,cmpd) _real [W m**3] # Epot change due to mol diss vs temp, dens
+crmsrada(cmpe,cmpd) _real [W m**3] # Radiation due to mol diss vs temp, dens
+crmsradm(cmpe,cmpd) _real [W m**3] # Radiation due to mol diss vs temp, dens
+cekpt(cmpe)	_real		# natural log of temperature (eV)
+crlemin		real		# minimum of ekpt
+crlemax		real		# maximum of ekpt
+cerefmin	real	[eV]	# minimum temperature in table data
+cerefmax	real	[eV]	# maximum temperature in table data
+cdelekpt	real		# interval size for ekpt in table data
+cdkpt(cmpd)	_real		# log10 of density (/m**3)
+crldmin		real		# minimum of dkpt
+crldmax		real		# maximum of dkpt
+cdrefmin	real	[/m**3]	# minimum density in table data
+cdrefmax	real	[/m**3]	# maximum density in table data
+cdeldkpt	real		# dkpt interval in atomic data tables
+ctaumin		real		# minimum tau in rtau opt-dep table data
+ctaumax		real		# maximum tau in trau opt-dep table data
+cdeltau	    real		# log int. size of rtau in opt-dep table dat
 
 ***** Rtdegas:
 # data from DEGAS rate tables eh.dat, ehr1.dat, nwfits and atmc.dat
