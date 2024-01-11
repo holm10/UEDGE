@@ -22,6 +22,18 @@ class UeRun():
         # TODO: Add restore/recover from timeslice
         # TODO: Add plot timeslice directly
         # NOTE: No -> Utilize direct I/O from file instead
+        self.numvar = bbb.numvar
+        try:
+            self.nx
+        except:
+            self.nx = com.nx
+        try:
+            self.ny
+        except:
+            self.ny = com.ny
+        self.ixpt1 = com.ixpt1[0]
+        self.ixpt2 = com.ixpt2[0]
+        self.iysptrx = com.iysptrx
         self.equationkey = array([b'te', b'ti', b'phi', b'up', b'ni', b'ng', 
             b'tg'])
 
@@ -49,7 +61,15 @@ class UeRun():
             bbb.idxu, bbb.idxn, bbb.idxg, bbb.idxtg]
         equationsdescription = [ 'Electron energy', 'Ion energy', 'Potential',
             'Ion momentum', 'Ion density', 'Gas density', 'Gas temperature']
-
+        # Assert required dict is present
+        try:
+            self.classvars
+        except:
+            self.classvars = {}
+            for cvar in ['itrouble', 'troubleeq', 'internaleq', 
+                    'internalspecies', 'troubleindex', 'dtrealfail',
+                    'ylfail', 'yldotsfscalfail']:
+                self.classvars[cvar] = []
         # Find the fortran index of the troublemaking equation
         self.classvars['itrouble'].append(deepcopy(argmax(abs(bbb.yldot*\
             bbb.sfscal)[:bbb.neq])+1))
@@ -120,7 +140,7 @@ class UeRun():
         for var in ['ni', 'ng', 'up', 'te', 'ti', 'tg', 'phi', 'dt_tot']:
             self.classvars['slice_{}'.format(var)].append(deepcopy(getattr(bbb, var)))
 
-
+            
     def save_intermediate(self, savename):
         from uedge.hdf5 import hdf5_save
         from os.path import exists
@@ -390,11 +410,13 @@ class UeRun():
 
 
 
+
     def converge(self, dtreal=2e-9, ii1max=5000, ii2max=5, itermx=7, ftol=1e-5,
         dt_kill=1e-14, t_stop=100, dt_max=100, ftol_min = 1e-9, incpset=7,
         n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, numtotjmax=0, 
         tstor=(1e-3, 4e-2), ismfnkauto=True, dtmfnk3=5e-4, mult_dt=3.4, 
         reset=True, initjac=True, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9,
+
         tsnapshot=None, savedir='../solutions', ii2increase=0, savefname=None,
         message=None):
 
@@ -593,6 +615,8 @@ class UeRun():
         bbb.rlx = rlx
         bbb.dtreal = dtreal
         bbb.ftol = ftol
+        ii1 = 0
+        ii2 = 0
         if (bbb.iterm == 1) and (bbb.ijactot > 0):
             self.message('Initial successful time-step exists', separator='')
         else:
@@ -711,7 +735,6 @@ class UeRun():
                     if message is not None:
                         print(message)
                     if self.exmain_isaborted():
-
                         return
                     if bbb.iterm == 1:
                         self.classvars['ii1'].append(ii1)
@@ -903,7 +926,6 @@ class UeRun():
                 return True
             return False
                     
-
         def staticiter():
             """ Tries to reduce initial fnrm by iterating at constant var """
             from uedge import bbb
@@ -971,9 +993,9 @@ class UeRun():
             bbb.ftol = 1e-8
             abort = False
             # Ensure a first time-step can be taken
-            dtdelta = self.lastsuccess + dtdeltafac*(1-self.lastsuccess)/100
+            dtdelta = self.lastsuccess + dtdeltafac/100
             while bbb.iterm != 1:
-                dtdelta = self.lastsuccess + dtdeltafac*(1-self.lastsuccess)/100
+                dtdelta = self.lastsuccess + dtdeltafac/100
                 setvar(dtdelta)
                 if self.exmain_isaborted():
                     setvar(self.lastsuccess)
@@ -1137,8 +1159,12 @@ class UeRun():
         bbb.ftol = ftol
         bbb.incpset = incpset
         bbb.itermx = itermx
-        bbb.ismmaxu = 0
-        bbb.mmaxu = 70
+        # TODO: Resolve how to run continuation solver w/ mmaxu
+        # TODO: Add coding for autodetecting when avg nfe approx mmaxu
+        #       and upate jacobian then
+
+#        bbb.ismmaxuc = 0
+#        bbb.mmaxu = 70
         if (bbb.iterm == 1) and (bbb.ijactot > 0):
             self.message('Initial successful time-step exists', separator='')
         else:

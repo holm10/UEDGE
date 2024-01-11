@@ -54,7 +54,7 @@ def read_gridue(fname=None):
     if fname is None:
         fname = bbb.GridFileName[0].decode('UTF-8').strip()
 
-    if bbb.iprint != 0:
+    if com.iprint != 0:
         print(' Reading grid data from {}.hdf5'.format(fname))
     read_gridpars(fname)
     gchange('RZ_grid_info')
@@ -94,27 +94,10 @@ def read_gridue(fname=None):
         grd.zplate2 = _grd['zplate2'][()]
     except:
         pass
-    try:
-        com.rmagx = _com['rmagx'][()]
-    except:
-        pass
-    try:
-        com.zmagx = _com['zmagx'][()]
-    except:
-        pass
-    try:
-        com.simagxs = _com['simagxs'][()]
-    except:
-        pass
-    try:
-        com.sibdrys = _com['sibdrys'][()]
-    except:
-        pass
     gridue.close()
-    if bbb.iprint != 0:
+    if com.iprint != 0:
         print(' Grid data read successfully:')
-        print('     file name:   {}{}'.format(fname, 
-            '.hdf5'*('.hdf5' not in fname)))
+        print('     file name:   {}.hdf5'.format(fname))
         print('     run-ID:      {}'.format(com.runid[0].decode('UTF-8')))
 
 def write_gridue(fname=None, runid=None):
@@ -162,14 +145,6 @@ def write_gridue(fname=None, runid=None):
     
     # Store extra data, such as limiter and plate data
     try:
-        _com.create_dataset('rmagx', data=com.simagxs)
-    except:
-        pass
-    try:
-        _com.create_dataset('zmagx', data=com.simagxs)
-    except:
-        pass
-    try:
         _com.create_dataset('simagxs', data=com.simagxs)
     except:
         pass
@@ -198,7 +173,7 @@ def write_gridue(fname=None, runid=None):
      
 
     gridue.close()
-    if bbb.iprint != 0:
+    if com.iprint != 0:
         print(' Wrote grid file successfully:')
         print('     file name:   {}'.format(fname.strip()))
         print('     run-ID:      {}'.format(runid.strip()))
