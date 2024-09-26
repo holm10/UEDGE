@@ -396,10 +396,8 @@ class UeRun():
         n_stor=0, storedist='lin', numrevjmax=2, numfwdjmax=1, numtotjmax=0, 
         tstor=(1e-3, 4e-2), ismfnkauto=True, dtmfnk3=5e-4, mult_dt=3.4, 
         reset=True, initjac=True, rdtphidtr=1e20, deldt_min=0.04, rlx=0.9,
-
         tsnapshot=None, savedir='../solutions', ii2increase=0, savefname=None,
         message=None):
-
 
         ''' Converges the case by increasing dt 
         dtreal : float [1e-9]
@@ -711,7 +709,6 @@ class UeRun():
                     # Take timestep and see if abort requested
 
                     self.message("Inner iteration #{}".format(ii2+1), nseparator=0, 
-
                         separator='')
                     if message is not None:
                         print(message)

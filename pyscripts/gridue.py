@@ -36,6 +36,14 @@ def read_gridpars(fname=None):
         com.iysptrx2[0] = com.iysptrx1[0]
         com.ixlb[0] = 0
         com.ixrb[0] = com.nxm
+    try:
+        com.simagxs = _com['simagxs'][()]
+    except:
+        pass
+    try:
+        com.sibdrys = _com['sibdrys'][()]
+    except:
+        pass
     gridue.close()
         
     
@@ -193,5 +201,5 @@ def write_gridue(fname=None, runid=None):
     gridue.close()
     if bbb.iprint != 0:
         print(' Wrote grid file successfully:')
-        print('     file name:   {}.hdf5'.format(fname))
-        print('     run-ID:      {}'.format(runid))
+        print('     file name:   {}'.format(fname.strip()))
+        print('     run-ID:      {}'.format(runid.strip()))
