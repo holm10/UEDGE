@@ -2223,8 +2223,8 @@ psorbgg(0:nx+1,0:ny+1,1:ngsp) _real  [part/s]  # diag artific neut backg source
 psorbgz(0:nx+1,0:ny+1)        _real  [part/s]  # diag artific impur backg source
 erliz(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for ioniz'n
 edisse(0:nx+1,0:ny+1)         _real  [J/s]     # Elec E loss due to mol interactions
-emolia(0:nx+1,0:ny+1)         _real  [J/s]     # i/a E change due to mol interactions
-eiamoldiss(0:nx+1,0:ny+1)     _real  [J/s]     # i/a enegy density incr, mol diss
+emolia(0:nx+1,0:ny+1,1:nisp)  _real  [J/s]     # i/a E change due to mol interactions
+eiamoldiss(0:nx+1,0:ny+1,1:nisp)    _real  [J/s]     # i/a enegy density incr, mol diss
 erlrc(0:nx+1,0:ny+1)          _real  [J/s]     # H rad'n loss for recom'n
 vsoreec(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ctr tot elec vol eng source
 vsoree(0:nx+1,0:ny+1)	      _real  [J/s]     # cell ave tot elec vol eng source
@@ -2242,6 +2242,20 @@ seec(0:nx+1,0:ny+1)           _real
 seev(0:nx+1,0:ny+1)           _real
 seic(0:nx+1,0:ny+1)           _real
 seiv(0:nx+1,0:ny+1)           _real
+seik(0:nx+1,0:ny+1)           _real +work   # Kinetic energy source from recom.
+                                            # and ioniz. (ions)
+seid(0:nx+1,0:ny+1)           _real +work   # Kinetic energy source from 
+                                            # dissociation (ions)
+seidh(0:nx+1,0:ny+1)          _real +work   # Drift heating (ions)
+seit(0:nx+1,0:ny+1)           _real +work   # Internal energy source/sink
+                                            # from ioniz and recom (ions)
+psicx(0:nx+1,0:ny+1)          _real +work   # CX rate (ions)
+seak(0:nx+1,0:ny+1)           _real +work   # Kinetic energy sink/source from 
+                                            # rec and CX (atoms)
+sead(0:nx+1,0:ny+1)           _real +work   # Kinetic energy source from 
+                                            # dissociation (atoms)
+seadh(0:nx+1,0:ny+1)          _real +work   # Drift heating (atoms)
+
 segc(0:nx+1,0:ny+1,1:ngsp)    _real [J/(sm**3)]#v_grad_P for neutral eng. eqn
 resco(0:nx+1,0:ny+1,1:nisp)   _real
 resng(0:nx+1,0:ny+1,1:ngsp)   _real
